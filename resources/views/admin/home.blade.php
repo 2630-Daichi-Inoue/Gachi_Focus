@@ -1,26 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    {{-- Dummy Navbar --}}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark w-100" style="margin:0; padding:0;">
-        <div class="w-100 d-flex justify-content-between align-items-center px-3">
-            <a class="navbar-brand" href="#">dummy</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDummy">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarDummy">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('admin.users.index') }}">Users</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reservations.index') }}">Reservations</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('admin.spaces.index') }}">Spaces</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container-fluid mt-4 px-0">
+    <div class="container mt-5 px-0">
         <h1 class="px-3">Admin Home Page</h1>
 
         <div class="row gx-3">
@@ -219,18 +200,6 @@
     </script>
 
     <style>
-        body,
-        html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-        }
-
-        .container-fluid {
-            padding-left: 0;
-            padding-right: 0;
-        }
-
         .card-header {
             padding: 0.3rem 0.7rem;
         }

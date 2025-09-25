@@ -1,14 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\HomeController;
-use App\Http\Controllers\Admin\ReservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\Admin\ReservationController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
 
 // Admin
 Route::prefix('admin')->name('admin.')->group(function(){
@@ -18,3 +20,4 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::resource('spaces', App\Http\Controllers\Admin\SpaceController::class);
 });
+
