@@ -90,12 +90,15 @@
             </div>
         </div>
     </div>
+@endsection
 
+@section('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-home.css') }}">
+@endsection
+
+@section('scripts')
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctx = document.getElementById('salesChart').getContext('2d');
-
         const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -116,118 +119,8 @@
                 regions: {!! json_encode($salesByRegionWeek) !!}
             }
         };
-
-        const regionColors = {
-            JPN: 'rgba(192, 57, 43, 0.7)',
-            PHL: 'rgba(255, 170, 0, 0.7)',
-            AUS: 'rgba(39, 174, 96, 0.7)',
-            USA: 'rgba(41, 128, 185, 0.7)'
-        };
-
-        let views = ['year', 'month', 'week'];
-        let index = 0;
-        let currentView = views[index];
-
-        function buildDatasets(view) {
-            let datasets = [{
-                type: 'line',
-                label: 'Total Sales ($)',
-                data: salesDataSets[view].total,
-                borderColor: 'rgba(44, 62, 80, 0.9)',
-                backgroundColor: 'rgba(44, 62, 80, 0.15)',
-                tension: 0.3,
-                yAxisID: 'y'
-            }];
-
-            Object.keys(salesDataSets[view].regions).forEach(region => {
-                datasets.push({
-                    type: 'bar',
-                    label: region,
-                    data: Object.values(salesDataSets[view].regions[region]),
-                    backgroundColor: regionColors[region],
-                    yAxisID: 'y1'
-                });
-            });
-
-            return {
-                labels: salesDataSets[view].labels,
-                datasets
-            };
-        }
-
-        let chart = new Chart(ctx, {
-            data: buildDatasets(currentView),
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        position: 'left'
-                    },
-                    y1: {
-                        beginAtZero: true,
-                        position: 'right',
-                        grid: {
-                            drawOnChartArea: false
-                        }
-                    }
-                }
-            }
-        });
-
-        function updateChart() {
-            currentView = views[index];
-            document.getElementById('chartMode').innerText =
-                currentView.charAt(0).toUpperCase() + currentView.slice(1);
-            chart.data = buildDatasets(currentView);
-            chart.update();
-        }
-
-        document.getElementById('leftOverlay').addEventListener('click', () => {
-            index = (index - 1 + views.length) % views.length;
-            updateChart();
-        });
-        document.getElementById('rightOverlay').addEventListener('click', () => {
-            index = (index + 1) % views.length;
-            updateChart();
-        });
     </script>
 
-    <style>
-        .card-header {
-            padding: 0.3rem 0.7rem;
-        }
-
-        .nav-tabs .nav-link {
-            padding: 0.3rem 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            width: 10%;
-            height: 100%;
-            cursor: pointer;
-            z-index: 10;
-            color: transparent;
-            font-size: 2rem;
-            transition: color 0.2s;
-        }
-
-        .overlay:hover {
-            color: rgba(0, 0, 0, 0.6);
-        }
-
-        .arrow {
-            font-weight: bold;
-            font-size: 2.5rem;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('js/admin-home.js') }}"></script>
 @endsection

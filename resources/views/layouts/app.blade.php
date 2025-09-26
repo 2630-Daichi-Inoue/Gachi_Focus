@@ -23,6 +23,8 @@
 
     <!-- css -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    @yield('styles')
 </head>
 <style>
     body {
@@ -110,6 +112,8 @@
             @yield('content')
         </main>
     </div>
+
+    @yield('scripts')
 </body>
 
 </html>
