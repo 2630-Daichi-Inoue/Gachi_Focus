@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
         USA: 'rgba(41, 128, 185, 0.7)'
     };
 
-
+    
     let views = ['year', 'month', 'week'];
     let index = 0;
     let currentView = views[index];
