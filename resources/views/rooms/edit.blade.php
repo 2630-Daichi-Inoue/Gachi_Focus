@@ -2,126 +2,173 @@
 @extends('layout.app')
 
 @section('content')
-@php
-  $types = $types ?? [];
-  $fac   = $facilities ?? [];
-@endphp
+<body class="relative min-h-screen">
 
-<div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 py-8">
-  <div>
-    <img src="/img/room-b.jpg" class="rounded-xl shadow">
-  </div>
+  {{-- background temp --}}
+  <div class="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
+       style="background-image: url('{{ asset('images/room-temp.jpg') }}')"></div>
 
-  <div
-    x-data="reservationForm({
-      types: @js($types),
-      fac: @js($fac),
-      initType: @js($reservation->type),
-      initDate: @js($reservation->date),
-      initStart: @js($reservation->start_time),
-      initEnd: @js($reservation->end_time),
-      initAdults: @js($reservation->adults),
-      initFacilities: @js($reservation->facilities ?? []),
-    })"
-    x-init="init()"
-    class="bg-white rounded-xl shadow p-6 space-y-5"
-  >
-    <form method="POST" action="{{ route('reservations.update', $reservation) }}" class="space-y-4">
-      @csrf
-      @method('PUT')
+  {{-- contents --}}
+  <div class="relative z-10 max-w-6xl mx-auto ">
+    <div class="grid grid-cols-1 lg:grid-cols-2 items-stretch">
 
-      {{-- Type --}}
-      <label class="block text-sm font-medium">Type</label>
-      <select name="type" x-model="type"
-              class="w-full rounded border-gray-300">
-        @foreach($types as $k => $t)
-          <option value="{{ $k }}">Type {{ $k }} ({{ $t['price_per_hour'] }}$/h)</option>
-        @endforeach
-      </select>
-      @error('type') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-
-      {{-- Date --}}
-      <label class="block text-sm font-medium mt-3">Date</label>
-      <input type="date" name="date" x-model="date" class="w-full rounded border-gray-300">
-      @error('date') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-
-      {{-- Time --}}
-      <div class="grid grid-cols-2 gap-3 mt-3">
-        <div>
-          <label class="block text-sm font-medium">From</label>
-          <select name="start_time" x-model="start" class="w-full rounded border-gray-300">
-            @foreach(\Carbon\CarbonPeriod::create($open, $slot.' minutes', \Carbon\Carbon::parse($close)->subMinutes($slot)) as $t)
-              <option value="{{ $t->format('H:i') }}">{{ $t->format('H:i') }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium">To</label>
-          <select name="end_time" x-model="end" class="w-full rounded border-gray-300">
-            @foreach(\Carbon\CarbonPeriod::create(\Carbon\Carbon::parse($open)->addMinutes($slot), $slot.' minutes', $close) as $t)
-              <option value="{{ $t->format('H:i') }}">{{ $t->format('H:i') }}</option>
-            @endforeach
-          </select>
+      {{-- left column：Room picture --}}
+      <div class="relative overflow-hidden shadow-lg">
+        <img src="{{ asset('images/room-b.jpg') }}" alt="{{ $room->name }}" class="w-full h-full object-cover">
+        <div class="absolute top-4 left-4 text-white/95 drop-shadow-lg">
+          <div class="text-5xl font-extrabold">{{ $room->name }}</div>
         </div>
       </div>
-      @error('start_time') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
-      @error('end_time')   <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
 
-      {{-- Adults --}}
-      <label class="block text-sm font-medium mt-3">Adults</label>
-      <input type="number" min="1" max="20" name="adults" x-model.number="adults"
-             class="w-full rounded border-gray-300">
-      @error('adults') <p class="text-red-600 text-sm">{{ $message }}</p> @enderror
+      {{-- right column：form --}}
+      <div class="bg-white/90 shadow-xl p-8 flex flex-col">
+        <form method="POST" action="{{ route('reservations.update', $reservation) }}"
+              class="w-full max-w-2xl space-y-8">
+          @csrf
+          @method('PUT')
 
-      {{-- Facilities --}}
-      <label class="block text-sm font-medium mt-3">Facilities</label>
-      <select multiple name="facilities[]"
-              x-model="facilities"
-              class="w-full rounded border-gray-300 h-24">
-        @foreach($facilities as $k => $f)
-          <option value="{{ $k }}">{{ $f['label'] }} {{ $f['price'] ? '(+$'.$f['price'].')' : '' }}</option>
-        @endforeach
-      </select>
+          {{-- Section title --}}
+          <h2 class="text-3xl lg:text-4xl font-semibold text-gray-900">
+            Edit {{ $room->name }} Reservation
+          </h2>
 
-      {{-- 合計表示 --}}
-      <div class="flex items-center justify-between mt-4 text-lg">
-        <span class="font-semibold">Total</span>
-        <span class="font-bold" x-text="`$${total.toFixed(2)}`"></span>
+          {{-- Type --}}
+          <div>
+            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Type</label>
+            <select name="type"
+                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                    required>
+              <option value="" disabled {{ old('type', $currentTypeLabel) ? '' : 'selected' }}>Select type</option>
+              @foreach($room->types as $t)
+                <option value="{{ $t }}" {{ old('type', $currentTypeLabel) === $t ? 'selected' : '' }}>
+                  {{ $t }}
+                </option>
+              @endforeach
+            </select>
+            @error('type') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+          </div>
+
+          {{-- Date --}}
+          <div>
+            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Date</label>
+            <input type="date" name="date"
+                   value="{{ old('date', \Illuminate\Support\Carbon::parse($reservation->date)->toDateString()) }}"
+                   class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                   required>
+            @error('date') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+          </div>
+
+          {{-- Time (From / To) --}}
+            @php
+            // open time
+            $open  = '09:00';
+            $close = '21:00';
+            $slot  = 30; // minutes
+
+            $startOld = old('start_time', \Illuminate\Support\Carbon::parse($reservation->start_time ?? '09:00')->format('H:i'));
+            $endOld   = old('end_time',   \Illuminate\Support\Carbon::parse($reservation->end_time   ?? '09:30')->format('H:i'));
+
+            // From/open To /close
+            $fromPeriod = \Carbon\CarbonPeriod::create(
+                \Carbon\Carbon::parse($open),
+                $slot.' minutes',
+                \Carbon\Carbon::parse($close)->subMinutes($slot)
+            );
+            $toPeriod = \Carbon\CarbonPeriod::create(
+                \Carbon\Carbon::parse($open)->addMinutes($slot),
+                $slot.' minutes',
+                \Carbon\Carbon::parse($close)
+            );
+            @endphp
+
+            <div class="grid grid-cols-2 gap-8">
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+                Time (From)
+                </label>
+                <select name="start_time"
+                        class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                        required>
+                <option value="" disabled {{ $startOld ? '' : 'selected' }}>Select time</option>
+                @foreach($fromPeriod as $t)
+                    @php $val = $t->format('H:i'); @endphp
+                    <option value="{{ $val }}" {{ $startOld === $val ? 'selected' : '' }}>
+                    {{ $val }}
+                    </option>
+                @endforeach
+                </select>
+                @error('start_time') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+                Time (To)
+                </label>
+                <select name="end_time"
+                        class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                        required>
+                <option value="" disabled {{ $endOld ? '' : 'selected' }}>Select time</option>
+                @foreach($toPeriod as $t)
+                    @php $val = $t->format('H:i'); @endphp
+                    <option value="{{ $val }}" {{ $endOld === $val ? 'selected' : '' }}>
+                    {{ $val }}
+                    </option>
+                @endforeach
+                </select>
+                @error('end_time') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+            </div>
+            </div>
+
+
+          {{-- Adults --}}
+          <div>
+            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Adults</label>
+            <select name="adults"
+                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                    required>
+              @for($i=1; $i <= $room->max_adults; $i++)
+                <option value="{{ $i }}" {{ (int)old('adults', $reservation->adults) === $i ? 'selected' : '' }}>
+                  {{ $i }}
+                </option>
+              @endfor
+            </select>
+            @error('adults') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+          </div>
+
+          {{-- Facilities (checkboxes) --}}
+          <div>
+            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">Facilities</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+              @php
+                $checked = old('facilities', $reservation->facilities ?? []);
+                $checked = is_array($checked) ? $checked : [];
+              @endphp
+              @foreach($room->facilities as $f)
+                <label class="flex items-center gap-3 text-gray-900">
+                  <input type="checkbox"
+                         name="facilities[]"
+                         value="{{ $f }}"
+                         {{ in_array($f, $checked, true) ? 'checked' : '' }}
+                         class="h-4 w-4 rounded-sm border-gray-400 text-neutral-900 focus:ring-neutral-900">
+                  <span>{{ $f }}</span>
+                </label>
+              @endforeach
+            </div>
+            @error('facilities') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+          </div>
+
+          {{-- Submit button --}}
+          <div class="pt-2">
+            <button type="submit"
+                    class="w-full h-12 rounded-md bg-neutral-900 text-white text-lg font-semibold tracking-wide hover:bg-black transition-colors">
+              Save Changes
+            </button>
+          </div>
+
+        </form>
       </div>
 
-      <button type="submit"
-        class="w-full py-3 rounded-lg bg-indigo-600 text-white font-semibold mt-2">
-        Change
-      </button>
-    </form>
+    </div>
   </div>
-</div>
-
-{{-- Alpine --}}
-<script>
-function reservationForm({types, fac, initType, initDate, initStart, initEnd, initAdults, initFacilities}) {
-  return {
-    types, fac,
-    type: initType, date: initDate, start: initStart, end: initEnd,
-    adults: Number(initAdults || 1),
-    facilities: initFacilities || [],
-    total: 0,
-    init(){ this.calc(); this.$watch('type', ()=>this.calc());
-            this.$watch('start', ()=>this.calc()); this.$watch('end', ()=>this.calc());
-            this.$watch('adults', ()=>this.calc()); this.$watch('facilities', ()=>this.calc()); },
-    hours(){
-      const [sH,sM] = this.start.split(':').map(Number);
-      const [eH,eM] = this.end.split(':').map(Number);
-      const h = (eH*60+eM - (sH*60+sM)) / 60;
-      return Math.max(0, h);
-    },
-    calc(){
-      const basePerH = this.types[this.type]?.price_per_hour ?? 0;
-      const base = basePerH * this.hours();
-      const facSum = (this.facilities||[]).reduce((sum,k)=> sum + (this.fac[k]?.price ?? 0), 0);
-      this.total = (base + facSum) * Math.max(1, Number(this.adults||1));
-    }
-  }
-}
-</script>
+</body>
 @endsection

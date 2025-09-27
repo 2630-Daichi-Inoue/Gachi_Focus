@@ -54,20 +54,60 @@
         </div>
 
         {{-- Time (From / To) --}}
-        <div class="grid grid-cols-2 gap-8">
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (From)</label>
-            <input type="time" name="time_from"
-                  class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                  required>
+          @php
+            // open time
+            $open = '09:00';
+            $close = '21:00';
+            $slot = 30; // minutes
+
+            $fromPeriod = \Carbon\CarbonPeriod::create(
+                \Carbon\Carbon::parse($open),
+                $slot.' minutes',
+                \Carbon\Carbon::parse($close)->subMinutes($slot) 
+            );
+            $toPeriod = \Carbon\CarbonPeriod::create(
+                \Carbon\Carbon::parse($open)->addMinutes($slot),
+                $slot.' minutes',
+                \Carbon\Carbon::parse($close)                    // close 
+            );
+          @endphp
+
+          <div class="grid grid-cols-2 gap-8">
+            <div>
+              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+                Time (From)
+              </label>
+              <select name="time_from"
+                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                      required>
+                <option value="" disabled {{ old('time_from') ? '' : 'selected' }}>Select time</option>
+                @foreach($fromPeriod as $t)
+                  @php $val = $t->format('H:i'); @endphp
+                  <option value="{{ $val }}" {{ old('time_from') === $val ? 'selected' : '' }}>
+                    {{ $val }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">
+                Time (To)
+              </label>
+              <select name="time_to"
+                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
+                      required>
+                <option value="" disabled {{ old('time_to') ? '' : 'selected' }}>Select time</option>
+                @foreach($toPeriod as $t)
+                  @php $val = $t->format('H:i'); @endphp
+                  <option value="{{ $val }}" {{ old('time_to') === $val ? 'selected' : '' }}>
+                    {{ $val }}
+                  </option>
+                @endforeach
+              </select>
+            </div>
           </div>
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (To)</label>
-            <input type="time" name="time_to"
-                  class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                  required>
-          </div>
-        </div>
+
 
         {{-- Adults --}}
         <div>
