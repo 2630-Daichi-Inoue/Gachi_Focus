@@ -25,7 +25,7 @@
                         {{ $reservation->start_time }} - {{ $reservation->end_time }}
                     </dd>
 
-                    <dt class="text-gray-500">Adults</dt>
+                    <dt class="text-gray-500">Adultss</dt>
                     <dd class="col-span-2">{{ $reservation->adults }}</dd>
 
                     <dt class="text-gray-500">Facilities</dt>
