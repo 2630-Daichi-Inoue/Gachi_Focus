@@ -162,6 +162,18 @@ class ReservationController extends Controller
                          ->with('status', 'Reservation updated.');
     }
 
+
+    // delete
+    public function destroy(Reservation $reservation)
+    {
+        $reservation->delete();
+
+        return redirect()->route('reservations.index')
+                        ->with('success', 'Reservation cancelled successfully.');
+                        // connect to the reservation show page(rio)
+    }
+
+
     /** cal */
     private function calcTotal(string $type, string $start, string $end, int $adults, array $fac): float
     {
