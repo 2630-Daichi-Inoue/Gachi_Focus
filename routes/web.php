@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReservationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ReservationController;
@@ -39,7 +40,6 @@ Route::resource('reservations', ReservationController::class)
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
-
 // Profile Page
 Route::middleware('auth')->group(function (){
     // PROFILE
@@ -51,3 +51,4 @@ Route::middleware('auth')->group(function (){
     Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 });
+
