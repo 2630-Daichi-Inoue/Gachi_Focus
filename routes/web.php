@@ -3,13 +3,15 @@
 use App\Http\Controllers\ReservationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Admin\HomeController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\SpaceController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ProfileController;
 
 Auth::routes();
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 // Admin
 Route::prefix('admin')->name('admin.')->group(function(){
@@ -37,3 +39,16 @@ Route::resource('reservations', ReservationController::class)
 
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// Profile Page
+Route::middleware('auth')->group(function (){
+    // PROFILE
+    Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('profile/password/update', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    // Account delete in profile page
+    Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+});
+
