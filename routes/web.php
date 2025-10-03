@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Controllers\ReservationController;
-use Illuminate\Support\Facades\Route;
+use App\Models\User;
+use App\Models\Space;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserSpaceController;
 use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 
 Auth::routes();
@@ -32,3 +35,4 @@ Route::resource('reservations', ReservationController::class)
 // Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
 // Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
 
+Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
