@@ -40,6 +40,8 @@ Route::resource('reservations', ReservationController::class)
 // Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
 // Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
 
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // Spaces
 Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
 
