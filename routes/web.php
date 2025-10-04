@@ -1,10 +1,14 @@
 <?php
 
-use App\Http\Controllers\ReservationController;
-use Illuminate\Support\Facades\Route;
+use App\Models\User;
+use App\Models\Space;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserSpaceController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
@@ -36,8 +40,11 @@ Route::resource('reservations', ReservationController::class)
 // Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
 // Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
 
-Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+// Spaces
+Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
+
+// Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+// Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Profile Page
 Route::middleware('auth')->group(function (){
@@ -50,4 +57,3 @@ Route::middleware('auth')->group(function (){
     Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 });
-
