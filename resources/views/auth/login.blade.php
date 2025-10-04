@@ -4,10 +4,12 @@
 <div class="container bg-white">
     <div class="mx-auto my-5 p-4 rounded" style="max-width: 400px;">
 
+        <!-- logo -->
         <div class="d-flex justify-content-center align-items-center">
             <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="" height="100">
         </div>
 
+        <!-- form -->
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
@@ -51,7 +53,8 @@
                 @endif
             </div>
         </form>
-
+        
+        <!-- Register Link -->
         <div class="row">
             <button class="btn radius-3 border-dark"><a href="{{ route('register') }}" class="text-decoration-none text-dark">Register now!</a></button>
         </div>
