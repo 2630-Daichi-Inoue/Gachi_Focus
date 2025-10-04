@@ -5,3 +5,36 @@
     border-radius: 5px;
     padding: 10px 20px;
 }
+
+/* profile image and icon */
+.image-lg{
+    width: 7rem;
+    height: 7rem;
+    object-fit: cover;
+}
+
+.icon-lg{
+    font-size: 7rem;
+}
+
+/* button */
+.btn-color{
+    background-color: #757B9D;
+}
+
+.btn-color2{
+    background-color: #C9DFEC;
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.btn-width{
+    width: 30%;
+    margin-right: 46px;
+}
+
+.btn-modal-color{
+    border: 1px solid #504A4A;
+}
