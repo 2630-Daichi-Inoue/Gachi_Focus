@@ -3,22 +3,27 @@
 @section('title', 'Admin: Users')
 
 @section('content')
+    <h2>User list</h2>
     <form method="GET" action="{{ route('admin.users') }}" id="searchForm">
-        <div class="row mb-2">
+        <div class="row align-items-end g-2 mb-2">
 
             <!-- Name -->
-            <div class="col-md-4 mb-2">
-                <input type="search"
-                        name="name"
-                        id="name"
-                        class="form-control form-control-sm border border-dark"
-                        placeholder="Search by name"
-                        value="{{ request('name') }}">
-
+            <div class="col-md-2">
+                <label for="name" class="form-label mb-1 small text-muted">Name</label>
+                <div class="position-relative">
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
+                    <input type="search"
+                            name="name"
+                            id="name"
+                            class="form-control form-control-sm border border-dark ps-4"
+                            placeholder="Search by name"
+                            value="{{ request('name') }}">
+                </div>
             </div>
 
             <!-- Status (instant apply) -->
             <div class="col-md-2">
+                <label for="status" class="form-label mb-1 small text-muted">Status</label>
                 @php
                     $status = request('status', 'all');
                 @endphp
@@ -31,16 +36,16 @@
                 </select>
             </div>
 
-            <div class="col-md-5 d-flex gap-2 justify-content-end">
+            <div class="col-md-4 d-flex gap-2 justify-content-end">
                 <!-- Clear button -->
                 <a href="{{ route('admin.users') }}"
-                class="btn btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25">
+                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25">
                     Clear filters
                 </a>
 
                 <!-- Submit button-->
                 <button type="submit"
-                        class="border border-dark rounded px-3 py-1 text-white fw-bold w-25"
+                        class="btn btn-sm border border-dark rounded px-3 py-1 text-white fw-bold w-25"
                         style="background-color: #757B9D; letter-spacing: 0.15em;">
                     Search
                 </button>
@@ -105,9 +110,19 @@
     </table>
 
     <!-- footer: rows per page (instant) + pagination -->
-    <div class="row align-items center">
+    <div class="row align-items-center">
         <div class="col-md-6">
-            <form id="rowsPerPageForm" method="GET" action="{{ route('admin.users') }}" class="d-flex align-items center gap-2">
+            @if ($all_users->isNotEmpty())
+                <p class="mb-0">
+                    Showing {{ $all_users->firstItem() }} - {{ $all_users->lastItem()}} of {{ $all_users->total() }}
+                </p>
+            @endif
+        </div>
+        <div class="col-md-4">
+            <form id="rowsPerPageForm"
+                    method="GET"
+                    action="{{ route('admin.users') }}"
+                    class="d-flex align-items center gap-2 justify-content-end">
                 <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                 @php
                     $per = (int)request('rows_per_page', 20);
@@ -126,7 +141,7 @@
             </form>
         </div>
 
-        <div class="com-md-6 d-flex justify-content-end">
+        <div class="col-md-2 d-flex justify-content-end">
             {{ $all_users->withQueryString()->links() }}
         </div>
     </div>
@@ -139,7 +154,7 @@
 
             const perSel = document.getElementById('rows_per_page');
             const perForm = document.getElementById('rowsPerPageForm');
-            persel?.addEventListener('change', () => perForm?.submit());
+            perSel?.addEventListener('change', () => perForm?.submit());
         });
     </script>
 @endsection

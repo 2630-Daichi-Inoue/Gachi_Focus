@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('space_id');
+            $table->unsignedBigInteger('user_id')->constrained()->cascadeOnDelete();;
+            $table->unsignedBigInteger('space_id')->constrained()->cascadeOnDelete();;
             $table->string('status');
             $table->datetime('start_time');
             $table->datetime('end_time');

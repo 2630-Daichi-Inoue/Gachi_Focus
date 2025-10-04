@@ -17,17 +17,16 @@ class UsersController extends Controller
 
     public function index(Request $request)
     {
-        #1. validate filter inputs
         $request->validate([
             'name' => 'nullable|string|max:50',
-            'status' => 'nullable|in:all, active, banned',
-
+            'status' => 'nullable|in:all,active,banned',
+            'rows_per_page' => 'nullable|integer|in:20,50,100',
         ]);
 
-        $q = \APP\Models\User::query()->withTrashed();
+        $q = \App\Models\User::query()->withTrashed();
 
         if($name = trim($request->input('name', ''))) {
-            $q->where('name', 'like', "%{name}%");
+            $q->where('name', 'like', "%{$name}%");
         }
 
         switch($request->input('status', 'all')) {
@@ -35,7 +34,7 @@ class UsersController extends Controller
                 'active':$q->whereNull('deleted_at');
                 break;
             case
-                'banned':$q->whereNull('deleted_at');
+                'banned':$q->whereNotNull('deleted_at');
                 break;
         }
 

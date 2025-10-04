@@ -12,7 +12,7 @@ use App\Http\Controllers\FollowController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\PostsController;
 use App\Http\Controllers\Admin\SpacesController;
-
+use App\Http\Controllers\Admin\ReservationsController;
 
 Auth::routes();
 # check if the user logged in
@@ -43,6 +43,9 @@ Route::group(['middleware' => 'auth'], function(){
         Route::get('/users', [UsersController::class,'index'])->name('users');
         Route::delete('/users/{id}/deactivate', [UsersController::class,'deactivate'])->name('users.deactivate');
         Route::patch('/users/{id}/activate', [UsersController::class,'activate'])->name('users.activate');
+
+        # RESERVATION
+        Route::get('/reservations', [ReservationsController::class,'index'])->name('reservations');
 
         # POST
         Route::get('/posts/create', [PostsController::class, 'register'])->name('posts');

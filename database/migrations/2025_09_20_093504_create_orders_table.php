@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('reservation_id');
-            $table->unsignedBigInteger('facility_id');
+            $table->unsignedBigInteger('reservation_id')->constrained()->cascadeOnDelete();;
+            $table->unsignedBigInteger('facility_id')->constrained()->cascadeOnDelete();;
             $table->unsignedBigInteger('quantity');
             $table->timestamps();
             $table->softDeletes();

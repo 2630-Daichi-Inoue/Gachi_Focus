@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('reservation_id');
+            $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();;
             $table->string('method');
             $table->string('status');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('reservation_id')->references('id')->on('reservations');
+            $table->unique('reservation_id');
         });
     }
 

@@ -154,19 +154,19 @@
     const sort = document.getElementById('sort');
     if (!form || !sort) return;
 
-    sort.addEventListener('change', () => {
-        // Reset pagination to page 1
-        let page = form.querySelector('input[name="page"]');
-        if (!page) {
-        page = document.createElement('input');
-        page.type = 'hidden';
-        page.name = 'page';
-        form.appendChild(page);
-        }
-        page.value = 1;
+        sort.addEventListener('change', () => {
+            // Reset pagination to page 1
+            let page = form.querySelector('input[name="page"]');
+            if (!page) {
+            page = document.createElement('input');
+            page.type = 'hidden';
+            page.name = 'page';
+            form.appendChild(page);
+            }
+            page.value = 1;
 
-        form.submit();
-    });
+            form.submit();
+        });
     });
     </script>
 

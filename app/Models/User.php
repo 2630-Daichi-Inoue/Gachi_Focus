@@ -51,34 +51,18 @@ class User extends Authenticatable
         ];
     }
 
-    # USER - POST 
-    # a user can have many posts
-    public function posts()
+    # user - reservation
+    # a user can have many reservations
+    public function reservations()
     {
-        return $this->hasMany(Post::class);     
+        return $this->hasMany(Reservation::class);     
     }
 
-    # USER - FOLLOW
-    # a user has many followers
-    public function followers()
+    # user - review
+    # a user can have many reviews
+    public function reviews()
     {
-        return $this->hasMany(Follow::class, 'following_id');
+        return $this->hasMany(Review::class);     
     }
 
-    # USER - FOLLOW
-    # a user follows many other users
-    # to get all the users that the user is following
-    public function following()
-    {
-        return $this->hasMany(Follow::class,'follower_id');
-    }
-
-    # return TRUE if the user is following the given user
-    public function isFollowed()
-    {
-        return $this->followers()->where('follower_id', Auth::user()->id)->exists();
-        // $this->followers() - get all the followers of the user
-        // ->where('follower_id', Auth::user()->id) - check if the follower_id of the follower is the same as the logged in user
-        // ->exists() - check if there is any follower with the follower_id of the logged in user
-    }
 }

@@ -9,12 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Space extends Model
 {
     use SoftDeletes;
-    
-    # space - category
-    # a space has many categories
-    // public function categories() {
-    //     return $this->hasMany(Category::class);
-    // }
 
     # space - categoryspace
     # a space has many categories
