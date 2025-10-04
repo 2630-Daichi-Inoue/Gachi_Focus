@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
 {
@@ -23,6 +23,13 @@ class RegisterController extends Controller
     */
 
     use RegistersUsers;
+
+    /**
+     * Where to redirect users after registration.
+     *
+     * @var string
+     */
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -57,11 +64,27 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        // save a user to the database
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+
+        // the information inside this array will be used in email
+        $details = [
+            'name' => $user->name,
+            'app_url' => config('app.url')
+        ];
+
+        // send the email to the user
+        // Mail::send('users.emails.welcome', $details, function($message) use ($user){
+        //     $message->from(config('mail.from.address'), config('app.name'))
+        //                 ->to($user->email, $user->name) //registered user
+        //                 ->subject('Welcome to Insta App!');
+        // });
+
+        return $user;
     }
 
     // **
