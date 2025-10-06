@@ -17,10 +17,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('space_id')->constrained()->onDelete('cascade');
-            $table->decimal('price', 8, 2);
-            $table->timestamp('start_time')->nullable();
-            $table->timestamp('end_time')->nullable();
+            $table->string('status');
+            $table->timestamp('start_time');
+            $table->timestamp('end_time');
+            $table->decimal('total_price', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -1,16 +1,26 @@
 <?php
 
+
 namespace App\Models;
+
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+
+    const ADMIN_ROLE_ID = 1;
+    const USER_ROLE_ID = 2;
+
 
     /**
      * The attributes that are mass assignable.
@@ -21,9 +31,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'country',
-        'phone',
     ];
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -34,6 +43,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
 
     /**
      * Get the attributes that should be cast.
@@ -47,4 +57,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+
+    # user - reservation
+    # a user can have many reservations
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);    
+    }
+
+
+    # user - review
+    # a user can have many reviews
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);    
+    }
+
+
 }
