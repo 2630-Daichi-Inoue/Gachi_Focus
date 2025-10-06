@@ -7,7 +7,6 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 
 class RegisterController extends Controller
 {
@@ -29,7 +28,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/';
+    protected $redirectTo = '/home';
 
     /**
      * Create a new controller instance.
@@ -64,38 +63,10 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        // save a user to the database
-        $user = User::create([
+        return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
-
-        // the information inside this array will be used in email
-        $details = [
-            'name' => $user->name,
-            'app_url' => config('app.url')
-        ];
-
-        // send the email to the user
-        // Mail::send('users.emails.welcome', $details, function($message) use ($user){
-        //     $message->from(config('mail.from.address'), config('app.name'))
-        //                 ->to($user->email, $user->name) //registered user
-        //                 ->subject('Welcome to Insta App!');
-        // });
-
-        return $user;
-    }
-
-    // **
-    // * After registration, the user redirects login page.
-    // *
-    // Log the user out after registration
-    protected function registered(Request $request, $user){
-    
-    $this->guard()->logout();
-
-    // Redirect to login page
-    return redirect()->route('login');
     }
 }

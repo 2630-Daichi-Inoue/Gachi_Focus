@@ -1,20 +1,25 @@
 <?php
 
+
 namespace App\Http\Controllers\Admin;
+
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Payment;
 
+
 class ReservationsController extends Controller
 {
     private $reservation;
+
 
     public function __construct(Reservation $reservation)
     {
         $this->reservation = $reservation;
     }
+
 
     public function index(Request $request)
     {
@@ -23,8 +28,8 @@ class ReservationsController extends Controller
         $paymentKeys = array_keys(Reservation::PAYMENT_MAP);
 
         $request->validate([
-            'name' => ['nullable','string','max:50'],
-            'space' => ['nullable','string','max:50'],
+            'user_name' => ['nullable','string','max:50'],
+            'space_name' => ['nullable','string','max:50'],
             'date_from' => ['nullable','date'],
             'date_to'   => ['nullable','date','after_or_equal:date_from'],
             'status' => ['nullable','in:all,' . implode(',', $statusKeys)],
@@ -32,19 +37,34 @@ class ReservationsController extends Controller
             'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
-        $q = \App\Models\Reservation::query()->withTrashed();
 
-        if($name = trim($request->input('name', ''))) {
-            $q->where('name', 'like', "%{$name}%");
+        $q = Reservation::query()
+            ->with(['user','space','payment'])
+            ->withTrashed();
+        // $q = \App\Models\Reservation::query()->withTrashed();
+
+        if ($userName = trim((string)$request->input('user_name', ''))) {
+            $q->whereHas('user', fn($uq) =>
+                $uq->where('name', 'like', "%{$userName}%")
+            );
         }
 
-        if($space = trim($request->input('space', ''))) {
-            $q->where('space', 'like', "%{$space}%");
+        if ($spaceName = trim((string)$request->input('space_name', ''))) {
+            $q->whereHas('space', fn($sq) =>
+                $sq->where('name', 'like', "%{$spaceName}%")
+            );
         }
 
         $status = $request->input('status', 'all');
         if($status !== 'all') {
             $q->where('status', $status);
+        }
+
+        if ($from = $request->input('date_from')) {
+            $q->where('start_time', '>=', "{$from} 00:00:00");
+        }
+        if ($to = $request->input('date_to')) {
+            $q->where('end_time', '<=', "{$to} 23:59:59");
         }
 
         $payment = $request->input('payment', 'all');
@@ -61,19 +81,37 @@ class ReservationsController extends Controller
         return view('admin.reservations.index', compact('all_reservations'));
     }
 
-    # ban
-    public function deactivate($id)
-    {
-        $this->user->destroy($id);
+    # cancel or refund
+    public function action(Request $request, Reservation $reservation) {
+        $request->validate([
+            'action' => ['required', 'in:cancel,refund']
+        ]);
 
-        return back();
-    }
+        $reservation->load('payment');
 
-    # activate
-    public function activate($id)
-    {
-        $this->user->onlyTrashed()->findOrFail($id)->restore();
+        if ($request->action === 'cancel') {
 
+            $reservation->status = 'Cancelled';
+
+            $payStatus = optional($reservation->payment)->status;
+            if ($payStatus === 'Paid') {
+
+                if ($reservation->payment) {
+                    $reservation->payment->status = 'Refund Pending';
+                    $reservation->payment->save();
+                }
+
+            }
+            $reservation->save();
+        }
+
+        if ($request->action === 'refund') {
+            if ($reservation->payment) {
+                $reservation->payment->status = 'Refunded';
+                $reservation->payment->save();
+            }
+            $reservation->save();
+        }
         return back();
     }
 }

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('country')->nullable(); //add user's country in profile page
+            $table->string('phone')->nullable(); // add user's phonenumber in profile page
             $table->longText('avatar')->nullable();
             $table->string('password');
             $table->string('introduction')->nullable();
@@ -22,6 +24,7 @@ return new class extends Migration
                 ->default(2)
                 ->comment('1:admin 2:user');
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

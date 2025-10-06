@@ -1,6 +1,8 @@
 <?php
 
+
 namespace App\Http\Controllers\Admin;
+
 
 use Illuminate\Http\Request;
 use App\Models\Space;
@@ -8,15 +10,18 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
+
 class SpacesController extends Controller
 {
     private $space;
     private $category;
 
+
     public function __construct(Space $space, Category $category){
         $this->space = $space;
         $this->category = $category;
     }
+
 
     public function register()
     {
@@ -26,8 +31,9 @@ class SpacesController extends Controller
                 ->with('all_categories', $all_categories);
     }
 
+
     public function store(Request $request){
-        
+       
         # 1. Validate all form data
         $request->validate([
             'name' => 'required|min:1|max:50',
@@ -47,6 +53,7 @@ class SpacesController extends Controller
             'min_capacity.required' => 'The capacity field is required.'
         ]);
 
+
         # 2. Save the space
         $this->space->name = $request->name;
         $this->space->location_for_overview = $request->location_for_overview;
@@ -59,19 +66,23 @@ class SpacesController extends Controller
         $this->space->image = 'data:image/' . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
         $this->space->save();
 
+
         # 3. save the categories to category_space table
         foreach($request->category as $category_id){
             $category_space[] = ['category_id' => $category_id];
         }
         $this->space->categorySpace()->createMany($category_space);
 
+
         # 4. Go back to homepage
         return redirect()->route('index');
     }
 
+
     public function edit($id)
     {
         $space = $this->space->findOrFail($id);
+
 
         #if the auth user is NOT the owner, redirect to homepage
         // != NOT EQUAL
@@ -80,7 +91,9 @@ class SpacesController extends Controller
         //     return redirect()->route('index');
         // }
 
+
         $all_categories = $this->category->all();
+
 
         # get all category IDS of the post. save in an array
         $selected_categories = [];
@@ -90,11 +103,13 @@ class SpacesController extends Controller
             $selected_categories[] = $category_space->category_id;
         }
 
+
         return view('admin.spaces.edit')
                 ->with('space', $space)
                 ->with('all_categories', $all_categories)
                 ->with('selected_categories', $selected_categories);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -117,6 +132,7 @@ class SpacesController extends Controller
             'min_capacity.required' => 'The capacity field is required.'
         ]);
 
+
         # 2. Update the space
         $space = $this->space->findOrFail($id);
         $space->name = $request->name;
@@ -128,35 +144,41 @@ class SpacesController extends Controller
         $space->price = $request->price;
         $space->description = $request->description;
 
+
         // if the admin uploaded image
         if($request->image){
             $space->image = "data:image/" . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
         }
 
+
         $space->save();
+
 
         # 3. Delete all the recrods from category_space related to the space
         $space->categorySpace()->delete();
 
+
         # 4. save the new categories to category_space table
         foreach($request->input('category', []) as $categoryId){
-            $newCategories[] = ['category_id' => (int)$categoryID];
+            $newCategories[] = ['category_id' => (int)$categoryId];
         }
         if(!empty($newCategories)) {
             $space->categorySpace()->createMany($newCategories);
         }
+
 
         # 5, redirect to the index
         return redirect()->route('index')->with('status', 'Space updated.');
         // return redirect()->route('post.show', $id);
     }
 
+
     public function destroy($id)
     {
         $space = $this->space->findOrFail($id);
         $space->Delete();
 
+
         return redirect()->route('index')->with('status', 'Space deleted.');
     }
 }
- 

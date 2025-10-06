@@ -53,100 +53,105 @@
         </div>
     </form>
 
-    <table class="table table-hover align-middle bg-white border text-secondary">
-        <thead class="small table-success text-secondary">
-            <tr>
-                <th></th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($all_users as $user)
+    @if ($all_users->isEmpty())
+        {{-- 件数0ならメッセージだけ --}}
+        <div class="text-center">
+            <h2>No results.</h2>
+            <p class="text-secondary">Try different filters or remove them.</p>
+        </div>
+    @else
+        {{-- 件数>0ならテーブルは1つだけ --}}
+        <table class="table table-hover align-middle bg-white border text-secondary">
+            <thead class="small table-success text-secondary">
                 <tr>
-                    <td>
-                        @if ($user->avatar)
-                            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="rounded-circle d-block mx-auto avatar-md">
-                        @else
-                            <i class="fas fa-circle-user d-block mx-auto text-center icon-md"></i>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('profile.show', $user->id) }}" class="text-decoration-none text-dark">{{ $user->name }}</a>
-                    </td>
-                    <td>{{ $user->email }}</td>
-                    <td>
-                        @if ($user->trashed())
-                            <i class="fas fa-circle text-danger"></i> <span class="text-danger">Banned</span>
-                        @else
-                            <i class="fas fa-circle text-success"></i> <span class="text-success">Active</span>
-                        @endif
-                    </td>
-                    <td>
-                        @if (Auth::user()->id !== $user->id)
-                            <div class="dropdown">
-                                <button class="btn btn-sm" data-bs-toggle="dropdown"><i class="fas fa-ellipsis"></i></button>
-                                <div class="dropdown-menu">
-                                    @if ($user->trashed())
-                                        <button class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#activate-user-{{ $user->id }}">
-                                            <i class="fas fa-user-check"></i> Activate {{ $user->name }}
-                                        </button>
-                                    @else
-                                        <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deactivate-user-{{ $user->id }}">
-                                            <i class="fas fa-user-slash"></i> Deactivate {{ $user->name }}
-                                        </button>
-                                    @endif
-                                </div>
-                            </div>
-                            {{-- include modal here --}}
-                            @include('admin.users.modals.status')
-                        @endif
-                    </td>
+                    <th></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th></th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($all_users as $user)
+                    <tr>
+                        <td>
+                            @if ($user->avatar)
+                                <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="rounded-circle d-block mx-auto avatar-md">
+                            @else
+                                <i class="fas fa-circle-user d-block mx-auto text-center icon-md"></i>
+                            @endif
+                        </td>
+                        <td>
+                            <a href="{{ route('profile.show', $user->id) }}" class="text-decoration-none text-dark">
+                                {{ $user->name }}
+                            </a>
+                        </td>
+                        <td>{{ $user->email }}</td>
+                        <td>
+                            @if ($user->trashed())
+                                <i class="fas fa-circle text-danger"></i> <span class="text-danger">Banned</span>
+                            @else
+                                <i class="fas fa-circle text-success"></i> <span class="text-success">Active</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if (Auth::id() !== $user->id)
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        @if ($user->trashed())
+                                            <button class="dropdown-item text-primary" data-bs-toggle="modal" data-bs-target="#activate-user-{{ $user->id }}">
+                                                <i class="fas fa-user-check"></i> Activate {{ $user->name }}
+                                            </button>
+                                        @else
+                                            <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deactivate-user-{{ $user->id }}">
+                                                <i class="fas fa-user-slash"></i> Deactivate {{ $user->name }}
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                                {{-- モーダルは各行の直後でOK --}}
+                                @include('admin.users.modals.status')
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-    <!-- footer: rows per page (instant) + pagination -->
-    <div class="row align-items-center">
-        <div class="col-md-6">
-            @if ($all_users->isNotEmpty())
+        {{-- フッター：件数表示 + Rows per page + ページネーション --}}
+        <div class="row align-items-center">
+            <div class="col-md-6">
                 <p class="mb-0">
-                    Showing {{ $all_users->firstItem() }} - {{ $all_users->lastItem()}} of {{ $all_users->total() }}
+                    Showing {{ $all_users->firstItem() }} - {{ $all_users->lastItem() }} of {{ $all_users->total() }}
                 </p>
-            @endif
-        </div>
-        <div class="col-md-4">
-            <form id="rowsPerPageForm"
-                    method="GET"
-                    action="{{ route('admin.users') }}"
-                    class="d-flex align-items center gap-2 justify-content-end">
-                <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
-                @php
-                    $per = (int)request('rows_per_page', 20);
-                @endphp
-                <select name="rows_per_page"
-                        id="rows_per_page"
-                        class="form-select form-select-sm border-dark text-dark w-auto">
-                    <option value="20" {{ $per===20 ? 'selected' : '' }}>20</option>
-                    <option value="50" {{ $per===50 ? 'selected' : '' }}>50</option>
-                    <option value="100" {{ $per===100 ? 'selected' : '' }}>100</option>
-                </select>
+            </div>
 
-                <!-- keep current filters when changing page size -->
-                 <input type="hidden" name="name" value="{{ request('name') }}">
-                 <input type="hidden" name="status" value="{{ request('status', 'all') }}">
-            </form>
-        </div>
+            <div class="col-md-4">
+                <form id="rowsPerPageForm" method="GET" action="{{ route('admin.users') }}"
+                      class="d-flex align-items-center gap-2 justify-content-end">
+                    <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
+                    @php $per = (int) request('rows_per_page', 20); @endphp
+                    <select name="rows_per_page" id="rows_per_page"
+                            class="form-select form-select-sm border-dark text-dark w-auto">
+                        <option value="20" {{ $per===20 ? 'selected' : '' }}>20</option>
+                        <option value="50" {{ $per===50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ $per===100 ? 'selected' : '' }}>100</option>
+                    </select>
+                    {{-- 現在のフィルタを維持 --}}
+                    <input type="hidden" name="name" value="{{ request('name') }}">
+                    <input type="hidden" name="status" value="{{ request('status', 'all') }}">
+                </form>
+            </div>
 
-        <div class="col-md-2 d-flex justify-content-end">
-            {{ $all_users->withQueryString()->links() }}
+            <div class="col-md-2 d-flex justify-content-end">
+                {{ $all_users->withQueryString()->links() }}
+            </div>
         </div>
-    </div>
+    @endif
 
-    <!-- instant apply JS for statu & rows_per_page -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const statusSel = document.getElementById('status');

@@ -1,15 +1,19 @@
 <?php
 
+
 namespace App\Models;
+
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+
 class Reservation extends Model
 {
     use HasFactory, SoftDeletes;
+
 
     public const STATUS_MAP = [
         'Completed' => [
@@ -25,6 +29,7 @@ class Reservation extends Model
             'class' => 'badge bg-secondary text-white rounded-pill fw-light fs-6'
         ]
     ];
+
 
     public const PAYMENT_MAP = [
         'Paid' => [
@@ -45,17 +50,20 @@ class Reservation extends Model
         ]
     ];
 
+
     # reservation - user
     # a reservation belongs to one user
     public function user() {
         return $this->belongsTo(User::class)->withTrashed();
     }
 
+
     # reservation - space
     # a reservation belongs to one space
     public function space() {
         return $this->belongsTo(Space::class)->withTrashed();
     }
+
 
     # reservation - payment
     # a reservation has one payment
