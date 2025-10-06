@@ -1,3 +1,5 @@
+<!--　data retrieval for admin panel  -->
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;

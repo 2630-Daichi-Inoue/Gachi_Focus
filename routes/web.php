@@ -9,6 +9,18 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\PostsController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\ReservationsController;
+use App\Models\User;
+use App\Models\Space;
+use Illuminate\Support\Facades\Auth;
+
+use App\Http\Controllers\UserSpaceController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+
+use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ProfileController;
 
 Auth::routes();
 # check if the user logged in
@@ -16,8 +28,43 @@ Route::group(['middleware' => 'auth'], function(){
     # if logged in, the user will be redirected to log in page
     Route::get('/', [HomeController::class,'index'])->name('index');
     Route::get('/search', [HomeController::class, 'search'])->name('search');
+});
 
-    # PROFILE
+// Admin
+Route::prefix('admin')->name('admin.')->group(function(){
+    Route::get('/home', [App\Http\Controllers\Admin\HomeController::class, 'index'])->name('home');
+    
+    Route::resource('reservations', AdminReservationController::class);
+    Route::resource('users', UserController::class);
+    Route::resource('spaces', SpaceController::class);
+});
+
+
+Route::get('/room-b',  [ReservationController::class, 'create'])->name('rooms.reserve.form');  
+Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit'); 
+
+Route::resource('reservations', ReservationController::class)
+    ->only(['show','edit','update'])
+    ->middleware('auth');
+
+ Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
+    ->name('reservations.destroy');
+
+// Route::get('/reserve', [ReservationController::class, 'show'])   ->name('reserve.coworkingspace');
+// Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
+// Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
+
+Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+// Spaces
+Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
+
+// Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
+// Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
+// Profile Page
+Route::middleware('auth')->group(function (){
+    // PROFILE
     Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
