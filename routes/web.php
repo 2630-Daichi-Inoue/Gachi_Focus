@@ -6,7 +6,6 @@ use App\Http\Controllers\HomeController;
 
 # ADMIN
 use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Admin\PostsController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\ReservationsController;
 use App\Models\User;
