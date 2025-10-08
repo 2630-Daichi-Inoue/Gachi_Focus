@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
+use App\Models\CustomNotification;
 
 class User extends Authenticatable
 {
@@ -46,5 +48,29 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    # user - reservation
+    # a user can have many reservations
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);    
+    }
+
+
+    # user - review
+    # a user can have many reviews
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);    
+    }
+
+    /**
+     *  Override notifications relation
+     */ 
+
+    public function customNotifications()
+    {
+        return $this->hasMany(CustomNotification::class);
     }
 }
