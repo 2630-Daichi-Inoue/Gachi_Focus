@@ -64,7 +64,25 @@
                             <a href="" class="nav-link me-3">Contact</a>
 
                             <!-- notification -->
-                             <a href="" class="nav-link me-3"><i class="fa-solid fa-bell"></i></a>
+                            <li class="nav-item dropdown">
+                                <a id="notificationDropdown" href="" class="nav-link me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i></a>
+
+                                <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                    <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
+                                        @foreach($notifications as $notification)
+                                        <div class="notification-item mb-2">
+                                            <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
+                                            <p class="mb-0">{{ $notification->message }}</p>
+                                        </div>
+                                        <hr class="my-2">
+                                    @endforeach
+                                    </div>
+
+                                    <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
+                                        <a href="{{ route('notifications.index') }}" class="text-primary">see more &gt;</a>
+                                    </div>
+                                </div>
+                            </li>
 
                             <!-- user icon -->
                             <li class="nav-item dropdown">
