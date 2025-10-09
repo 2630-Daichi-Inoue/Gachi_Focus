@@ -64,12 +64,12 @@ Route::middleware('auth')->group(function (){
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'admin'], function(){
         # USER
         Route::get('/users', [UsersController::class,'index'])->name('users');
-        Route::delete('/users/{id}/deactivate', [UsersController::class,'deactivate'])->name('users.deactivate');
-        Route::patch('/users/{id}/activate', [UsersController::class,'activate'])->name('users.activate');
+        Route::delete('/users/{id}/deactivate', [UsersController::class, 'deactivate'])->name('users.deactivate');
+        Route::patch('/users/{id}/activate', [UsersController::class, 'activate'])->name('users.activate');
 
         # RESERVATION
-        Route::get('/reservations', [ReservationsController::class,'index'])->name('reservations');
-        Route::patch('/reservations/{id}/action', [ReservationsController::class,'action'])->name('reservations.action');
+        Route::get('/reservations', [ReservationsController::class, 'index'])->name('reservations');
+        Route::patch('/reservations/{id}/action', [ReservationsController::class, 'action'])->name('reservations.action');
 
         # SPACE
         Route::get('/space/register', [SpacesController::class, 'register'])->name('space.register');

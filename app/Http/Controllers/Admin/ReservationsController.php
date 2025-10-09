@@ -82,36 +82,47 @@ class ReservationsController extends Controller
     }
 
     # cancel or refund
-    public function action(Request $request, Reservation $reservation) {
+    public function action(Request $request, $id) {
         $request->validate([
             'action' => ['required', 'in:cancel,refund']
         ]);
 
-        $reservation->load('payment');
+        $reservation = Reservation::with('payment')->findOrFail($id);
+
+        // $reservation->load('payment');
 
         if ($request->action === 'cancel') {
-
+            // 予約をキャンセル状態に
             $reservation->status = 'Cancelled';
 
-            $payStatus = optional($reservation->payment)->status;
-            if ($payStatus === 'Paid') {
-
-                if ($reservation->payment) {
-                    $reservation->payment->status = 'Refund Pending';
-                    $reservation->payment->save();
-                }
-
+            // 支払いがPaidなら、返金待ち状態に変更
+            if ($reservation->payment && $reservation->payment->status === 'Paid') {
+                $reservation->payment->status = 'Refund Pending';
+                $reservation->payment->save();
             }
+
             $reservation->save();
+            return back()->with('ok', '予約をキャンセルしました。');
         }
 
         if ($request->action === 'refund') {
-            if ($reservation->payment) {
-                $reservation->payment->status = 'Refunded';
-                $reservation->payment->save();
+            if (!$reservation->payment) {
+                return back()->with('error', 'この予約には支払い情報がありません。');
             }
-            $reservation->save();
+
+            // 支払いを返金済みに変更
+            $reservation->payment->status = 'Refunded';
+            $reservation->payment->save();
+
+            // 予約もキャンセル済みに寄せる（運用に応じて任意）
+            if ($reservation->status !== 'Cancelled') {
+                $reservation->status = 'Cancelled';
+                $reservation->save();
+            }
+
+            return back()->with('ok', '返金を完了しました。');
         }
-        return back();
+
+        return back()->with('error', '不明な操作です。');
     }
 }
