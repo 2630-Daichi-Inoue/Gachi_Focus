@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\Reservation;
@@ -22,8 +23,8 @@ class ReservationController extends Controller
             'name'       => 'Room B',
             'image_path' => '/images/room-b.jpg',
             'max_adults' => 4,
-            'types'      => ['Focus Booth','Meeting','Phone Call'],
-            'facilities' => ['Monitor','Whiteboard','Power Outlet','HDMI','USB-C'],
+            'types'      => ['Focus Booth', 'Meeting', 'Phone Call'],
+            'facilities' => ['Monitor', 'Whiteboard', 'Power Outlet', 'HDMI', 'USB-C'],
         ];
     }
 
@@ -38,12 +39,12 @@ class ReservationController extends Controller
 
     private function typePrices(): array
     {
-        return ['focus_booth'=>10,'meeting'=>15,'phone_call'=>8];
+        return ['focus_booth' => 10, 'meeting' => 15, 'phone_call' => 8];
     }
 
     private function facilityPrices(): array
     {
-        return ['Monitor'=>3,'Whiteboard'=>2,'Power Outlet'=>0,'HDMI'=>0,'USB-C'=>0];
+        return ['Monitor' => 3, 'Whiteboard' => 2, 'Power Outlet' => 0, 'HDMI' => 0, 'USB-C' => 0];
     }
 
     /** show form（GET /room-b） */
@@ -65,11 +66,11 @@ class ReservationController extends Controller
         $room = $this->room();
 
         $data = $request->validate([
-            'type'         => ['required','string', Rule::in($room->types)],
-            'date'         => ['required','date','after_or_equal:today'],
-            'start_time'   => ['required','date_format:H:i','regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/'],
-            'end_time'     => ['required','date_format:H:i','regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/','after:start_time'],
-            'adults'       => ['required','integer','min:1','max:20'],
+            'type'         => ['required', 'string', Rule::in($room->types)],
+            'date'         => ['required', 'date', 'after_or_equal:today'],
+            'start_time'   => ['required', 'date_format:H:i', 'regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/'],
+            'end_time'     => ['required', 'date_format:H:i', 'regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/', 'after:start_time'],
+            'adults'       => ['required', 'integer', 'min:1', 'max:20'],
             'facilities'   => ['array'],
             'facilities.*' => [Rule::in($room->facilities)],
         ]);
@@ -85,7 +86,7 @@ class ReservationController extends Controller
         );
 
         $reservation = $this->reservation->create([
-            'user_id'     => auth()->id(),
+            'user_id'     => Auth::id(),
             'room'        => 'B',
             'type'        => $typeKey,
             'date'        => $data['date'],
@@ -113,7 +114,7 @@ class ReservationController extends Controller
         $typeKey2Label = array_flip($this->typeLabelToKey());
         $currentTypeLabel = $typeKey2Label[$reservation->type] ?? $reservation->type;
 
-        return view('rooms.edit', compact('room','reservation','currentTypeLabel'));
+        return view('rooms.edit', compact('room', 'reservation', 'currentTypeLabel'));
     }
 
     /** update（PUT /reservations/{reservation}） */
@@ -129,11 +130,11 @@ class ReservationController extends Controller
         $label2key = $this->typeLabelToKey();
 
         $data = $request->validate([
-            'type'         => ['required','string', Rule::in(array_keys($label2key))],
-            'date'         => ['required','date','after_or_equal:today'],
-            'start_time'   => ['required','date_format:H:i','regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/'],
-            'end_time'     => ['required','date_format:H:i','regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/','after:start_time'],
-            'adults'       => ['required','integer','min:1','max:20'],
+            'type'         => ['required', 'string', Rule::in(array_keys($label2key))],
+            'date'         => ['required', 'date', 'after_or_equal:today'],
+            'start_time'   => ['required', 'date_format:H:i', 'regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/'],
+            'end_time'     => ['required', 'date_format:H:i', 'regex:/^(?:[01]\d|2[0-3]):(?:00|30)$/', 'after:start_time'],
+            'adults'       => ['required', 'integer', 'min:1', 'max:20'],
             'facilities'   => ['array'],
             'facilities.*' => [Rule::in($room->facilities)],
         ]);
@@ -159,7 +160,7 @@ class ReservationController extends Controller
         ]);
 
         return redirect()->route('reservations.show', $reservation)
-                         ->with('status', 'Reservation updated.');
+            ->with('status', 'Reservation updated.');
     }
 
 
@@ -168,9 +169,8 @@ class ReservationController extends Controller
     {
         $reservation->delete();
 
-        return redirect()->route('reservations.index')
-                        ->with('success', 'Reservation cancelled successfully.');
-                        // connect to the reservation show page(rio)
+        return redirect()->route('reservations.current')
+            ->with('success', 'Reservation cancelled successfully.');
     }
 
 
@@ -186,4 +186,74 @@ class ReservationController extends Controller
         $facSum  = array_sum(array_map(fn($k) => $facPrice[$k] ?? 0, $fac));
         return ($base + $facSum) * max(1, $adults);
     }
+
+
+    public function currentShow()
+    {
+        $reservations = Reservation::with('workspace.photos')
+            ->where('user_id', Auth::id())
+            ->where('start_time', '>=', Carbon::now())
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        return view('reservations.current-show', compact('reservations'));
+    }
+
+    // cancel
+    public function cancel($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+
+        $reservation->update(['status' => 'canceled']);
+
+        return redirect()->route('reservations.current')
+            ->with('success', 'Reservation canceled successfully.');
+    }
+
+    // rebook
+    public function rebook($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+
+        $new = $reservation->replicate();
+        $new->status = 'confirmed';
+        $new->date   = Carbon::today()->addDay();
+        $new->save();
+
+        return redirect()->route('reservations.current')
+            ->with('success', 'Reservation rebooked successfully.');
+    }
+
+    public function rebookSpace($id)
+    {
+        $space = \App\Models\Space::with('photos')->findOrFail($id);
+
+        $previousReservation = Reservation::where('user_id', Auth::id())
+            ->where('space_id', $id)->latest('start_time')->first();
+
+        return view('rooms.reserve', [
+            'room' => (object)[
+                'name'       => $space->name,
+                'image_path' => $space->photos->first()->path ?? '/images/no-image.png',
+                'max_adults' => $space->capacity_max ?? 10,
+                'types'      => ['Focus Booth', 'Meeting', 'Phone Call'],
+                'facilities' => $space->facilities ?? [],
+            ],
+            'space' => $space,
+            'previousReservation' => $previousReservation,
+        ]);
+    }
+
+    // Past reservations show
+    // The branches are divided into current・past, I'll add them later (PIC:rio)
+    //     public function pastShow()
+    // {
+    //     $reservations = Reservation::with('workspace.photos')
+    //         ->where('user_id', Auth::id())
+    //         ->where('start_time', '<', Carbon::now())
+    //         ->orderBy('start_time', 'desc')
+    //         ->get();
+
+    //     return view('reservations.past-show', compact('reservations'));
+    // }
 }
