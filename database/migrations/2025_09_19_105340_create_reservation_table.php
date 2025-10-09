@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('room', 10)->nullable();         // 'B' など
+            $table->string('room', 10)->nullable();         // 'B'
             $table->string('type', 50);                      // focus_booth / meeting / phone_call
             $table->date('date');
-            $table->time('start_time');                      // ← time_from を統一
-            $table->time('end_time');                        // ← time_to   を統一
+            $table->time('start_time');                      // ← time_from
+            $table->time('end_time');                        // ← time_to  
             $table->unsignedTinyInteger('adults');
             $table->json('facilities')->nullable();
-            $table->decimal('total_price', 8, 2)->default(0); // ← 料金も持つ
+            $table->decimal('total_price', 8, 2)->default(0); // ← price
             $table->timestamps();
         });
 

@@ -12,6 +12,9 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\UtilityController;
+
 
 Auth::routes();
 Route::get('/home', [HomeController::class, 'index'])->name('home');
@@ -25,7 +28,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::resource('spaces', SpaceController::class);
 });
 
-
+// reservation /change/cancle
 Route::get('/room-b',  [ReservationController::class, 'create'])->name('rooms.reserve.form');  
 Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit'); 
 
@@ -40,6 +43,7 @@ Route::resource('reservations', ReservationController::class)
 // Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
 // Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
 
+// contact page
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // Spaces
@@ -57,5 +61,14 @@ Route::middleware('auth')->group(function (){
     Route::patch('profile/password/update', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     // Account delete in profile page
     Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+
+
+
+// edit coworkingspace category
+Route::get('/utilities',        [UtilityController::class, 'index'])->name('utilities.index');
+Route::post('/utilities',       [UtilityController::class, 'store'])->name('utilities.store');
+Route::put('/utilities/{utility}',  [UtilityController::class, 'update'])->name('utilities.update');
+Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
 
 });
