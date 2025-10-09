@@ -136,13 +136,23 @@
                 Update
             </button>
 
-            <!-- delete button -->
-             <button type="button"
-                    class="btn btn-outline-danger fw-bold px-5"
-                    data-bs-toggle="modal"
-                    data-bs-target="#confirmDeleteModal">
-                Delete
-            </button>
+            <!-- delete or rctivate button -->
+            @if ($space->trashed())
+                {{-- reactivate button --}}
+                <button type="button"
+                        class="btn btn-outline-success fw-bold px-5"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmActivateModal">
+                    Activate
+                </button>
+            @else
+                <button type="button"
+                        class="btn btn-outline-danger fw-bold px-5"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmDeleteModal">
+                    Delete
+                </button>
+            @endif
     </form>
 
     <form id="delete-space-form"
@@ -180,6 +190,35 @@
                             class="btn btn-danger"
                             onclick="document.getElementById('delete-space-form').submit();"
                             data-bs-dismiss="modal">Yes, delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade"
+        id="confirmActivateModal"
+        tabindex="-1"
+        aria-labelledby="confirmActivateLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centred">
+            <div class="modal-content border-success">
+                <div class="modal-header border-success">
+                    <h5 class="modal-title text-success" id="confirmActivateLabel">
+                        Activate space
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Do you want to activate <strong>{{ $space->name }}</strong>?
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button"
+                            class="btn btn-success"
+                            onclick="document.getElementById('delete-space-form').submit();"
+                            data-bs-dismiss="modal">
+                        Yes, activate
                     </button>
                 </div>
             </div>

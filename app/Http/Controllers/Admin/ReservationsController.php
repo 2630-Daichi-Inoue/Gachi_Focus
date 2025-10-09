@@ -102,12 +102,12 @@ class ReservationsController extends Controller
             }
 
             $reservation->save();
-            return back()->with('ok', '予約をキャンセルしました。');
+            return back()->with('ok', 'Cancellation was done.');
         }
 
         if ($request->action === 'refund') {
             if (!$reservation->payment) {
-                return back()->with('error', 'この予約には支払い情報がありません。');
+                return back()->with('error', 'No payments for this reservation.');
             }
 
             // 支払いを返金済みに変更
@@ -120,9 +120,9 @@ class ReservationsController extends Controller
                 $reservation->save();
             }
 
-            return back()->with('ok', '返金を完了しました。');
+            return back()->with('ok', 'Refund was done.');
         }
 
-        return back()->with('error', '不明な操作です。');
+        return back()->with('error', 'An erroe occured.');
     }
 }

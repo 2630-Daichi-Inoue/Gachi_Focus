@@ -81,7 +81,9 @@ class SpacesController extends Controller
 
     public function edit($id)
     {
-        $space = $this->space->findOrFail($id);
+        $space = $this->space
+                    ->withTrashed()
+                    ->findOrFail($id);
 
 
         #if the auth user is NOT the owner, redirect to homepage
@@ -175,10 +177,14 @@ class SpacesController extends Controller
 
     public function destroy($id)
     {
-        $space = $this->space->findOrFail($id);
-        $space->Delete();
+        $space = \App\Models\Space::withTrashed()->findOrFail($id);
 
-
-        return redirect()->route('index')->with('status', 'Space deleted.');
+        if ($space->trashed()) {
+            $space->restore();
+            // return redirect()->route('index')->with('status', 'Space deleted.');
+        } else {
+            $space->delete();
+        }
+        return redirect()->route('index');
     }
 }
