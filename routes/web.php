@@ -20,6 +20,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\NotificationController;
 
 Auth::routes();
 # check if the user logged in
@@ -46,7 +47,7 @@ Route::resource('reservations', ReservationController::class)
     ->only(['show','edit','update'])
     ->middleware('auth');
 
- Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
+Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
     ->name('reservations.destroy');
 
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
@@ -84,4 +85,10 @@ Route::middleware('auth')->group(function (){
         Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
         Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
     });
+});
+
+// Notification Page
+Route::get('/notifications', [NotificationController::class, 'index'])
+    ->middleware('auth')
+    ->name('notifications.index');
 });
