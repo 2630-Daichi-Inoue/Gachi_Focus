@@ -49,17 +49,10 @@ Route::resource('reservations', ReservationController::class)
  Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
     ->name('reservations.destroy');
 
-// Route::get('/reserve', [ReservationController::class, 'show'])   ->name('reserve.coworkingspace');
-// Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
-// Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
-
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // Spaces
 Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
-
-// Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
-// Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Profile Page
 Route::middleware('auth')->group(function (){
@@ -92,11 +85,3 @@ Route::middleware('auth')->group(function (){
         Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
     });
 });
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
