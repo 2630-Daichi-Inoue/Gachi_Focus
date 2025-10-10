@@ -4,13 +4,13 @@
 
 @section('content')
 
-<div class="container mt-4 mx-auto">
+<div class="container mt-4 mx-auto" style="max-width: 900px;">
 
     <h4 class="mb-3 fw-bold">All Notifications</h4>
 
     @forelse($notifications as $notification)
         <div class="d-flex justify-content-between align-items-start border-bottom py-3">
-            <div>
+            <div class="me-3 flex-grow-1">
                 <!-- Date -->
                 <div class="text-muted small mb-1">
                     {{ $notification->created_at->format('M d Y') }}
