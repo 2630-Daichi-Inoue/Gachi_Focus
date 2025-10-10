@@ -20,6 +20,9 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\UtilityController;
+
 use App\Http\Controllers\NotificationController;
 
 Auth::routes();
@@ -39,7 +42,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::resource('spaces', SpaceController::class);
 });
 
-
+// reservation /change/cancle
 Route::get('/room-b',  [ReservationController::class, 'create'])->name('rooms.reserve.form');  
 Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit'); 
 
@@ -50,6 +53,11 @@ Route::resource('reservations', ReservationController::class)
 Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
     ->name('reservations.destroy');
 
+// Route::get('/reserve', [ReservationController::class, 'show'])   ->name('reserve.coworkingspace');
+// Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
+// Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
+
+// contact page
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // Spaces
@@ -61,6 +69,15 @@ Route::middleware('auth')->group(function (){
     Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+
+
+
+
+// edit coworkingspace category
+Route::get('/utilities',        [UtilityController::class, 'index'])->name('utilities.index');
+Route::post('/utilities',       [UtilityController::class, 'store'])->name('utilities.store');
+Route::put('/utilities/{utility}',  [UtilityController::class, 'update'])->name('utilities.update');
+Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
 
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'admin'], function(){
         # USER
