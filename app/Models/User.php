@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CustomNotification;
-=======
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
@@ -58,7 +58,7 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-=======
+
 
     # user - reservation
     # a user can have many reservations
@@ -83,7 +83,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomNotification::class);
     }
-}
-=======
-
 }
