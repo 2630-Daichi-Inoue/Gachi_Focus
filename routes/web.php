@@ -41,7 +41,7 @@ Route::prefix('admin')->name('admin.')->group(function(){
     Route::resource('spaces', SpaceController::class);
 });
 
-
+// reservation /change/cancle
 Route::get('/room-b',  [ReservationController::class, 'create'])->name('rooms.reserve.form');  
 Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit'); 
 
@@ -52,6 +52,11 @@ Route::resource('reservations', ReservationController::class)
 Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])
     ->name('reservations.destroy');
 
+// Route::get('/reserve', [ReservationController::class, 'show'])   ->name('reserve.coworkingspace');
+// Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
+// Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
+
+// contact page
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 // Spaces
@@ -67,15 +72,24 @@ Route::middleware('auth')->group(function (){
     // Account delete in profile page
     Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+
+
+
+// edit coworkingspace category
+Route::get('/utilities',        [UtilityController::class, 'index'])->name('utilities.index');
+Route::post('/utilities',       [UtilityController::class, 'store'])->name('utilities.store');
+Route::put('/utilities/{utility}',  [UtilityController::class, 'update'])->name('utilities.update');
+Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
+
     Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => 'admin'], function(){
         # USER
         Route::get('/users', [UsersController::class,'index'])->name('users');
-        Route::delete('/users/{id}/deactivate', [UsersController::class,'deactivate'])->name('users.deactivate');
-        Route::patch('/users/{id}/activate', [UsersController::class,'activate'])->name('users.activate');
+        Route::delete('/users/{id}/deactivate', [UsersController::class, 'deactivate'])->name('users.deactivate');
+        Route::patch('/users/{id}/activate', [UsersController::class, 'activate'])->name('users.activate');
 
         # RESERVATION
-        Route::get('/reservations', [ReservationsController::class,'index'])->name('reservations');
-        Route::patch('/reservations/{id}/action', [ReservationsController::class,'action'])->name('reservations.action');
+        Route::get('/reservations', [ReservationsController::class, 'index'])->name('reservations');
+        Route::patch('/reservations/{id}/action', [ReservationsController::class, 'action'])->name('reservations.action');
 
         # SPACE
         Route::get('/space/register', [SpacesController::class, 'register'])->name('space.register');
