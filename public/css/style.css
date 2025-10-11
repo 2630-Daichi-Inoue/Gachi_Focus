@@ -1,49 +1,40 @@
-/* small */
-.icon-sm {
-    font-size: 2rem;
+.btn-register{
+    background-color: #73B0E8;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
 }
 
-.avatar-sm {
-    width: 2rem;
-    height: 2rem;
+/* profile image and icon */
+.image-lg{
+    width: 7rem;
+    height: 7rem;
     object-fit: cover;
 }
 
-/* large */
-.image-lg {
-    width: 9rem;
-    height: 9rem;
-    object-fit: cover;
+.icon-lg{
+    font-size: 7rem;
 }
 
-.icon-lg {
-    font-size: 9rem;
+/* button */
+.btn-color{
+    background-color: #757B9D;
 }
 
-.fa-heart {
-    font-size: 1.5rem;
+.btn-color2{
+    background-color: #C9DFEC;
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
-/* extra small */
-.xsmall {
-    font-size: 0.65rem;
+.btn-width{
+    width: 30%;
+    margin-right: 46px;
 }
 
-
-/* grid image in profile show page */
-.grid-img{
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-}
-
-/* medium */
-.avatar-md {
-    width: 3.5rem;
-    height: 3.5rem;
-    object-fit: cover;
-}
-
-.icon-md {
-    font-size: 3.5rem;
+.btn-modal-color{
+    border: 1px solid #504A4A;
 }

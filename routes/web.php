@@ -22,7 +22,6 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UtilityController;
-
 use App\Http\Controllers\NotificationController;
 
 Auth::routes();
@@ -69,6 +68,9 @@ Route::middleware('auth')->group(function (){
     Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('profile/password/update', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    // Account delete in profile page
+    Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 
 
@@ -108,4 +110,3 @@ Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->na
 Route::get('/notifications', [NotificationController::class, 'index'])
     ->middleware('auth')
     ->name('notifications.index');
-});
