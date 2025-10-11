@@ -62,7 +62,7 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 // Spaces
 Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
 
-// Profile Page
+// Profile Page and Notification page
 Route::middleware('auth')->group(function (){
     // PROFILE
     Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
@@ -71,6 +71,10 @@ Route::middleware('auth')->group(function (){
     Route::patch('profile/password/update', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     // Account delete in profile page
     Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Notification page
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
 
 
@@ -105,8 +109,3 @@ Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->na
         Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
     });
 });
-
-// Notification Page
-Route::get('/notifications', [NotificationController::class, 'index'])
-    ->middleware('auth')
-    ->name('notifications.index');
