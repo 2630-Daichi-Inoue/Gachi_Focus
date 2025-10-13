@@ -64,12 +64,11 @@ class RegisterController extends Controller
         ]);
     }
 
-    // **
     // * After registration, the user redirects login page.
     // *
     // Log the user out after registration
     protected function registered(Request $request, $user){
-    
+
     $this->guard()->logout();
 
     // Redirect to login page

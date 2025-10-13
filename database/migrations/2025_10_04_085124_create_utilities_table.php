@@ -11,15 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('spaces', function (Blueprint $table) {
-            $table->text('map_embed')->nullable()->change();
-        });
+        Schema::create('utilities', function (Blueprint $table) {
+        $table->id();
+        $table->string('name')->unique();
+        $table->timestamps();
+    });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('spaces', function (Blueprint $table) {
-            $table->string('map_embed')->nullable()->change();
-        });
+        Schema::dropIfExists('utilities');
     }
 };

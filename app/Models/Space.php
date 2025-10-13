@@ -31,4 +31,11 @@ class Space extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    # space - photo
+    # a space has many photos
+    # get all the phosos of a space
+    public function photos() {
+        return $this->hasMany(Photo::class);
+    }
+
 }

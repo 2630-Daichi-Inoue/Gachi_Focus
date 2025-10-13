@@ -3,6 +3,34 @@
 @section('title', 'Admin: Reservations')
 
 @section('content')
+{{-- Flash messages --}}
+    @if (session('ok'))
+        <div class="alert alert-success alert-dismissible fade show border border-success-subtle" role="alert">
+            {{ session('ok') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show border border-danger-subtle" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    {{-- Validation errors (ある場合だけまとめて表示) --}}
+    @if ($errors->any())
+        <div class="alert alert-warning alert-dismissible fade show border border-warning-subtle" role="alert">
+            <strong>Validation error:</strong>
+            <ul class="mb-0 ps-3">
+                @foreach ($errors->all() as $message)
+                    <li>{{ $message }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <form method="GET" action="{{ route('admin.reservations') }}" id="searchForm">
         <div class="row mb-2 align-items-stretch">
             <div class="col-md-6">
@@ -166,28 +194,27 @@
 
                                     {{-- Active → Cancelボタン --}}
                                     @if (strtolower($reservation->status) === 'active')
-                                    <button type="button" class="dropdown-item text-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#reservation-action-{{ $reservation->id }}"
-                                            data-mode="cancel">
-                                        <i class="fa-solid fa-ban"></i> Cancel
-                                    </button>
+                                        <button type="button" class="dropdown-item text-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#reservation-action-{{ $reservation->id }}"
+                                                data-mode="cancel">
+                                            <i class="fa-solid fa-ban"></i> Cancel
+                                        </button>
                                     @endif
 
                                     {{-- Refund Pending → Refundボタン --}}
                                     @if (optional($reservation->payment)->status === 'Refund Pending')
-                                    <button type="button" class="dropdown-item text-primary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#reservation-action-{{ $reservation->id }}"
-                                            data-mode="refund">
-                                        <i class="fa-solid fa-arrow-rotate-left"></i> Refund
-                                    </button>
+                                        <button type="button" class="dropdown-item text-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#reservation-action-{{ $reservation->id }}"
+                                                data-mode="refund">
+                                            <i class="fa-solid fa-arrow-rotate-left"></i> Refund
+                                        </button>
                                     @endif
                                 </div>
-                                </div>
-
-                                {{-- モーダル呼び出し --}}
-                                @include('admin.reservations.modals.action', ['reservation' => $reservation])
+                            </div>
+                            {{-- モーダル呼び出し --}}
+                            @include('admin.reservations.modals.action', ['reservation' => $reservation])
                         </td>
                     </tr>
                 @endforeach
