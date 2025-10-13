@@ -22,7 +22,6 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\UtilityController;
-
 use App\Http\Controllers\NotificationController;
 
 Auth::routes();
@@ -63,12 +62,19 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 // Spaces
 Route::get('spaces/{id}', [UserSpaceController::class, 'show'])->name('space.detail');
 
-// Profile Page
+// Profile Page and Notification page
 Route::middleware('auth')->group(function (){
     // PROFILE
     Route::get('/profile/{id}/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('profile/password/update', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    // Account delete in profile page
+    Route::delete('/profile/{id}/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Notification page
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
 
 

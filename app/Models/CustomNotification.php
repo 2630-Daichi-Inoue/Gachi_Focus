@@ -21,4 +21,14 @@ class CustomNotification extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function markAsRead()
+    {
+        $this->update(['read_at' => now()]);
+    }
+
+    public function isRead()
+    {
+        return !is_null($this->read_at);
+    }
 }

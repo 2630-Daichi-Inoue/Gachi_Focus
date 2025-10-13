@@ -16,12 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
-
-
-    const ADMIN_ROLE_ID = 1;
-    const USER_ROLE_ID = 2;
-
+    use HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -32,8 +27,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'country',
+        'phone',
     ];
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -44,7 +40,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
 
     /**
      * Get the attributes that should be cast.
@@ -58,7 +53,6 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
 
     # user - reservation
     # a user can have many reservations
