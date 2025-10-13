@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\Admin\CategoriesController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-
-# ADMIN
-use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\Admin\ReservationsController;
 use App\Models\User;
 use App\Models\Space;
 use Illuminate\Support\Facades\Auth;
 
+# ADMIN
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserSpaceController;
-use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Admin\UserController;
 
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\Admin\UsersController;
+
 use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\ReservationsController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 
 Auth::routes();
 # check if the user logged in
@@ -80,10 +81,10 @@ Route::middleware('auth')->group(function (){
         Route::delete('/space/{id}/destroy', [SpacesController::class,'destroy'])->name('space.destroy');
 
         # CATEGORY
-        Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
-        Route::post('/categories/store', [CategoriesController::class, 'store'])->name('categories.store');
-        Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
-        Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
+        // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
+        // Route::post('/categories/store', [CategoriesController::class, 'store'])->name('categories.store');
+        // Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
+        // Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
     });
 });
 
@@ -91,4 +92,3 @@ Route::middleware('auth')->group(function (){
 Route::get('/notifications', [NotificationController::class, 'index'])
     ->middleware('auth')
     ->name('notifications.index');
-});
