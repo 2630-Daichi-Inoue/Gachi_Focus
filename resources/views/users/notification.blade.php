@@ -84,6 +84,15 @@
                     // remove unread dot
                     var dot = item.querySelector('.unread-dot');
                     if(dot) dot.classList.add('d-none');
+
+                    // unread Dot on the bell icon
+                    var unreadDot = document.querySelector('#unread-dot');
+                    if(unreadDot){
+                        var remainingUnread = document.querySelectorAll('.notification-item[data-read="0"]').length;
+                        if(remainingUnread <= 1){
+                            unreadDot.remove();
+                        }
+                    }
                 })
                 .catch(function (err){
                     console.error('Failed to mark as read:', err);
