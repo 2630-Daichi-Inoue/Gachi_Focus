@@ -19,6 +19,8 @@
 
     <!-- css -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <style>
     body {
@@ -58,7 +60,7 @@
                             @endif
                         @else
                             <!-- Current Reservation -->
-                            <a href="" class="nav-link me-3">Current Reservation</a>
+                            <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
                             <!-- Past Reservation -->
                             <a href="" class="nav-link me-3">Past Reservation</a>

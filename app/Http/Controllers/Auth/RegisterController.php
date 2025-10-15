@@ -64,7 +64,6 @@ class RegisterController extends Controller
         ]);
     }
 
-     // **
     // * After registration, the user redirects login page.
     // *
     // Log the user out after registration

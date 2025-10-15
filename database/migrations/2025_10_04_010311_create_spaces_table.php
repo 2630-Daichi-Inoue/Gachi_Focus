@@ -15,20 +15,20 @@ return new class extends Migration
     {
 
 
-        Schema::create('spaces', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('location_for_overview');
-            $table->string('location_for_details');
-            $table->unsignedInteger('min_capacity');
-            $table->unsignedInteger('max_capacity');
-            $table->decimal('price', 10, 2);
-            $table->decimal('area', 10, 2);
-            $table->text('description');
-            $table->longText('image');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        // Schema::create('spaces', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->string('name');
+        //     $table->string('location_for_overview');
+        //     $table->string('location_for_details');
+        //     $table->unsignedInteger('min_capacity');
+        //     $table->unsignedInteger('max_capacity');
+        //     $table->decimal('price', 10, 2);
+        //     $table->decimal('area', 10, 2);
+        //     $table->text('description');
+        //     $table->longText('image');
+        //     $table->timestamps();
+        //     $table->softDeletes();
+        // });
     }
 
 
