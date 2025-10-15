@@ -70,8 +70,19 @@
 
                             <!-- notification -->
                             <li class="nav-item dropdown">
-                                <a id="notificationDropdown" href="" class="nav-link me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i></a>
+                                <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
+                            
+                                <!-- Unread mark on the bell icon -->
+                                    @php
+                                        $hasUnread = auth()->user()->customNotifications()->whereNull('read_at')->exists();
+                                    @endphp
+                                    @if($hasUnread)
+                                        <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
+                                        </span>
+                                    @endif
+                                </a>
 
+                                <!-- popup window of notifications -->
                                 <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
                                     <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
                                         @foreach($notifications as $notification)
@@ -114,8 +125,6 @@
                 </div>
             </div>
         </nav>
-
-
 
         <main class="py-4">
             @yield('content')
