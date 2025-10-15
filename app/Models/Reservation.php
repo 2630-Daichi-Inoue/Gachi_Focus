@@ -14,6 +14,19 @@ class Reservation extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $fillable = [
+        'user_id',
+        'space_id',
+        'start_time',
+        'end_time',
+        'status',
+    ];
+
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
+
 
     public const STATUS_MAP = [
         'Completed' => [
@@ -49,7 +62,6 @@ class Reservation extends Model
             'class' => 'text-warning fw-light'
         ]
     ];
-
 
     # reservation - user
     # a reservation belongs to one user

@@ -190,7 +190,7 @@ class ReservationController extends Controller
 
     public function currentShow()
     {
-        $reservations = Reservation::with('workspace.photos')
+        $reservations = Reservation::with('space.photos')
             ->where('user_id', Auth::id())
             ->where('start_time', '>=', Carbon::now())
             ->orderBy('start_time', 'asc')
@@ -213,34 +213,19 @@ class ReservationController extends Controller
     // rebook
     public function rebook($id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::with('space.photos')->findOrFail($id);
 
-        $new = $reservation->replicate();
-        $new->status = 'confirmed';
-        $new->date   = Carbon::today()->addDay();
-        $new->save();
-
-        return redirect()->route('reservations.current')
-            ->with('success', 'Reservation rebooked successfully.');
-    }
-
-    public function rebookSpace($id)
-    {
-        $space = \App\Models\Space::with('photos')->findOrFail($id);
-
-        $previousReservation = Reservation::where('user_id', Auth::id())
-            ->where('space_id', $id)->latest('start_time')->first();
+        $room = (object)[
+            'name'       => $reservation->space->name ?? 'Room B',
+            'image_path' => $reservation->space->photos->first()->path ?? 'images/room-b.jpg',
+            'max_adults' => $reservation->space->capacity_max ?? 4,
+            'types'      => ['Focus Booth', 'Meeting', 'Phone Call'],
+            'facilities' => $reservation->space->facilities ?? ['Monitor', 'Whiteboard', 'Power Outlet', 'HDMI', 'USB-C'],
+        ];
 
         return view('rooms.reserve', [
-            'room' => (object)[
-                'name'       => $space->name,
-                'image_path' => $space->photos->first()->path ?? '/images/no-image.png',
-                'max_adults' => $space->capacity_max ?? 10,
-                'types'      => ['Focus Booth', 'Meeting', 'Phone Call'],
-                'facilities' => $space->facilities ?? [],
-            ],
-            'space' => $space,
-            'previousReservation' => $previousReservation,
+            'room' => $room,
+            'previousReservation' => $reservation,
         ]);
     }
 

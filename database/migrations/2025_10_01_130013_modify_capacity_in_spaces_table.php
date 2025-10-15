@@ -9,17 +9,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('spaces', function (Blueprint $table) {
-            // $table->integer('type')->after('location_for_details');
-            $table->decimal('weekday_price', 8, 2)->default(0)->after('capacity_max');
-            $table->decimal('weekend_price', 8, 2)->default(0)->after('weekday_price');
-            $table->text('map_embed')->nullable()->after('image');
+            $table->dropColumn('capacity');
+
+            // add min / max 
+            $table->integer('capacity_min')->nullable()->after('type');
+            $table->integer('capacity_max')->nullable()->after('capacity_min');
         });
     }
 
     public function down(): void
     {
         Schema::table('spaces', function (Blueprint $table) {
-            $table->dropColumn(['weekday_price', 'weekend_price', 'map_embed', 'rating']);
+            // rollback 
+            $table->dropColumn(['capacity_min', 'capacity_max']);
+            $table->integer('capacity')->default(0)->after('type');
         });
     }
 };

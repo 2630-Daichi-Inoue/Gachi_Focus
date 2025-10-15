@@ -60,6 +60,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit');
     Route::resource('reservations', ReservationController::class)->only(['show', 'edit', 'update']);
     Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
+    // current
+    Route::get('/current-reservation', [ReservationController::class, 'currentShow'])->name('reservations.current');
+    Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::get('/reservations/{id}/rebook', [ReservationController::class, 'rebook'])->name('reservations.rebook');
 });
 
 // ================================================

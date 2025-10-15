@@ -26,6 +26,9 @@
         <form method="POST" action="{{ route('rooms.reserve.submit') }}"
             class="w-full max-w-2xl space-y-8">
         @csrf
+        {{-- Rebook: --}}
+        <input type="hidden" name="space_id"
+          value="{{ $space->id ?? optional($previousReservation->space)->id ?? '' }}">
 
         {{-- Section title: darker gray/near-black --}}
         <h2 class="text-3xl lg:text-4xl font-semibold text-gray-900">Reserve {{ $room->name }}</h2>

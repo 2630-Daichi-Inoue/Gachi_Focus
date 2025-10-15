@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('spaces', function (Blueprint $table) {
-            // $table->integer('type')->after('location_for_details');
             $table->decimal('weekday_price', 8, 2)->default(0)->after('capacity_max');
             $table->decimal('weekend_price', 8, 2)->default(0)->after('weekday_price');
-            $table->text('map_embed')->nullable()->after('image');
+            $table->string('map_embed')->nullable()->after('address');
+            $table->float('rating', 2, 1)->default(0)->after('map_embed');
         });
     }
 
