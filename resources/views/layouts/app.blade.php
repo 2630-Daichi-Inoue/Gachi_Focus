@@ -132,6 +132,9 @@
                             @else
 
                                 <!-- user icon -->
+                                @php
+                                    $user = Auth::user();
+                                @endphp
                                 @if($user->avatar)
                                     <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="img-fluid rounded-circle image-sm">
                                 @else

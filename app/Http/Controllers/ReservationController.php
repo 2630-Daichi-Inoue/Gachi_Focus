@@ -251,9 +251,11 @@ class ReservationController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $pdf = Pdf::loadView('reservations.invoice-pdf', [
+        $user = Auth::user();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
             'reservation' => $reservation,
-            'user' => $reservation->user,
+            'user' => $user,
             'issuedDate' => now()->format('Y/m/d'),
             'company' => [
                 'name' => 'Gachi Focus Co-working',
