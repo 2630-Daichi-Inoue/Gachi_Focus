@@ -82,4 +82,25 @@ class Reservation extends Model
     public function payment() {
         return $this->hasOne(Payment::class)->withTrashed();
     }
+
+
+    //  allow mass assignment
+        protected $fillable = [
+            'user_id',
+            'room',
+            'type',
+            'date',
+            'start_time',
+            'end_time',
+            'adults',
+            'facilities',
+            'total_price',
+        ];
+
+    // cast JSON/date fields
+    protected $casts = [
+        'facilities' => 'array',
+        'date'       => 'date',
+    ];
+
 }
