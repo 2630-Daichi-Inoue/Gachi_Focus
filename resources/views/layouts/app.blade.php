@@ -63,7 +63,7 @@
                             <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
                             <!-- Past Reservation -->
-                            <a href="" class="nav-link me-3">Past Reservation</a>
+                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
 
                             <!-- Contact -->
                             <a href="" class="nav-link me-3">Contact</a>

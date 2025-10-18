@@ -64,7 +64,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/current-reservation', [ReservationController::class, 'currentShow'])->name('reservations.current');
     Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
     Route::get('/reservations/{id}/rebook', [ReservationController::class, 'rebook'])->name('reservations.rebook');
+    // past
+    Route::get('/past-reservation', [ReservationController::class, 'pastShow'])->name('reservations.past');
+    Route::get('/reservations/{id}/invoice', [ReservationController::class, 'downloadInvoice'])->name('reservations.invoice');
 });
+
+// Review
+Route::get('/reviews/{reservation}', function ($reservation) {
+    return view('reviews.index', ['reservationId' => $reservation]);
+})->name('reviews.index');
+
 
 // ================================================
 // Contact & Space Detail (Public)
