@@ -14,7 +14,6 @@ class HomeController extends Controller
     private $space;
     private $user;
 
-
     public function __construct(Space $space)
     {
         $this->space = $space;
