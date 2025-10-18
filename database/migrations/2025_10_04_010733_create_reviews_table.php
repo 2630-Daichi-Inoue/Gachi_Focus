@@ -22,7 +22,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('space_id')->references('id')->on('spaces');
         });

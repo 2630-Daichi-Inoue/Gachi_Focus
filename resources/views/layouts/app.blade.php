@@ -59,8 +59,16 @@
                                 </li>
                             @endif
                         @else
-                            <!-- Current Reservation -->
-                            <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
+                            @if(auth()->user()->isAdmin()) <!-- ← Admin or User -->
+                                <!-- ADMIN LINKS -->
+                                <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="" class="nav-link me-3">Coworking Spaces</a>
+                                <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
+                            @else
+                                <!-- USER LINKS -->
+                                <!-- Current Reservation -->
+                                <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
                             <!-- Past Reservation -->
                             <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
@@ -68,6 +76,9 @@
                             <!-- Contact -->
                             <a href="" class="nav-link me-3">Contact</a>
 
+                                <!-- Contact -->
+                                <a href="" class="nav-link me-3">Contact</a>
+                            @endif
                             <!-- notification -->
                             <li class="nav-item dropdown">
                                 <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
@@ -100,26 +111,52 @@
                                 </div>
                             </li>
 
-                            <!-- user icon -->
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
+                            @if(auth()->user()->isAdmin())
+                                <i class="fas fa-circle-user text-secondary icon-sm"></i>
+                                <li class="nav-item dropdown">                                
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                        {{ Auth::user()->name }}
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault();
+                                                        document.getElementById('logout-form').submit();">
+                                            <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
+                                        </a>
 
-                                <!-- Profile & logout -->
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}"><i class="fa-solid fa-user"></i> Profile</a>
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                            @csrf
+                                        </form>
+                                    </div>
+                                </li>
+                            @else
+
+                                <!-- user icon -->
+                                @if($user->avatar)
+                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="img-fluid rounded-circle image-sm">
+                                @else
+                                    <i class="fas fa-circle-user text-secondary icon-sm"></i>
+                                @endif
+                                <li class="nav-item dropdown">                                
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                        {{ Auth::user()->name }}
                                     </a>
 
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
+                                    <!-- Profile & logout -->
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}"><i class="fa-solid fa-user"></i> Profile</a>
+                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault();
+                                                        document.getElementById('logout-form').submit();">
+                                            <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
+                                        </a>
+
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                            @csrf
+                                        </form>
+                                    </div>
+                                </li>
+                            @endif
                         @endguest
                     </ul>
                 </div>

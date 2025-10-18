@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('phone',50)->nullable();
             $table->text('message');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
     public function down(): void {
