@@ -17,6 +17,16 @@
     font-size: 7rem;
 }
 
+.image-sm{
+    width: 2rem;
+    height: 2rem;
+    object-fit: cover;
+}
+
+.icon-sm{
+    font-size: 2rem;
+}
+
 /* button */
 .btn-color{
     background-color: #757B9D;
