@@ -100,3 +100,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
 
 });
+// Notification Page
+Route::get('/notifications', [NotificationController::class, 'index'])
+    ->middleware('auth')
+    ->name('notifications.index');
+    
