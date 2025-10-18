@@ -18,7 +18,6 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->primary(['space_id','category_id']);
 
-
             $table->foreign('space_id')->references('id')->on('spaces')->onDelete('cascade');
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });

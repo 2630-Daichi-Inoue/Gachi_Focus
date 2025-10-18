@@ -61,10 +61,10 @@
                         @else
                             @if(auth()->user()->isAdmin()) <!-- ← Admin or User -->
                                 <!-- ADMIN LINKS -->
-                                <a href="" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
-                                <a href="" class="nav-link me-3">Reservations</a>
-                                <a href="" class="nav-link me-3">Users</a>
+                                <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
                             @else
                                 <!-- USER LINKS -->
                                 <!-- Current Reservation -->

@@ -99,9 +99,4 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
 
-    // Categories (optional)
-    // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
-    // Route::post('/categories/store', [CategoriesController::class, 'store'])->name('categories.store');
-    // Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
-    // Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
 });

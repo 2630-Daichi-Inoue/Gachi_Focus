@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete(); // It is related to reservation of coworking space.
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
