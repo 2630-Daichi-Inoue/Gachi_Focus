@@ -25,6 +25,11 @@ use App\Http\Controllers\UtilityController;
 
 use App\Http\Controllers\NotificationController;
 
+use App\Http\Controllers\PaymentController;
+
+
+
+
 Auth::routes();
 # check if the user logged in
 Route::group(['middleware' => 'auth'], function(){
@@ -56,6 +61,16 @@ Route::delete('/reservations/{reservation}', [ReservationController::class, 'des
 // Route::get('/reserve', [ReservationController::class, 'show'])   ->name('reserve.coworkingspace');
 // Route::get('/rooms/{slug}', [ReservationController::class, 'show'])   ->name('rooms.show');
 // Route::post('/rooms/{slug}/reserve', [ReservationController::class, 'store'])->name('rooms.reserve');
+
+// payment
+Route::post('/rooms/reserve/preview', [ReservationController::class, 'preview'])
+    ->name('rooms.reserve.preview');
+
+Route::post('/pricing/quote', [ReservationController::class, 'quote'])
+    ->name('pricing.quote');
+
+Route::post('/checkout', [PaymentController::class, 'checkout'])
+    ->name('checkout.start');
 
 // contact page
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
@@ -108,4 +123,3 @@ Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->na
 Route::get('/notifications', [NotificationController::class, 'index'])
     ->middleware('auth')
     ->name('notifications.index');
-});

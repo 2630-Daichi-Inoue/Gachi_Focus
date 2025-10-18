@@ -23,6 +23,7 @@ return new class extends Migration
             $table->json('facilities')->nullable();
             $table->decimal('total_price', 8, 2)->default(0); // ← price
             $table->timestamps();
+            $table->softDeletes(); 
         });
 
     }
