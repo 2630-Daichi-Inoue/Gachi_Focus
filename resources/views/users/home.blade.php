@@ -78,7 +78,7 @@
         </div>
     </form>
 
-    <div class="row gx-2">
+    <div class="row gx-2 mt-3">
 
             @forelse ($home_spaces as $space)
                 <div class="col-md-4 mb-4">

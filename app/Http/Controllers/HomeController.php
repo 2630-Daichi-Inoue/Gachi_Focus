@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use App\Models\Space;
 use Illuminate\Support\Facades\Auth;
 
-
 class HomeController extends Controller
 {
     private $space;
@@ -21,10 +20,15 @@ class HomeController extends Controller
 
     public function index()
     {
+        // $q = Space::query()
+        //     ->withAvg('reviews', 'rating')
+        //     ->withCount('reviews');
+
         $q = Space::query()
+            ->select('*')
+            ->selectRaw('LEAST(COALESCE(weekday_price, 99999999), COALESCE(weekend_price, 99999999)) AS price_min')
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
-
 
         // Default: rating high → low
         $this->applySort($q, 'rating_high_to_low');
@@ -35,6 +39,7 @@ class HomeController extends Controller
     }
 
 
+    // search()
     public function search(Request $request)
     {
         $request->validate([
@@ -45,15 +50,22 @@ class HomeController extends Controller
             'sort'     => 'nullable|in:rating_high_to_low,price_high_to_low,price_low_to_high,capacity_high_to_low,capacity_low_to_high,newest',
         ]);
 
-
         $maxFee = $request->filled('max_fee')  ? max(0, (float)$request->max_fee) : null;
         $cap    = $request->filled('capacity') ? max(1, (int)$request->capacity) : null;
 
+        // $q = Space::query()
+        //     // ★ 最安/最高の計算列を付与（NULL安全）
+        //     ->select('*')
+        //     ->selectRaw('LEAST(COALESCE(weekday_price, 99999999), COALESCE(weekend_price, 99999999)) AS price_min')
+        //     ->selectRaw('GREATEST(COALESCE(weekday_price, 0), COALESCE(weekend_price, 0)) AS price_max')
+        //     ->withAvg('reviews', 'rating')
+        //     ->withCount('reviews');
 
         $q = Space::query()
+            ->select('*')
+            ->selectRaw('LEAST(COALESCE(weekday_price, 99999999), COALESCE(weekend_price, 99999999)) AS price_min')
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
-
 
         if ($kw = trim($request->name ?? '')) {
             $q->where('name', 'like', "%{$kw}%");
@@ -64,80 +76,69 @@ class HomeController extends Controller
                 ->orWhere('location_for_details', 'like', "%{$loc}%");
             });
         }
+
+        // ★ Max Fee は「最安が上限以下」で判定
         if ($maxFee !== null) {
-            $q->where('price','<=',$maxFee);
+            $q->whereRaw('LEAST(COALESCE(weekday_price, 99999999), COALESCE(weekend_price, 99999999)) <= ?', [$maxFee]);
         }
+
         if ($cap !== null) {
             $q->where('min_capacity','<=',$cap)
             ->where('max_capacity','>=',$cap);
         }
 
-
-        // Apply unified, multi-key sorting
         $this->applySort($q, $request->sort);
-
 
         $home_spaces = $q->paginate(6)->appends($request->query());
         return view('users.home', compact('home_spaces'));
     }
 
-
     private function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
-        {
-            switch ($sort ?? 'rating_high_to_low') {
-                // Rating: High → Low
-                case 'rating_high_to_low':
-                    $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')  // 1) rating
-                    ->orderBy('reviews_count','desc')                    // 2) review count
-                    ->latest('id');                                      // 3) newest
-                    break;
+    {
+        switch ($sort ?? 'rating_high_to_low') {
+            case 'rating_high_to_low':
+                $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
+                break;
 
+            // 最安の安い順 / 高い順
+            case 'price_low_to_high':
+                $q->orderBy('price_min','asc')
+                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
+                break;
 
-                // Price
-                case 'price_high_to_low':
-                    $q->orderBy('price','desc')                            // 1) price
-                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')  // 2) rating
-                    ->orderBy('reviews_count','desc')                    // 3) review count
-                    ->latest('id');                                      // 4) newest
-                    break;
+            case 'price_high_to_low':
+                $q->orderBy('price_min','desc')   // ← ここポイント：minを降順に
+                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
+                break;
 
+            case 'capacity_high_to_low':
+                $q->orderBy('max_capacity','desc')
+                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
+                break;
 
-                case 'price_low_to_high':
-                    $q->orderBy('price','asc')
-                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                    ->orderBy('reviews_count','desc')
-                    ->latest('id');
-                    break;
+            case 'capacity_low_to_high':
+                $q->orderBy('max_capacity','asc')
+                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
+                break;
 
+            case 'newest':
+                $q->latest('id');
+                break;
 
-                // Capacity
-                case 'capacity_high_to_low':
-                    $q->orderBy('max_capacity','desc')
-                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                    ->orderBy('reviews_count','desc')
-                    ->latest('id');
-                    break;
-
-
-                case 'capacity_low_to_high':
-                    $q->orderBy('max_capacity','asc')
-                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                    ->orderBy('reviews_count','desc')
-                    ->latest('id');
-                    break;
-
-
-                // Newest first (id desc). id はユニークなので以降の orderBy は実質不要。
-                case 'newest':
-                    $q->latest('id');
-                    break;
-
-
-                default:
-                    // Fallback = rating
-                    $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                    ->orderBy('reviews_count','desc')
-                    ->latest('id');
-            }
+            default:
+                $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                ->orderBy('reviews_count','desc')
+                ->latest('id');
         }
+    }
 }
