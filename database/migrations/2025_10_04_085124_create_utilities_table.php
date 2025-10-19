@@ -1,3 +1,5 @@
+<!-- ①そもそもこれ何に使う？ -->
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;

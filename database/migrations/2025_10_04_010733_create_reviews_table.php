@@ -15,15 +15,17 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('space_id');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('space_id')->constrained()->cascadeOnDelete();
+            // $table->unsignedBigInteger('user_id');
+            // $table->unsignedBigInteger('space_id');
             $table->unsignedTinyInteger('rating');
             $table->text('comment')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('space_id')->references('id')->on('spaces');
+            // $table->foreign('user_id')->references('id')->on('users');
+            // $table->foreign('space_id')->references('id')->on('spaces');
         });
     }
 
