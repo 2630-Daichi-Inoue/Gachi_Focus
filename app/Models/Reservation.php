@@ -1,18 +1,13 @@
 <?php
 
-
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 
 class Reservation extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
      //  allow mass assignment
         protected $fillable = [
@@ -25,27 +20,20 @@ class Reservation extends Model
             'adults',
             'facilities',
             'total_price',
+
+            // payment related
+        'payment_status',      // unpaid|paid|canceled|refunded
+        'payment_intent_id',   // Stripe pi_xxx
+        'amount_paid',         // integer in smallest unit (JPY: yen)
+        'paid_at',             // timestamp
+        'currency',            // ISO 4217 (e.g., JPY, USD)
+        'payment_region',      // region/market (e.g., JP, US, EU, AU)
         ];
 
     // cast JSON/date fields
     protected $casts = [
         'facilities' => 'array',
         'date'       => 'date',
-    ];
-
-    public const STATUS_MAP = [
-        'Completed' => [
-            'icon'  => 'fa-solid fa-circle-check ',
-            'class' => 'badge bg-primary text-white rounded-pill fw-light fs-6'
-        ],
-        'Active' => [
-            'icon'  => 'fa-solid fa-circle-check',
-            'class' => 'badge bg-success text-white rounded-pill fw-light fs-6'
-        ],
-        'Cancelled' => [
-            'icon'  => '',
-            'class' => 'badge bg-secondary text-white rounded-pill fw-light fs-6'
-        ]
     ];
 
 
@@ -88,4 +76,23 @@ class Reservation extends Model
         return $this->hasOne(Payment::class)->withTrashed();
     }
 
+}
+    // cast types
+    protected $casts = [
+        'facilities' => 'array',  // keep JSON as php array
+        'paid_at'    => 'datetime',
+    ];
+
+    // simple helper
+    public function isPaid(): bool
+    {
+        return ($this->payment_status === 'paid');
+    }
+
+    // simple helper: display amount (fallback to total_price)
+    public function displayAmount(): int
+    {
+        // amount_paid is real charge; otherwise fall back to quote
+        return (int) ($this->amount_paid ?? round($this->total_price ?? 0));
+    }
 }

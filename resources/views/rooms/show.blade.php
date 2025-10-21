@@ -5,12 +5,12 @@
 <div class="min-h-screen flex items-center justify-center" x-data="{ showCancel:false }">
     <div class="m-auto grid md:grid-cols-2">
 
-        {{-- left--}}
+        {{-- left --}}
         <div>
             <img src="{{ asset('images/room-b.jpg') }}" class="shadow w-full h-full object-cover" alt="Room photo">
         </div>
 
-        {{-- right content--}}
+        {{-- right --}}
         <div class="bg-white shadow p-6 rounded-lg flex flex-col justify-between">
             <div class="space-y-4 px-10 py-10">
                 <h2 class="text-2xl font-serif">
@@ -25,7 +25,7 @@
                         {{ $reservation->start_time }} - {{ $reservation->end_time }}
                     </dd>
 
-                    <dt class="text-gray-500">Adultss</dt>
+                    <dt class="text-gray-500">Adults</dt>
                     <dd class="col-span-2">{{ $reservation->adults }}</dd>
 
                     <dt class="text-gray-500">Facilities</dt>
@@ -39,19 +39,49 @@
                         @endforelse
                     </dd>
 
+                    @php
+                        // use total_price if exists, else quote_total
+                        $total = (int)($reservation->total_price ?? $reservation->quote_total ?? 0);
+                    @endphp
+
                     <dt class="text-gray-500">Total</dt>
                     <dd class="col-span-2 font-semibold">
-                        ${{ number_format($reservation->total_price, 2) }}
+                        ¥{{ number_format($total) }}
+                    </dd>
+
+                    <dt class="text-gray-500">Payment</dt>
+                    <dd class="col-span-2">
+                        @if(($reservation->payment_status ?? 'unpaid') === 'paid')
+                            <span class="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-sm">Paid</span>
+                        @else
+                            <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 px-3 py-1 text-sm">Unpaid</span>
+                        @endif
                     </dd>
                 </dl>
             </div>
-        {{-- cancel --}}
+
+            {{-- actions --}}
             <div class="space-y-2 mt-6 text-center">
+
+                {{-- show pay button only when unpaid and amount > 0 --}}
+                @if(($reservation->payment_status ?? 'unpaid') !== 'paid' && $total > 0)
+                    <script src="https://js.stripe.com/v3/"></script>
+
+                    {{-- primary: pay --}}
+                    <button id="pay-btn"
+                        type="button"
+                        class="inline-flex w-full justify-center rounded-lg bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700">
+                        Pay with card
+                    </button>
+                @endif
+
+                {{-- secondary: change --}}
                 <a href="{{ route('reservations.edit', $reservation) }}"
                    class="inline-flex w-full justify-center rounded-lg bg-neutral-900 text-white py-3 font-semibold">
                    Change reservation
                 </a>
 
+                {{-- tertiary: cancel (open modal) --}}
                 <button type="button"
                         class="inline-flex w-full justify-center rounded-lg border-2 border-red-500 py-3 font-semibold text-red-600 hover:bg-red-50"
                         x-on:click="showCancel=true">
@@ -61,6 +91,7 @@
         </div>
     </div>
 
+    {{-- cancel modal --}}
     <div x-show="showCancel" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/40" x-on:click="showCancel=false"></div>
 
@@ -74,7 +105,6 @@
             <p class="mb-6 text-gray-700">Are you sure you want to cancel this reservation?</p>
 
             <div class="flex gap-3">
-
                 <form method="POST" action="{{ route('reservations.destroy', $reservation) }}" class="flex-1">
                     @csrf
                     @method('DELETE')
@@ -93,4 +123,54 @@
         </div>
     </div>
 </div>
+
+{{-- pay script (simple & safe) --}}
+@if(($reservation->payment_status ?? 'unpaid') !== 'paid' && $total > 0)
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('pay-btn');
+  if (!btn) return;
+
+  let busy = false; // prevent double click
+
+  btn.addEventListener('click', async () => {
+    if (busy) return;
+    busy = true;
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const stripe = Stripe(@json(config('services.stripe.public'))); // public key
+      const res = await fetch(@json(route('payments.checkout')), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': @json(csrf_token()),
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ reservation_id: @json($reservation->id) }) // required id
+      });
+
+      if (!res.ok) {
+        const t = await res.text();
+        alert('Failed to start payment.\n' + t);
+        btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
+        return;
+      }
+
+      const { id } = await res.json(); // checkout session id
+      const { error } = await stripe.redirectToCheckout({ sessionId: id });
+      if (error) {
+        alert(error.message || 'Stripe error');
+        btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
+      }
+    } catch (e) {
+      alert((e && e.message) ? e.message : 'Unexpected error');
+      btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
+    }
+  });
+});
+</script>
+@endif
+
 @endsection
