@@ -166,13 +166,10 @@ class SpacesController extends Controller
             $space->image = "data:image/" . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
         }
 
-
         $space->save();
-
 
         # 3. Delete all the recrods from category_space related to the space
         $space->categorySpace()->delete();
-
 
         # 4. save the new categories to category_space table
         foreach($request->input('category', []) as $categoryId){
