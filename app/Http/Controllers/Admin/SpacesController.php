@@ -16,7 +16,6 @@ class SpacesController extends Controller
     private $space;
     private $category;
 
-
     public function __construct(Space $space, Category $category){
         $this->space = $space;
         $this->category = $category;
@@ -117,13 +116,11 @@ class SpacesController extends Controller
             $selected_categories[] = $category_space->category_id;
         }
 
-
         return view('admin.spaces.edit')
                 ->with('space', $space)
                 ->with('all_categories', $all_categories)
                 ->with('selected_categories', $selected_categories);
     }
-
 
     public function update(Request $request, $id)
     {
@@ -160,7 +157,6 @@ class SpacesController extends Controller
         $space->weekend_price = $request->weekend_price;
         $space->description = $request->description;
 
-
         // if the admin uploaded image
         if($request->image){
             $space->image = "data:image/" . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
@@ -184,7 +180,6 @@ class SpacesController extends Controller
         return redirect()->route('index')->with('status', 'Space updated.');
         // return redirect()->route('post.show', $id);
     }
-
 
     public function destroy($id)
     {
