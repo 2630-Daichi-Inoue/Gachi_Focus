@@ -44,7 +44,7 @@ return new class extends Migration
 
     }
 
-// INSERT INTO `reservations`(`id`, `user_id`, `room`, `type`, `date`, `start_time`, `end_time`, `adults`, `facilities`, `total_price`, `created_at`, `updated_at`, `deleted_at`, `space_id`) VALUES (1, 1, 'A', 'Focus Booth', '2025-04-01', '08:00:00', '12:00:00', 10, null, 2400, '2025-01-01 00:00:00', null, null, 1);
+// INSERT INTO `reservations`(`id`, `user_id`, `space_id`, `status`, `room`, `type`, `date`, `start_time`, `end_time`, `adults`, `facilities`, `total_price`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 1, 'Completed', 'A', 'Focus Booth', '2025-04-01', '08:00:00', '12:00:00', 10, null, 2400, '2025-01-01 00:00:00', null, null);
 
     /**
      * Reverse the migrations.

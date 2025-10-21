@@ -151,8 +151,10 @@
                                class="text-decoration-none text-dark">{{ $reservation->user->name }}</a>
                         </td>
                         <td>{{ $reservation->space->name }}</td>
-                        <td>{{ $reservation->start_time }}</td>
-                        <td>{{ $reservation->end_time }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->date)->format('Y/n/j') }}
+                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $reservation->start_time)->format('G:i') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->date)->format('Y/n/j') }}
+                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $reservation->end_time)->format('G:i') }}</td>
                         <td>{{ $reservation->total_price }}</td>
                         <td>
                             @php

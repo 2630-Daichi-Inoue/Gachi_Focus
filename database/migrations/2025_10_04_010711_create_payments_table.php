@@ -22,6 +22,8 @@ return new class extends Migration
             $table->softDeletes();
         });
     }
+// INSERT INTO `payments`(`id`, `reservation_id`, `method`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 'Card', 'Paid', '2025-04-01 00:00:00', '2025-04-01 00:00:00', null);
+
 
 
     /**
