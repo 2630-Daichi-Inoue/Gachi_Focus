@@ -9,7 +9,21 @@ use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use App\Support\Pricing;
 
+/**
+ * Reservation flow (public):
+ * - GET  /room-b        -> create()  : show reservation form for "Room B"
+ * - POST /room-b        -> store()   : validate + compute price (server-side) + save + redirect to show
+ * - POST /rooms/reserve/preview -> preview() : validate + compute price (server-side) + show confirmation page
+ * - GET  /reservations/{id}          -> show()   : show saved reservation
+ * - GET  /reservations/{reservation}/edit -> edit()   : show edit form
+ * - PUT  /reservations/{reservation} -> update() : validate + recompute + save
+ * - DELETE /reservations/{reservation} -> destroy(): soft delete and redirect to home
+ *
+ * Optional (for live pricing on the form):
+ * - POST /pricing/quote -> quote(): returns JSON pricing using Pricing::calc()
+ */
 class ReservationController extends Controller
 {
     private Reservation $reservation;
@@ -19,6 +33,10 @@ class ReservationController extends Controller
         $this->reservation = $reservation;
     }
 
+    /**
+     * In-memory room definition for the demo.
+     * In real apps, fetch this from DB (e.g., Room model).
+     */
     private function room(): object
     {
         return (object)[
@@ -30,6 +48,9 @@ class ReservationController extends Controller
         ];
     }
 
+    /**
+     * Map display label -> key (used if you prefer storing keys in DB).
+     */
     private function typeLabelToKey(): array
     {
         return [
@@ -52,14 +73,39 @@ class ReservationController extends Controller
     /** show form（GET /room-b） */
     public function create()
     {
-        $room = $this->room();
-        return view('rooms.reserve', compact('room'));
+        $room  = $this->room();
+
+        // Opening hours and slot size (minutes). Adjust per room if needed.
+        $open  = '09:00';
+        $close = '21:00';
+        $slot  = 30;
+
+        $fromTimes = [];
+        $toTimes   = [];
+
+        $from = Carbon::createFromTimeString($open);
+        $to   = Carbon::createFromTimeString($close);
+
+        // Start time options: 09:00 .. 20:30 (end - slot)
+        for ($t = $from->copy(); $t->lt($to->copy()->subMinutes($slot)); $t->addMinutes($slot)) {
+            $fromTimes[] = $t->format('H:i');
+        }
+        // End time options: 09:30 .. 21:00
+        for ($t = $from->copy()->addMinutes($slot); $t->lte($to); $t->addMinutes($slot)) {
+            $toTimes[] = $t->format('H:i');
+        }
+
+        // Blade: use $fromTimes/$toTimes (NOT $fromPeriod/$toPeriod)
+        return view('rooms.reserve', compact('room','fromTimes','toTimes'));
     }
 
-    /** save（POST /room-b）→ show */
+    /**
+     * Create reservation (server-side price is ALWAYS recomputed with Pricing::calc()).
+     * Then redirect to its show page.
+     */
     public function store(Request $request)
     {
-        // time_from/time_to → start_time/end_time 
+        // Normalize names from form (time_from/time_to -> start_time/end_time)
         $request->merge([
             'start_time' => $request->input('time_from', $request->input('start_time')),
             'end_time'   => $request->input('time_to',   $request->input('end_time')),
@@ -77,15 +123,19 @@ class ReservationController extends Controller
             'facilities.*' => [Rule::in($room->facilities)],
         ]);
 
-        $typeKey = $this->typeLabelToKey()[$data['type']] ?? $data['type'];
+        // Server-side pricing (the only source of truth)
+        $quote = Pricing::calc([
+            'room_name'  => $room->name,
+            'type'       => $data['type'],          // Pricing expects label
+            'date'       => $data['date'],
+            'time_from'  => $data['start_time'],
+            'time_to'    => $data['end_time'],
+            'facilities' => $data['facilities'] ?? [],
+        ]);
+        $total = $quote['total'];
 
-        $total = $this->calcTotal(
-            $typeKey,
-            $data['start_time'],
-            $data['end_time'],
-            (int)$data['adults'],
-            $data['facilities'] ?? []
-        );
+        // Optionally store a key (instead of label) for the "type" column
+        $typeKey = $this->typeLabelToKey()[$data['type']] ?? $data['type'];
 
         $reservation = $this->reservation->create([
             'user_id'     => Auth::id(),
@@ -102,14 +152,48 @@ class ReservationController extends Controller
         return redirect()->route('reservations.show', $reservation);
     }
 
-    /** show（/reservations/{id}） */
+    /**
+     * Preview page before payment.
+     * Validates inputs, recomputes price via Pricing::calc(), and shows a confirmation view.
+     * NOTE: room_name is injected server-side (not trusted from client).
+     */
+    public function preview(Request $req)
+    {
+        $room = $this->room();
+
+        $validated = $req->validate([
+            'type'        => ['required','string'],
+            'date'        => ['required','date'],
+            'time_from'   => ['required','date_format:H:i'],
+            'time_to'     => ['required','date_format:H:i','after:time_from'],
+            'adults'      => ['required','integer','min:1'],
+            'facilities'  => ['array'],
+            'facilities.*'=> ['string'],
+        ]);
+
+        $payload = $validated + ['room_name' => $room->name];
+        $pricing = Pricing::calc($payload);
+
+        return view('checkout.preview', [
+            'room'     => (object)['name' => $room->name],
+            'input'    => $validated,
+            'pricing'  => $pricing,
+        ]);
+    }
+
+    /**
+     * Show saved reservation.
+     */
     public function show($id)
     {
         $reservation = $this->reservation->findOrFail($id);
         return view('rooms.show', compact('reservation'));
     }
 
-    /** edit（/reservations/{reservation}/edit） */
+    /**
+     * Show edit form for a reservation.
+     * Provides the current type label for select default.
+     */
     public function edit(Reservation $reservation)
     {
         $room = $this->room();
@@ -119,10 +203,12 @@ class ReservationController extends Controller
         return view('rooms.edit', compact('room', 'reservation', 'currentTypeLabel'));
     }
 
-    /** update（PUT /reservations/{reservation}） */
+    /**
+     * Update reservation (server-side price recomputed with Pricing::calc()).
+     */
     public function update(Request $request, Reservation $reservation)
     {
-        // time_from/time_to 
+        // Normalize names from form
         $request->merge([
             'start_time' => $request->input('time_from', $request->input('start_time')),
             'end_time'   => $request->input('time_to',   $request->input('end_time')),
@@ -141,18 +227,21 @@ class ReservationController extends Controller
             'facilities.*' => [Rule::in($room->facilities)],
         ]);
 
-        $typeKey = $label2key[$data['type']] ?? $data['type'];
+        // Pricing expects label; convert key->label for calculation if needed
+        $typeLabel = array_search($data['type'], $label2key, true) ?: $data['type'];
 
-        $total = $this->calcTotal(
-            $typeKey,
-            $data['start_time'],
-            $data['end_time'],
-            (int)$data['adults'],
-            $data['facilities'] ?? []
-        );
+        $quote = Pricing::calc([
+            'room_name'  => $room->name,
+            'type'       => $typeLabel,
+            'date'       => $data['date'],
+            'time_from'  => $data['start_time'],
+            'time_to'    => $data['end_time'],
+            'facilities' => $data['facilities'] ?? [],
+        ]);
+        $total = $quote['total'];
 
         $reservation->update([
-            'type'        => $typeKey,
+            'type'        => $data['type'], // already a key here per validation
             'date'        => $data['date'],
             'start_time'  => $data['start_time'],
             'end_time'    => $data['end_time'],
@@ -165,8 +254,9 @@ class ReservationController extends Controller
             ->with('status', 'Reservation updated.');
     }
 
-
-    // delete
+    /**
+     * Soft delete a reservation and redirect to home.
+     */
     public function destroy(Reservation $reservation)
     {
         $reservation->delete();
@@ -175,18 +265,26 @@ class ReservationController extends Controller
             ->with('success', 'Reservation cancelled successfully.');
     }
 
-
-    /** cal */
-    private function calcTotal(string $type, string $start, string $end, int $adults, array $fac): float
+    /**
+     * OPTIONAL: Live pricing endpoint for the form.
+     * Returns JSON using Pricing::calc().
+     * Safe to expose publicly (protected by CSRF).
+     */
+    public function quote(Request $request)
     {
-        $typePrice = $this->typePrices()[$type] ?? 0;
-        $facPrice  = $this->facilityPrices();
+        $room = $this->room();
 
-        $minutes = Carbon::parse($start)->diffInMinutes(Carbon::parse($end));
-        $hours   = max(0, $minutes / 60);
-        $base    = $typePrice * $hours;
-        $facSum  = array_sum(array_map(fn($k) => $facPrice[$k] ?? 0, $fac));
-        return ($base + $facSum) * max(1, $adults);
+        $data = $request->validate([
+            'type'        => ['required','string'],
+            'date'        => ['required','date'],
+            'time_from'   => ['required','date_format:H:i'],
+            'time_to'     => ['required','date_format:H:i','after:time_from'],
+            'facilities'  => ['array'],
+            'facilities.*'=> ['string'],
+        ]);
+
+        $payload = $data + ['room_name' => $room->name];
+        return response()->json(Pricing::calc($payload));
     }
 
 
