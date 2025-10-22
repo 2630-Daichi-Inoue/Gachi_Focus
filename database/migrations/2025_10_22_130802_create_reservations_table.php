@@ -14,12 +14,9 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
 
-            // ③nullOnDeleteにする理由は？「ユーザ削除→予約削除」とするとcascadeOnDelete()の方がいいのではないか？
-            //　 nullableでいいの？ユーザがいない予約はありということ？
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('space_id')->constrained()->cascadeOnDelete();
-            $table->string('status')->after('user_id');
+            $table->string('status');
 
             // ④roomとtypeは何に使う？spaceに値を持たせてそこから持ってくるようにできるのではないか？
             //　 roomがもし名前のことならspacesにすでにnameがあるのでそこから持ってこられる。
