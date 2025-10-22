@@ -11,7 +11,7 @@ class Review extends Model
 
     protected $fillable = [
         'user_id', 'space_id', 'rating', 'cleanliness',
-        'conditions', 'facilities', 'comment'
+        'conditions', 'facilities', 'comment', 'photo',
     ];
 
     public function user()

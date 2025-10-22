@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,7 +27,7 @@ class ReviewController extends Controller
             });
         }
 
-        if ($request->get('sort') === 'with'){
+        if ($request->get('sort') === 'with') {
             $query->whereNotNull('photo');
         }
 
@@ -73,16 +74,27 @@ class ReviewController extends Controller
             'conditions'  => 'required|numeric|min:1|max:5',
             'facilities'  => 'required|numeric|min:1|max:5',
             'comment'     => 'nullable|string|max:500',
-            'photo'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', 
+            'photo'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $reservation = Reservation::findOrFail($reservationId);
 
         $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
 
-        $photoPath = null;
-        if ($request->hasFile('photo')){
-            $photoPath = $request->file('photo')->store('reviews', 'public');
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            Log::info('Uploading new review photo', [
+                'original_name' => $file->getClientOriginalName(),
+                'mime' => $file->getMimeType(),
+            ]);
+
+            $photoPath = $file->store('reviews', 'public');
+
+            if (!Storage::disk('public')->exists($photoPath)) {
+                Log::error('File not saved correctly', ['path' => $photoPath]);
+            }
+        } else {
+            Log::warning('No photo received in request');
         }
 
         Review::create([
@@ -117,14 +129,14 @@ class ReviewController extends Controller
         $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
 
         if ($request->filled('remove_photo') && $request->remove_photo == true) {
-        if ($review->photo && Storage::disk('public')->exists($review->photo)) {
-            Storage::disk('public')->delete($review->photo);
+            if ($review->photo && Storage::disk('public')->exists($review->photo)) {
+                Storage::disk('public')->delete($review->photo);
+            }
+            $review->photo = null;
         }
-        $review->photo = null;
-    }
 
-        if ($request->hasFile('photo')){
-            if ($review->photo && Storage::disk('public')->exists($review->photo)){
+        if ($request->hasFile('photo')) {
+            if ($review->photo && Storage::disk('public')->exists($review->photo)) {
                 Storage::disk('public')->delete($review->photo);
             }
 
@@ -145,11 +157,11 @@ class ReviewController extends Controller
 
     public function destroy(Review $review)
     {
-        if ($review->user_id !== Auth::id()){
+        if ($review->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        if ($review->photo && Storage::disk('public')->exists($review->photo)){
+        if ($review->photo && Storage::disk('public')->exists($review->photo)) {
             Storage::disk('public')->delete($review->photo);
         }
 

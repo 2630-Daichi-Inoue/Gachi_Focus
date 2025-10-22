@@ -9,7 +9,7 @@
             </div>
 
             {{-- Form --}}
-            <form action="{{ route('reviews.store', $reservation->id ?? 1) }}" method="POST"
+            <form action="{{ url('reviews/' . $reservation->id) }}" method="POST" enctype="multipart/form-data">
                 enctype="multipart/form-data">
                 @csrf
 
@@ -118,117 +118,122 @@
 {{-- JS part --}}
 {{-- ======= --}}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const reviewModal = document.getElementById('writeReviewModal');
-    if (!reviewModal) return;
+    document.addEventListener('DOMContentLoaded', function() {
+        const reviewModal = document.getElementById('writeReviewModal');
+        if (!reviewModal) return;
 
-    ['clean', 'cond', 'fac'].forEach(prefix => {
-        for (let i = 1; i <= 5; i++) {
-            const icon = document.getElementById(`icon-${prefix}${i}`);
-            const input = document.getElementById(`${prefix}${i}`);
-            if (icon && input) {
-                icon.addEventListener('click', () => {
-                    for (let j = 1; j <= 5; j++) {
-                        const targetIcon = document.getElementById(`icon-${prefix}${j}`);
-                        const targetInput = document.getElementById(`${prefix}${j}`);
-                        if (targetIcon && targetInput) {
-                            if (j <= i) {
-                                targetIcon.classList.add('fa-solid');
-                                targetIcon.classList.remove('fa-regular');
-                            } else {
-                                targetIcon.classList.remove('fa-solid');
-                                targetIcon.classList.add('fa-regular');
+        ['clean', 'cond', 'fac'].forEach(prefix => {
+            for (let i = 1; i <= 5; i++) {
+                const icon = document.getElementById(`icon-${prefix}${i}`);
+                const input = document.getElementById(`${prefix}${i}`);
+                if (icon && input) {
+                    icon.addEventListener('click', () => {
+                        for (let j = 1; j <= 5; j++) {
+                            const targetIcon = document.getElementById(`icon-${prefix}${j}`);
+                            const targetInput = document.getElementById(`${prefix}${j}`);
+                            if (targetIcon && targetInput) {
+                                if (j <= i) {
+                                    targetIcon.classList.add('fa-solid');
+                                    targetIcon.classList.remove('fa-regular');
+                                } else {
+                                    targetIcon.classList.remove('fa-solid');
+                                    targetIcon.classList.add('fa-regular');
+                                }
                             }
                         }
-                    }
-                    input.checked = true;
-                });
-            }
-        }
-    });
-
-    reviewModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const form = reviewModal.querySelector('form');
-        const commentField = form.querySelector('#comment');
-
-        const currentPhotoContainer = form.querySelector('#currentPhotoContainer');
-        const currentPhotoImg = form.querySelector('#currentPhotoImg');
-        const removePhotoInput = form.querySelector('#remove_photo');
-        const removePhotoButton = form.querySelector('#removePhotoButton');
-
-        // edit
-        if (button && button.hasAttribute('data-review-id')) {
-            const id = button.dataset.reviewId;
-            const cleanliness = button.dataset.cleanliness;
-            const conditions = button.dataset.conditions;
-            const facilities = button.dataset.facilities;
-            const comment = button.dataset.comment;
-            const photo = button.dataset.photo;
-
-            form.action = `/reviews/${id}`;
-            let methodInput = form.querySelector('input[name="_method"]');
-            if (!methodInput) {
-                methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                form.appendChild(methodInput);
-            }
-            methodInput.value = 'PUT';
-
-            commentField.value = comment || '';
-
-            const map = { clean: cleanliness, cond: conditions, fac: facilities };
-            Object.entries(map).forEach(([prefix, value]) => {
-                for (let i = 1; i <= 5; i++) {
-                    const icon = document.getElementById(`icon-${prefix}${i}`);
-                    const input = document.getElementById(`${prefix}${i}`);
-                    if (!icon || !input) continue;
-                    input.checked = (i == value);
-                    icon.classList.toggle('fa-solid', i <= value);
-                    icon.classList.toggle('fa-regular', i > value);
+                        input.checked = true;
+                    });
                 }
-            });
-
-            // photo preview
-            if (photo && currentPhotoContainer && currentPhotoImg) {
-                currentPhotoContainer.classList.remove('d-none');
-                currentPhotoImg.src = `/storage/${photo}`;
-                if (removePhotoInput) removePhotoInput.value = '0';
-            } else if (currentPhotoContainer) {
-                currentPhotoContainer.classList.add('d-none');
             }
+        });
 
-            // delete button (photo)
-            if (removePhotoButton && removePhotoInput) {
-                removePhotoButton.onclick = function() {
-                    currentPhotoContainer.classList.add('d-none');
-                    currentPhotoImg.src = '';
-                    removePhotoInput.value = '1';
+        reviewModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const form = reviewModal.querySelector('form');
+            const commentField = form.querySelector('#comment');
+            const currentPhotoContainer = form.querySelector('#currentPhotoContainer');
+            const currentPhotoImg = form.querySelector('#currentPhotoImg');
+            const removePhotoInput = form.querySelector('#remove_photo');
+            const removePhotoButton = form.querySelector('#removePhotoButton');
+
+            // edit
+            if (button && button.hasAttribute('data-review-id')) {
+                const id = button.dataset.reviewId;
+                const cleanliness = button.dataset.cleanliness;
+                const conditions = button.dataset.conditions;
+                const facilities = button.dataset.facilities;
+                const comment = button.dataset.comment;
+                const photo = button.dataset.photo;
+
+                form.action = `/reviews/${id}`;
+                let methodInput = form.querySelector('input[name="_method"]');
+                if (!methodInput) {
+                    methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    form.appendChild(methodInput);
+                }
+                methodInput.value = 'PUT';
+                commentField.value = comment || '';
+
+                const map = {
+                    clean: cleanliness,
+                    cond: conditions,
+                    fac: facilities
                 };
+                Object.entries(map).forEach(([prefix, value]) => {
+                    for (let i = 1; i <= 5; i++) {
+                        const icon = document.getElementById(`icon-${prefix}${i}`);
+                        const input = document.getElementById(`${prefix}${i}`);
+                        if (!icon || !input) continue;
+                        input.checked = (i == value);
+                        icon.classList.toggle('fa-solid', i <= value);
+                        icon.classList.toggle('fa-regular', i > value);
+                    }
+                });
+
+                if (photo && currentPhotoContainer && currentPhotoImg) {
+                    currentPhotoContainer.classList.remove('d-none');
+                    currentPhotoImg.src = `/storage/${photo}`;
+                    if (removePhotoInput) removePhotoInput.value = '0';
+                } else if (currentPhotoContainer) {
+                    currentPhotoContainer.classList.add('d-none');
+                }
+
+                if (removePhotoButton && removePhotoInput) {
+                    removePhotoButton.onclick = function() {
+                        currentPhotoContainer.classList.add('d-none');
+                        currentPhotoImg.src = '';
+                        removePhotoInput.value = '1';
+                    };
+                }
             }
 
-        } 
-        // new
-        else {
-            form.reset();
-            form.action = "{{ route('reviews.store', $reservation->id) }}";
-            const methodInput = form.querySelector('input[name="_method"]');
-            if (methodInput) methodInput.remove();
+            // new
+            else {
+                form.querySelector('#comment').value = '';
+                form.querySelectorAll('input[type=radio]').forEach(i => i.checked = false);
 
-            ['clean', 'cond', 'fac'].forEach(prefix => {
-                for (let i = 1; i <= 5; i++) {
-                    const icon = document.getElementById(`icon-${prefix}${i}`);
-                    if (icon) {
-                        icon.classList.remove('fa-solid');
-                        icon.classList.add('fa-regular');
+                form.action = "{{ url('reviews/' . $reservation->id) }}";
+                form.method = 'POST';
+
+                const methodInput = form.querySelector('input[name="_method"]');
+                if (methodInput) methodInput.remove();
+
+                // reset stars
+                ['clean', 'cond', 'fac'].forEach(prefix => {
+                    for (let i = 1; i <= 5; i++) {
+                        const icon = document.getElementById(`icon-${prefix}${i}`);
+                        if (icon) {
+                            icon.classList.remove('fa-solid');
+                            icon.classList.add('fa-regular');
+                        }
                     }
-                }
-            });
+                });
 
-            if (currentPhotoContainer) currentPhotoContainer.classList.add('d-none');
-            if (removePhotoInput) removePhotoInput.value = '0';
-        }
+                if (currentPhotoContainer) currentPhotoContainer.classList.add('d-none');
+                if (removePhotoInput) removePhotoInput.value = '0';
+            }
+        });
     });
-});
 </script>
