@@ -81,8 +81,13 @@ class User extends Authenticatable
      *  Override notifications relation
      */ 
 
-    public function customNotifications()
+    public function receivedNotifications()
     {
-        return $this->hasMany(CustomNotification::class);
+        return $this->hasMany(CustomNotification::class, 'receiver_id');
+    }
+
+    public function sentNotifications()
+    {
+        return $this->hasMany(CustomNotification::class, 'sender_id');
     }
 }

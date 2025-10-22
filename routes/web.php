@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 
 // ================================================
 // Authentication
@@ -98,6 +99,11 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/space/{id}/edit', [SpacesController::class, 'edit'])->name('space.edit');
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
+
+    // Notifications
+    Route::resource('notifications', AdminNotificationController::class);
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Categories (optional)
     // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
