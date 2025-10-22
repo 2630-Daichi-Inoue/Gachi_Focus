@@ -15,15 +15,17 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('reservation_id')->constrained()->cascadeOnDelete();;
-            $table->unsignedBigInteger('facility_id')->constrained()->cascadeOnDelete();;
-            $table->unsignedBigInteger('quantity');
+            $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('facility_id')->constrained()->cascadeOnDelete();
+            // $table->unsignedBigInteger('reservation_id')->constrained()->cascadeOnDelete();;
+            // $table->unsignedBigInteger('facility_id')->constrained()->cascadeOnDelete();;
+            $table->unsignedTinyInteger('quantity');
+            $table->decimal('subtotal_price', 8, 2);
             $table->timestamps();
             $table->softDeletes();
 
-
-            $table->foreign('reservation_id')->references('id')->on('reservations');
-            $table->foreign('facility_id')->references('id')->on('facilities');
+            // $table->foreign('reservation_id')->references('id')->on('reservations');
+            // $table->foreign('facility_id')->references('id')->on('facilities');
         });
     }
 

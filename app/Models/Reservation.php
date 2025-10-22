@@ -14,19 +14,24 @@ class Reservation extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'user_id',
-        'space_id',
-        'start_time',
-        'end_time',
-        'status',
-    ];
+     //  allow mass assignment
+        protected $fillable = [
+            'user_id',
+            'room',
+            'type',
+            'date',
+            'start_time',
+            'end_time',
+            'adults',
+            'facilities',
+            'total_price',
+        ];
 
+    // cast JSON/date fields
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'facilities' => 'array',
+        'date'       => 'date',
     ];
-
 
     public const STATUS_MAP = [
         'Completed' => [
@@ -82,4 +87,5 @@ class Reservation extends Model
     public function payment() {
         return $this->hasOne(Payment::class)->withTrashed();
     }
+
 }

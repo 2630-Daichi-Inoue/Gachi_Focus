@@ -22,10 +22,12 @@ return new class extends Migration
             $table->float('conditions')->nullable();
             $table->float('facilities')->nullable();
             $table->text('comment')->nullable();
+            $table->string('photo')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
-
+// INSERT INTO `reviews`(`id`, `user_id`, `space_id`, `rating`, `comment`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 1, 5, 'Great!', '2025-01-01 00:00:00', null, null), (2, 2, 1, 4, 'Nice!', '2025-01-01 00:00:00', null, null), (3, 2, 1, 4, 'Good!', '2025-01-01 00:00:00', null, null), (4, 1, 1, 5, 'Wonderful', '2025-01-01 00:00:00', null, null);
 
     /**
      * Reverse the migrations.

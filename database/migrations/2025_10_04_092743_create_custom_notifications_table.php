@@ -1,3 +1,5 @@
+<!-- ②custom_notificationsのcustom_とつける理由はある？ -->
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
