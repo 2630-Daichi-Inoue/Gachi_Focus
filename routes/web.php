@@ -7,22 +7,23 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserSpaceController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UtilityController;
+use App\Http\Controllers\UserSpaceController;
+use App\Http\Controllers\Admin\UserController;
 
 // Admin Controllers
-use App\Http\Controllers\Admin\HomeController as AdminHomeController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\Admin\ReservationsController;
-use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\ReservationsController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 
 // ================================================
 // Authentication
@@ -70,9 +71,10 @@ Route::middleware('auth')->group(function () {
 });
 
 // Review
-Route::get('/reviews/{reservation}', function ($reservation) {
-    return view('reviews.index', ['reservationId' => $reservation]);
-})->name('reviews.index');
+Route::get('/reviews/{reservation}', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/reviews/{reservation}', [ReviewController::class, 'store'])->name('reviews.store');
+Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
 
 // ================================================
@@ -107,5 +109,4 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/space/{id}/edit', [SpacesController::class, 'edit'])->name('space.edit');
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
-
 });
