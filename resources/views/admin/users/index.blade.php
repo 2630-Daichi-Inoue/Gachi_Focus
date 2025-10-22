@@ -114,6 +114,11 @@
                                 </div>
                                 {{-- モーダルは各行の直後でOK --}}
                                 @include('admin.users.modals.status')
+                            @else
+                                {{-- 高さだけ確保（見えないボタン） --}}
+                                <button class="btn btn-sm invisible">
+                                    <i class="fas fa-ellipsis"></i>
+                                </button>
                             @endif
                         </td>
                     </tr>
@@ -168,11 +173,11 @@
         .table-fixed { table-layout: fixed; width: 100%; }
 
         /* 列幅（合計100%）— 検索欄と同じ親コンテナ幅にピッタリ収まる */
-        .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width:20%; }  /* Name */
-        .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width:20%; }  /* Email */
-        .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width:20%; }  /* Status */
-        .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width:20%; }  /* Action */
-        .table-fixed th:nth-child(5), .table-fixed td:nth-child(4) { width:20%; }  /* Ban / Activate */
+        .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width:20%; }  /* Avatar */
+        .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width:20%; }  /* Name */
+        .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width:20%; }  /* Email */
+        .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width:20%; }  /* Status */
+        .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width:20%; }  /* Ban / Activate */
 
     </style>
     
