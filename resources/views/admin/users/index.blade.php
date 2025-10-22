@@ -107,7 +107,7 @@
                                             </button>
                                         @else
                                             <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deactivate-user-{{ $user->id }}">
-                                                <i class="fas fa-user-slash"></i> Deactivate {{ $user->name }}
+                                                <i class="fas fa-user-slash"></i> Ban {{ $user->name }}
                                             </button>
                                         @endif
                                     </div>
