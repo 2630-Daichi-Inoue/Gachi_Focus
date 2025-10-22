@@ -61,14 +61,14 @@
         </div>
     @else
         {{-- 件数>0ならテーブルは1つだけ --}}
-        <table class="table table-hover align-middle bg-white border text-secondary">
+        <table class="table table-hover align-middle bg-white border text-secondary table-fixed">
             <thead class="small table-success text-secondary">
                 <tr>
                     <th></th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Status</th>
-                    <th></th>
+                    <th>Ban / Activate</th>
                 </tr>
             </thead>
             <tbody>
@@ -162,4 +162,18 @@
             perSel?.addEventListener('change', () => perForm?.submit());
         });
     </script>
+
+    <style>
+        /* 固定レイアウト＋親幅にフィット */
+        .table-fixed { table-layout: fixed; width: 100%; }
+
+        /* 列幅（合計100%）— 検索欄と同じ親コンテナ幅にピッタリ収まる */
+        .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width:20%; }  /* Name */
+        .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width:20%; }  /* Email */
+        .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width:20%; }  /* Status */
+        .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width:20%; }  /* Action */
+        .table-fixed th:nth-child(5), .table-fixed td:nth-child(4) { width:20%; }  /* Ban / Activate */
+
+    </style>
+    
 @endsection

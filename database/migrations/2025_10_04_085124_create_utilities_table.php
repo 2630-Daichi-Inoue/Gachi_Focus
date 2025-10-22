@@ -1,3 +1,5 @@
+<!-- ①そもそもこれ何に使う？ -->
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -15,6 +17,7 @@ return new class extends Migration
         $table->id();
         $table->string('name')->unique();
         $table->timestamps();
+        $table->softDeletes();
     });
     }
 

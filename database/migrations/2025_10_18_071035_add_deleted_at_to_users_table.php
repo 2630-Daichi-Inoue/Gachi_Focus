@@ -6,17 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::table('spaces', function (Blueprint $table) {
-            $table->text('map_embed')->change();
+        Schema::table('users', function (Blueprint $table) {
+            $table->softDeletes();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::table('spaces', function (Blueprint $table) {
-            $table->string('map_embed')->nullable()->change();
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropSoftDeletes();
         });
     }
 };

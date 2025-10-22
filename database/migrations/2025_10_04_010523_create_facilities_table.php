@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('description');
-            $table->decimal('price', 10, 2);
-            $table->unsignedBigInteger('stock');
+            $table->decimal('price', 7, 2);
+            $table->unsignedTinyInteger('stock');
             $table->timestamps();
             $table->softDeletes();
         });

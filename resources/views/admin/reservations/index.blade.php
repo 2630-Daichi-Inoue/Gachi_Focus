@@ -128,7 +128,7 @@
             <p class="text-secondary">Try different filters or remove them.</p>
         </div>
     @else
-        <table class="table table-hover align-middle bg-white border text-secondary">
+        <table class="table table-hover align-middle bg-white border text-secondary table-fixed">
             <thead class="small table-success text-secondary">
                 <tr>
                     <th>Reserv. ID</th>
@@ -151,8 +151,10 @@
                                class="text-decoration-none text-dark">{{ $reservation->user->name }}</a>
                         </td>
                         <td>{{ $reservation->space->name }}</td>
-                        <td>{{ $reservation->start_time }}</td>
-                        <td>{{ $reservation->end_time }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->date)->format('Y/n/j') }}
+                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $reservation->start_time)->format('G:i') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->date)->format('Y/n/j') }}
+                            {{ \Carbon\Carbon::createFromFormat('H:i:s', $reservation->end_time)->format('G:i') }}</td>
                         <td>{{ $reservation->total_price }}</td>
                         <td>
                             @php
@@ -269,4 +271,30 @@
             perSel?.addEventListener('change', () => perForm?.submit());
         });
     </script>
+
+    <style>
+        /* 固定レイアウト＋親幅にフィット */
+        .table-fixed { table-layout: fixed; width: 100%; }
+
+        /* 折り返し禁止＆長文は省略（名前/スペース名/日時だけ省略の対象にする） */
+        .table-fixed th, .table-fixed td { white-space: nowrap; }
+        .table-fixed td:nth-child(2),
+        .table-fixed td:nth-child(3),
+        .table-fixed td:nth-child(4),
+        .table-fixed td:nth-child(5) {
+        overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 列幅（合計100%）— 検索欄と同じ親コンテナ幅にピッタリ収まる */
+        .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 6%; }  /* ID */
+        .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width:12%; }  /* User */
+        .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width:18%; }  /* Space */
+        .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width:14%; }  /* Start */
+        .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width:14%; }  /* End */
+        .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 8%; }  /* Fee */
+        .table-fixed th:nth-child(7), .table-fixed td:nth-child(7) { width:10%; }  /* Status */
+        .table-fixed th:nth-child(8), .table-fixed td:nth-child(8) { width: 14%; }  /* Payment */
+        .table-fixed th:nth-child(9), .table-fixed td:nth-child(9) { width: 4%; }  /* Action */
+    </style>
+
 @endsection

@@ -61,9 +61,9 @@
                         @else
                             @if(auth()->user()->isAdmin()) <!-- ← Admin or User -->
                                 <!-- ADMIN LINKS -->
-                                <a href="" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
-                                <a href="" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
                                 <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
@@ -101,8 +101,11 @@
                                 <!-- Current Reservation -->
                                 <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
-                                <!-- Past Reservation -->
-                                <a href="" class="nav-link me-3">Past Reservation</a>
+                            <!-- Past Reservation -->
+                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
+
+                            <!-- Contact -->
+                            <a href="" class="nav-link me-3">Contact</a>
 
                                 <!-- Contact -->
                                 <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
@@ -193,7 +196,9 @@
         </nav>
 
         <main class="py-4">
-            @yield('content')
+            <div class="container-xxl">
+                @yield('content')
+            </div>
         </main>
     </div>
 </body>
