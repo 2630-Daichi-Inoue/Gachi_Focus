@@ -21,6 +21,7 @@ use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\HomeController as AdminHomeController;
 use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
@@ -110,4 +111,14 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
 
+    // Notifications
+    Route::resource('notifications', AdminNotificationController::class);
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
+    // Categories (optional)
+    // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
+    // Route::post('/categories/store', [CategoriesController::class, 'store'])->name('categories.store');
+    // Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
+    // Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
 });
