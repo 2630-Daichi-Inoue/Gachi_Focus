@@ -109,4 +109,5 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/space/{id}/edit', [SpacesController::class, 'edit'])->name('space.edit');
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
+
 });

@@ -4,11 +4,11 @@
         <div class="modal-content border-danger">
             <div class="modal-header border-danger">
                 <h3 class="h5 modal-title text-danger">
-                    <i class="fas fa-user-slash"></i> Deactivate User
+                    <i class="fas fa-user-slash"></i> Ban User
                 </h3>
             </div>
             <div class="modal-body">
-                Are you sure you want to deactivate <span class="fw-bold">{{ $user->name }}</span>?
+                Are you sure you want to ban <span class="fw-bold">{{ $user->name }}</span>?
             </div>
             <div class="modal-footer border-0">
                 <form action="{{ route('admin.users.deactivate', $user->id) }}" method="post">
