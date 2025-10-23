@@ -1,3 +1,5 @@
+<!-- ②custom_notificationsのcustom_とつける理由はある？ -->
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -20,6 +22,7 @@ return new class extends Migration
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete(); // It is related to reservation of coworking space.
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

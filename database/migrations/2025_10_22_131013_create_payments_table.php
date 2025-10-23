@@ -15,16 +15,15 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('reservation_id')->constrained()->cascadeOnDelete();;
+            $table->foreignId('reservation_id')->unique()->constrained()->cascadeOnDelete();;
             $table->string('method');
             $table->string('status');
             $table->timestamps();
             $table->softDeletes();
-
-
-            $table->unique('reservation_id');
         });
     }
+// INSERT INTO `payments`(`id`, `reservation_id`, `method`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1, 1, 'Card', 'Paid', '2025-04-01 00:00:00', '2025-04-01 00:00:00', null);
+
 
 
     /**
