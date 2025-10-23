@@ -70,8 +70,11 @@
                                 <!-- Current Reservation -->
                                 <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
-                                <!-- Past Reservation -->
-                                <a href="" class="nav-link me-3">Past Reservation</a>
+                            <!-- Past Reservation -->
+                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
+
+                            <!-- Contact -->
+                            <a href="" class="nav-link me-3">Contact</a>
 
                                 <!-- Contact -->
                                 <a href="" class="nav-link me-3">Contact</a>
@@ -129,7 +132,10 @@
                             @else
 
                                 <!-- user icon -->
-                                @if(Auth::user()->avatar)
+                                @php
+                                    $user = Auth::user();
+                                @endphp
+                                @if($user->avatar)
                                     <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="img-fluid rounded-circle image-sm">
                                 @else
                                     <i class="fas fa-circle-user text-secondary icon-sm"></i>

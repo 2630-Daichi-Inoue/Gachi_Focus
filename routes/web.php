@@ -7,22 +7,23 @@ use Illuminate\Support\Facades\Route;
 
 // Controllers
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserSpaceController;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\UtilityController;
+use App\Http\Controllers\UserSpaceController;
+use App\Http\Controllers\Admin\UserController;
 
 // Admin Controllers
-use App\Http\Controllers\Admin\HomeController as AdminHomeController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\SpaceController;
+use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\Admin\ReservationsController;
-use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\CategoriesController;
+use App\Http\Controllers\Admin\ReservationsController;
+use App\Http\Controllers\Admin\HomeController as AdminHomeController;
+use App\Http\Controllers\Admin\ReservationController as AdminReservationController;
 
 // ================================================
 // Authentication
@@ -37,7 +38,7 @@ Route::middleware('auth')->group(function () {
     // Home
     Route::get('/', [HomeController::class, 'index'])->name('index');
     Route::get('/search', [HomeController::class, 'search'])->name('search');
-
+});
     // Profile
 // Admin
 Route::prefix('admin')->name('admin.')->group(function(){
@@ -121,7 +122,17 @@ Route::middleware('auth')->group(function (){
     Route::get('/current-reservation', [ReservationController::class, 'currentShow'])->name('reservations.current');
     Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
     Route::get('/reservations/{id}/rebook', [ReservationController::class, 'rebook'])->name('reservations.rebook');
+    // past
+    Route::get('/past-reservation', [ReservationController::class, 'pastShow'])->name('reservations.past');
+    Route::get('/reservations/{id}/invoice', [ReservationController::class, 'downloadInvoice'])->name('reservations.invoice');
 });
+
+// Review
+Route::get('/reviews/{reservation}', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/reviews/{reservation}', [ReviewController::class, 'store'])->name('reviews.store');
+Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+
 
 // ================================================
 // Contact & Space Detail (Public)

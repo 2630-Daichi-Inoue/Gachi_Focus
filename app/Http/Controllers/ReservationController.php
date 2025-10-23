@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Models\Reservation;
 use Carbon\Carbon;
+use App\Models\Reservation;
+use App\Services\TaxService;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 use App\Support\Pricing;
 
 /**
@@ -328,15 +330,48 @@ class ReservationController extends Controller
     }
 
     // Past reservations show
-    // The branches are divided into current・past, I'll add them later (PIC:rio)
-    //     public function pastShow()
-    // {
-    //     $reservations = Reservation::with('workspace.photos')
-    //         ->where('user_id', Auth::id())
-    //         ->where('start_time', '<', Carbon::now())
-    //         ->orderBy('start_time', 'desc')
-    //         ->get();
+    public function pastShow()
+    {
+        $reservations = Reservation::with('space.photos')
+            ->where('user_id', Auth::id())
+            ->where('start_time', '<', Carbon::now())
+            ->orderByDesc('end_time')
+            ->get();
 
-    //     return view('reservations.past-show', compact('reservations'));
+        return view('reservations.past-show', compact('reservations'));
+    }
+
+    public function downloadInvoice($id)
+    {
+        $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
+
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $user = Auth::user();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
+            'reservation' => $reservation,
+            'user' => $user,
+            'issuedDate' => now()->format('Y/m/d'),
+            'company' => [
+                'name' => 'Gachi Focus Co-working',
+                'address' => '2-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo',
+                'email' => 'dummy123@gachifocus.com',
+                'signature' => 'Representative: Gachi Manager',
+            ],
+        ]);
+
+        $fileName = 'invoice_' . $reservation->id . '.pdf';
+        return "Invoice feature coming soon for reservation ID: {$id}";
+    }
+
+    // tax caluculate　TODO later / rio
+    // private function __construct(Reservation $reservation, TaxService $taxService)
+    // {
+    //     $this->reservation = $reservation;
+    //     $this->taxService = $taxService;
     // }
+
 }
