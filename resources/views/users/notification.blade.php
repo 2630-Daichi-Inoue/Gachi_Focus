@@ -29,9 +29,9 @@
             <!-- Go to page button -->
             <div>
                 @if($notification->type === 'Reservation Approved')
-                    <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                    <a href="{{ route('reservations.current') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @elseif($notification->type === 'Cancelation Approved')
-                    <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                    <a href="{{ route('reservations.past') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @elseif($notification->type === 'Review Request')
                     <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @endif
