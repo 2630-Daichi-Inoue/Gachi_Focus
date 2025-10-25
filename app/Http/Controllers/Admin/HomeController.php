@@ -21,7 +21,7 @@ class HomeController extends Controller
         // Yearly 
         $years = range($today->year - 9, $today->year);
         $salesYearRaw = DB::table('reservations')
-            ->selectRaw("YEAR(reservations.created_at) as year, SUM(reservations.price) as total")
+            ->selectRaw("YEAR(reservations.created_at) as year, SUM(reservations.total_price) as total")
             ->groupBy('year')
             ->pluck('total', 'year')
             ->toArray();
@@ -34,7 +34,7 @@ class HomeController extends Controller
         //  Monthly  
         $months = range(1, 12);
         $salesMonthRaw = DB::table('reservations')
-            ->selectRaw("MONTH(reservations.created_at) as month, SUM(reservations.price) as total")
+            ->selectRaw("MONTH(reservations.created_at) as month, SUM(reservations.total_price) as total")
             ->whereYear('reservations.created_at', $today->year)
             ->groupBy('month')
             ->pluck('total', 'month')
@@ -53,7 +53,7 @@ class HomeController extends Controller
         }
 
         $salesWeekRaw = DB::table('reservations')
-            ->selectRaw("DATE(reservations.created_at) as date, SUM(reservations.price) as total")
+            ->selectRaw("DATE(reservations.created_at) as date, SUM(reservations.total_price) as total")
             ->whereBetween('reservations.created_at', [$startOfWeek, $endOfWeek])
             ->groupBy('date')
             ->pluck('total', 'date')
@@ -73,7 +73,7 @@ class HomeController extends Controller
         foreach ($regions as $region) {
             $raw = DB::table('reservations')
                 ->join('spaces', 'reservations.space_id', '=', 'spaces.id')
-                ->selectRaw("YEAR(reservations.created_at) as year, SUM(reservations.price) as total")
+                ->selectRaw("YEAR(reservations.created_at) as year, SUM(reservations.total_price) as total")
                 ->where('spaces.region', $region)
                 ->groupBy('year')
                 ->pluck('total', 'year')
@@ -89,7 +89,7 @@ class HomeController extends Controller
         foreach ($regions as $region) {
             $raw = DB::table('reservations')
                 ->join('spaces', 'reservations.space_id', '=', 'spaces.id')
-                ->selectRaw("MONTH(reservations.created_at) as month, SUM(reservations.price) as total")
+                ->selectRaw("MONTH(reservations.created_at) as month, SUM(reservations.total_price) as total")
                 ->whereYear('reservations.created_at', $today->year)
                 ->where('spaces.region', $region)
                 ->groupBy('month')
@@ -106,7 +106,7 @@ class HomeController extends Controller
         foreach ($regions as $region) {
             $raw = DB::table('reservations')
                 ->join('spaces', 'reservations.space_id', '=', 'spaces.id')
-                ->selectRaw("DATE(reservations.created_at) as date, SUM(reservations.price) as total")
+                ->selectRaw("DATE(reservations.created_at) as date, SUM(reservations.total_price) as total")
                 ->whereBetween('reservations.created_at', [$startOfWeek, $endOfWeek])
                 ->where('spaces.region', $region)
                 ->groupBy('date')
