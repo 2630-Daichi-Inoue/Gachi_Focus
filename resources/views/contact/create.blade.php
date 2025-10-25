@@ -1,55 +1,52 @@
-@extends('layout.app')
+@extends('layouts.app')
 
 @section('title', 'Contact')
 
 @section('content')
-  <div class="mx-auto max-w-lg rounded-xl bg-white shadow-xl p-8">
-    <h1 class="text-xl font-semibold mb-6">Contact</h1>
+  <div class="mx-auto col-md-8 col-lg-6 bg-white shadow-sm rounded-4 p-5 mt-3">
+    <h1 class="h4 fw-semibold mb-4">Contact</h1>
 
-    <form method="POST" action="{{ route('contact.store') }}" class="space-y-6">
+    <form method="POST" action="{{ route('contact.store') }}">
       @csrf
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-        <input type="text" name="name" value="{{ old('name') }}"
-               class="w-full rounded-md border border-gray-300 focus:border-gray-500 focus:ring-0 p-2"
-               required>
+      <div class="mb-3">
+        <label class="form-label fw-medium fw-semibold">Name</label>
+        <input type="text" name="name" value="{{ old('name') }}" class="form-control"required>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-        <input type="email" name="email" value="{{ old('email') }}"
-               class="w-full rounded-md border border-gray-300 focus:border-gray-500 focus:ring-0 p-2"
-               required>
+      <div class="mb-3">
+        <label class="form-label fw-medium fw-semibold">E-mail</label>
+        <input type="email" name="email" value="{{ old('email') }}" class="form-control" required>
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
-        <input type="text" name="phone" value="{{ old('phone') }}"
-               class="w-full rounded-md border border-gray-300 focus:border-gray-500 focus:ring-0 p-2">
+      <div class="mb-3">
+        <label class="form-label fw-medium fw-semibold">Phone number</label>
+        <input type="text" name="phone" value="{{ old('phone') }}" class="form-control">
       </div>
 
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+      <div class="mb-3">
+        <label class="form-label fw-medium fw-semibold">Message</label>
         <textarea name="message" rows="6"
-          class="w-full rounded-md border border-gray-300 focus:border-gray-500 focus:ring-0 p-2"
-          placeholder="To contact the administrator , please fill out this form."
+          class="form-control" placeholder="To contact the administrator , please fill out this form."
           required>{{ old('message') }}</textarea>
       </div>
 
       {{-- show error --}}
       @if($errors->any())
-        <div class="text-red-600 text-sm space-y-1">
-          @foreach($errors->all() as $error)
-            <p>• {{ $error }}</p>
-          @endforeach
+        <div class="alert alert-danger py-2">
+          <ul class="mb-0">
+            @foreach($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
         </div>
       @endif
 
-      <button type="submit"
-        class="w-full rounded-md py-3 text-base font-medium text-white bg-gray-600 hover:bg-gray-700 transition">
-        Send
-      </button>
+      <div class="d-grid mt-4">
+        <button type="submit"class="btn btn-color py-2 text-white fw-bold">
+          Send
+        </button>
+      </div>
     </form>
   </div>
 @endsection

@@ -19,7 +19,7 @@
                 </div>
                 <div class="notification-message {{ $notification->read_at ? '' : 'fw-bold' }}">
                     <!-- Dot of unread -->
-                    <span class="unread-dot {{ $notification->read_at ? 'd-none' : '' }}" style="display:inline-block;width:10px; height:10px; background-color:#0d6efd; border-radius:50%; margin-right:8px; "></span>
+                    <span class="unread-dot {{ $notification->read_at ? 'd-none' : '' }} bg-danger" style="display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; "></span>
                     
                     <!-- The contents of notification -->
                     {{ $notification->message }}
@@ -27,7 +27,7 @@
             </div>
 
             <!-- Go to page button -->
-            <div>
+            <div class="mt-3">
                 @if($notification->type === 'Reservation Request')
                     <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @elseif($notification->type === 'Cancel Request')
