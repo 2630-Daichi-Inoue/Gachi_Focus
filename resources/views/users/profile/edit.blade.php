@@ -10,7 +10,7 @@
         @method('PATCH')
 
         <div class="card card-body bg-white mb-3">
-            <h4>User's Information</h4>
+            <h4 class="fw-bold">User's Information</h4>
             <div class="row mt-3">
                 <!-- image -->
                 <div class="col-3">
@@ -73,7 +73,7 @@
         @csrf
         @method('PATCH')
         <div class="card card-body bg-white w-80">
-            <h4>Change Password</h4>
+            <h4 class="fw-bold">Change Password</h4>
 
             <div class="row mt-3 g-3">
                 <div class="col-4" style="margin-left: 40px;">

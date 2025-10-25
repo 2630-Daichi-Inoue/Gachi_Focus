@@ -167,7 +167,7 @@
 
                                 <!-- user icon -->
                                 @if(auth()->user()->avatar)
-                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="img-fluid rounded-circle image-sm">
+                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="img-fluid rounded-circle image-sm">
                                 @else
                                     <i class="fas fa-circle-user text-secondary icon-sm"></i>
                                 @endif
