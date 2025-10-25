@@ -113,8 +113,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
     // Notifications
     Route::resource('notifications', AdminNotificationController::class);
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Categories (optional)
     // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');

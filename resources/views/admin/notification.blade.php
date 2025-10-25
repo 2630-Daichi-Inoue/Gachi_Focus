@@ -29,11 +29,11 @@
             <!-- Go to page button -->
             <div>
                 @if($notification->type === 'Reservation Request')
-                    <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @elseif($notification->type === 'Cancel Request')
-                    <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
-                @elseif($notification->type === 'Change Registration')
-                    <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                @elseif($notification->type === 'Change Reservation')
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @elseif($notification->type === 'Contact Message')
                     <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @endif
