@@ -116,7 +116,7 @@ class CustomNotificationSeeder extends Seeder
             [
                 'sender_id' => $user->id,
                 'receiver_id' => $admin->id,
-                'type' => 'Change Registration',
+                'type' => 'Change Reservaion',
                 'message' => 'User C requested to change the date of a reservation for Coworking Space A.',
                 'reservation_id' => null,
                 'read_at'=> null,

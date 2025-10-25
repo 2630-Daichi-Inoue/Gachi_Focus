@@ -82,17 +82,19 @@
                                     <!-- popup window of notifications -->
                                     <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
                                         <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                            @foreach($notifications as $notification)
+                                            @forelse($notifications as $notification)
                                             <div class="notification-item mb-2">
                                                 <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
                                                 <p class="mb-0">{{ $notification->message }}</p>
                                             </div>
                                             <hr class="my-2">
-                                        @endforeach
+                                            @empty
+                                                <p>No notifications found.</p>
+                                            @endforelse
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">see more &gt;</a>
+                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">All Notifications &gt;</a>
                                         </div>
                                     </div>
                                 </li>
@@ -101,11 +103,8 @@
                                 <!-- Current Reservation -->
                                 <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
-                            <!-- Past Reservation -->
-                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
-
-                            <!-- Contact -->
-                            <a href="" class="nav-link me-3">Contact</a>
+                                <!-- Past Reservation -->
+                                <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
 
                                 <!-- Contact -->
                                 <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
@@ -127,17 +126,20 @@
                                     <!-- popup window of notifications -->
                                     <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
                                         <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                            @foreach($notifications as $notification)
+                                            @forelse($notifications as $notification)
                                             <div class="notification-item mb-2">
                                                 <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
                                                 <p class="mb-0">{{ $notification->message }}</p>
                                             </div>
                                             <hr class="my-2">
-                                        @endforeach
+                                            @empty
+                                                <p>No notifications found.</p>
+                                            @endforelse
+                                            
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('notifications.index') }}" class="text-primary">see more &gt;</a>
+                                            <a href="{{ route('notifications.index') }}" class="text-primary">All Notifications &gt;</a>
                                         </div>
                                     </div>
                                 </li>

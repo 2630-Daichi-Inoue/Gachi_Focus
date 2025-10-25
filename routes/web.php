@@ -12,14 +12,14 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UtilityController;
 use App\Http\Controllers\UserSpaceController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReservationController;
 
 // Admin Controllers
 use App\Http\Controllers\Admin\SpaceController;
 use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\CategoriesController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\ReservationsController;
@@ -113,8 +113,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
     // Notifications
     Route::resource('notifications', AdminNotificationController::class);
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Categories (optional)
     // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
