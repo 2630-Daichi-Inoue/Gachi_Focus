@@ -9,7 +9,7 @@
         @csrf
         @method('PATCH')
 
-        <div class="card card-body bg-white mb-3">
+        <div class="card card-body border-dark bg-white mb-3">
             <h4 class="fw-bold">User's Information</h4>
             <div class="row mt-3">
                 <!-- image -->
@@ -42,17 +42,17 @@
                 <!-- Name & Email -->
                 <div class="col-4 ms-3">
                     <label for="name" class="form-label fs-5">Name</label>
-                    <input type="text" id="name" class="form-control bg-white mb-2" name="name" value="{{ $user->name }}">
+                    <input type="text" id="name" class="form-control mb-2" name="name" value="{{ $user->name }}">
                     <label for="email" class="form-label fs-5">Email Address</label>
-                    <input type="email" id="email" class="form-control bg-white mb-2" name="email" value="{{ $user->email }}">
+                    <input type="email" id="email" class="form-control mb-2" name="email" value="{{ $user->email }}">
                 </div>
 
                 <!-- Phone Number & Country -->
                 <div class="col-4">
                     <label for="text" class="form-label fs-5">Phone Number (optional)</label>
-                    <input type="text" id="phone" class="form-control bg-white mb-2" name="phone" value="{{ old('phone', auth()->user()->phone) }}">
+                    <input type="text" id="phone" class="form-control mb-2" name="phone" value="{{ old('phone', auth()->user()->phone) }}">
                     <label for="country" class="form-label fs-5">Country (optional)</label>
-                    <input type="text" id="country" class="form-control bg-white mb-2" name="country" value="{{ old('country', auth()->user()->country) }}">
+                    <input type="text" id="country" class="form-control mb-2" name="country" value="{{ old('country', auth()->user()->country) }}">
 
                     <!-- Button -->
                     <div class="row g-2 mt-1">
@@ -72,21 +72,21 @@
     <form action="{{ route('profile.password.update') }}" method="post">
         @csrf
         @method('PATCH')
-        <div class="card card-body bg-white w-80">
+        <div class="card card-body border-dark bg-white w-80">
             <h4 class="fw-bold">Change Password</h4>
 
             <div class="row mt-3 g-3">
                 <div class="col-4" style="margin-left: 40px;">
                     <label for="password" class="form-label fs-5">Current Password</label>
-                    <input type="password" name="currentpassword" id="currentpassword" class="form-control bg-white w-75">
+                    <input type="password" name="currentpassword" id="currentpassword" class="form-control w-75">
                 </div>
                 <div class="col-4">
                     <label for="password" class="form-label fs-5">New Password</label>
-                    <input type="password" name="newpassword" id="newpassword" class="form-control bg-white w-75">
+                    <input type="password" name="newpassword" id="newpassword" class="form-control w-75">
                 </div>
                 <div class="col-4" style="margin-right: -40px;">
                     <label for="password" class="form-label fs-5">Confirm Password</label>
-                    <input type="password" name="newpassword_confirmation" id="confirmpassword" class="form-control bg-white mb-2 w-75">
+                    <input type="password" name="newpassword_confirmation" id="confirmpassword" class="form-control mb-2 w-75">
                 </div>
             </div>
 
