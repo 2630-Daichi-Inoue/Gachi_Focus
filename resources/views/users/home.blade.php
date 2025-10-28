@@ -12,7 +12,7 @@
             {{-- ← Capacity 列と縦を合わせる位置（7-8カラム目） --}}
             <div class="col-12 col-md-2">
                 <a href="{{ route('index') }}"
-                    class="bg-secondary-subtle border border-dark rounded px-3 py-1 d-inline-block text-center text-dark text-decoration-none w-100">
+                    class="bg-secondary-subtle border rounded px-3 py-1 d-inline-block text-center text-dark text-decoration-none w-100">
                 Clear Filters
                 </a>
             </div>
@@ -22,7 +22,7 @@
             {{-- ← Rating(sort) 列と縦を合わせる位置（11-12カラム目） --}}
             <div class="col-12 col-md-2">
                 <button type="submit"
-                        class="border border-dark rounded px-3 py-1 text-white fw-bold w-100"
+                        class="border rounded px-3 py-1 text-white fw-bold w-100"
                         style="background-color:#757B9D; letter-spacing:.15em;">
                 Search
                 </button>
@@ -33,21 +33,21 @@
         <div class="row g-2 align-items-end">
             <div class="col-12 col-md-2">
                 <input type="search" name="name" id="name"
-                        class="form-control form-control-sm border border-dark"
+                        class="form-control form-control-sm border"
                         placeholder="Name" value="{{ request('name') }}">
                 @error('name') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
 
             <div class="col-12 col-md-2">
                 <input type="search" name="location" id="location"
-                        class="form-control form-control-sm border border-dark"
+                        class="form-control form-control-sm border"
                         placeholder="Location" value="{{ request('location') }}">
                 @error('location') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
 
             <div class="col-12 col-md-2">
                 <input type="number" name="max_fee" id="max_fee" step="0.5" min="0" inputmode="decimal"
-                        class="form-control form-control-sm border border-dark"
+                        class="form-control form-control-sm border"
                         placeholder="Max Fee / h (Any)" value="{{ request('max_fee') }}">
                 @error('max_fee') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
@@ -55,7 +55,7 @@
             {{-- ← ここが “Capacity”：上の Clear と同じ列位置 --}}
             <div class="col-12 col-md-2">
                 <input type="number" name="capacity" id="capacity" step="1" min="1" inputmode="numeric"
-                        class="form-control form-control-sm border border-dark"
+                        class="form-control form-control-sm border"
                         placeholder="Capacity (Any)" value="{{ request('capacity') }}">
                 @error('capacity') <div class="text-danger small">{{ $message }}</div> @enderror
             </div>
@@ -65,7 +65,7 @@
             {{-- ← ここが “Rating(sort)”：上の Search と同じ列位置 --}}
             <div class="col-12 col-md-2">
                 <select name="sort" id="sort"
-                        class="form-select form-select-sm border border-dark text-dark">
+                        class="form-select form-select-sm border text-dark">
                 <option value="rating_high_to_low" {{ request('sort','rating_high_to_low')==='rating_high_to_low' ? 'selected' : '' }}>Rating: High → Low</option>
                 <option value="price_high_to_low"    {{ request('sort')==='price_high_to_low'    ? 'selected' : '' }}>Price: High → Low</option>
                 <option value="price_low_to_high"    {{ request('sort')==='price_low_to_high'    ? 'selected' : '' }}>Price: Low → High</option>
