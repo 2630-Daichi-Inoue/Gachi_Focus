@@ -9,7 +9,7 @@
         @csrf
         @method('PATCH')
 
-        <div class="card card-body border-dark bg-white mb-3">
+        <div class="card card-body bg-white mb-3">
             <h4 class="fw-bold">User's Information</h4>
             <div class="row mt-3">
                 <!-- image -->
@@ -72,7 +72,7 @@
     <form action="{{ route('profile.password.update') }}" method="post">
         @csrf
         @method('PATCH')
-        <div class="card card-body border-dark bg-white w-80">
+        <div class="card card-body bg-white w-80">
             <h4 class="fw-bold">Change Password</h4>
 
             <div class="row mt-3 g-3">

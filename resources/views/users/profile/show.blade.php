@@ -23,13 +23,13 @@
                     <!-- profile information -->
                     <div class="col-8 mb-5">
                         <h5 class="fw-bold">Name</h5>
-                        <h6 class="border rounded border-dark ps-2 pt-2 pb-2 mb-3">{{ $user->name }}</h6>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->name }}</h6>
                         <h5 class="fw-bold">Email Address</h5>
-                        <h6 class="border rounded border-dark ps-2 pt-2 pb-2 mb-3">{{ $user->email }}</h6>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->email }}</h6>
                         <h5 class="fw-bold">Phone Number (optional)</h5>
-                        <h6 class="border rounded border-dark ps-2 pt-2 pb-2 mb-3">{{ $user->phone ?? '-' }}</h6>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->phone ?? '-' }}</h6>
                         <h5 class="fw-bold">Country (optional)</h5>
-                        <h6 class="border rounded border-dark ps-2 pt-2 pb-2 mb-3">{{ $user->country ?? '-' }}</h6>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->country ?? '-' }}</h6>
 
                         <!-- Button -->
                         <div class="row mt-5 g-2">
