@@ -72,8 +72,8 @@ Route::middleware('auth')->group(function () {
 });
 
 // Review
-Route::get('/reviews/{reservation}', [ReviewController::class, 'index'])->name('reviews.index');
-Route::post('/reviews/{reservation}', [ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/reviews/space/{space}', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/reviews/{space}', [ReviewController::class, 'store'])->name('reviews.store');
 Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
 Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
