@@ -48,9 +48,35 @@ class Space extends Model
 
     # space - photo
     # a space has many photos
-    # get all the phosos of a space
+    # get all the photos of a space
     public function photos() {
         return $this->hasMany(Photo::class);
     }
 
+    /**
+     * Detect country code from location text (for Pricing/TaxService)
+     */
+    public function getCountryCodeAttribute(): string
+    {
+        $loc = strtolower($this->location_for_details ?? '');
+        return match (true) {
+            str_contains($loc, 'japan'),
+            str_contains($loc, 'tokyo'),
+            str_contains($loc, 'osaka') => 'JP',
+
+            str_contains($loc, 'france'),
+            str_contains($loc, 'paris') => 'FR',
+
+            str_contains($loc, 'united states'),
+            str_contains($loc, 'usa'),
+            str_contains($loc, 'new york') => 'US',
+
+            str_contains($loc, 'australia'),
+            str_contains($loc, 'sydney') => 'AU',
+
+            str_contains($loc, 'singapore') => 'SG',
+
+            default => 'JP',
+        };
+    }
 }

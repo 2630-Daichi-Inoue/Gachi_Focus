@@ -28,10 +28,11 @@
         </div>
 
         <div class="col-6">
-            <button class="w-100 fw-bold text-white border border-dark rounded" 
-                    style="background-color: #757B9D; height: 100%;">
-                Book now!
-            </button>
+        <a href="{{ route('rooms.reserve.form', $space) }}" 
+            class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+            style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+            Book now!
+        </a>
         </div>
     </div>
 

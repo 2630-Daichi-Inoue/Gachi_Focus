@@ -3,143 +3,162 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth,Config,DB,Log};
+use Illuminate\Support\Facades\{Auth, Config, Log, DB};
 use App\Models\Reservation;
 use Carbon\Carbon;
-use Stripe\StripeClient;
+use Stripe\Stripe;
+use Stripe\Checkout\Session as CheckoutSession;
 use Stripe\Webhook;
 
 class PaymentController extends Controller
 {
-    // create Stripe Checkout Session
-    public function createCheckoutSession(Request $request)
-    {
-        // validate input
-        $data = $request->validate([
-            'reservation_id' => ['required','integer','exists:reservations,id'],
-        ]);
-
-        // ensure owner
-        $reservation = Reservation::where('id', $data['reservation_id'])
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
-
-        // amount: use integer in smallest currency unit
-        // JPY is zero-decimal, so use yen as integer
-        $currency = strtoupper($reservation->currency ?? 'JPY'); // e.g., JPY / USD
-        $amount = (int) ($reservation->amount_paid ?? round($reservation->total_price ?? 0));
-        if ($amount <= 0) {
-            return response()->json(['message' => 'Invalid amount'], 422);
-        }
-
-        // Stripe client
-        $stripe = new StripeClient(Config::get('services.stripe.secret'));
-
-        // idempotency key to avoid duplicate sessions
-        $idempotencyKey = "reserve_{$reservation->id}_{$reservation->updated_at?->timestamp}";
-
-        // success/cancel URLs
-        $successUrl = rtrim(config('app.url'),'/') . route('payments.success', [], false) . '?session_id={CHECKOUT_SESSION_ID}';
-        $cancelUrl  = rtrim(config('app.url'),'/') . route('payments.cancel', [], false) . '?rid='.$reservation->id;
-
-        // session create
-        $session = $stripe->checkout->sessions->create([
-            'mode' => 'payment',
-            'payment_method_types' => ['card'],
-            'customer_email' => Auth::user()->email ?? null,
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => strtolower($currency), // stripe expects lowercase
-                    'unit_amount' => $amount,           // smallest unit
-                    'product_data' => [
-                        'name' => "Room {$reservation->room} / {$reservation->date} {$reservation->start_time}-{$reservation->end_time}",
-                        'metadata' => [
-                            'reservation_id' => (string)$reservation->id,
-                            'user_id' => (string)Auth::id(),
-                        ],
-                    ],
-                ],
-                'quantity' => 1,
-            ]],
-            'success_url' => $successUrl,
-            'cancel_url'  => $cancelUrl,
-            'metadata' => [
-                'reservation_id' => (string)$reservation->id,
-                'user_id' => (string)Auth::id(),
-            ],
-        ], [
-            'idempotency_key' => $idempotencyKey,
-        ]);
-
-        return response()->json(['id' => $session->id]);
+    /**
+     * Create a Stripe Checkout session on the server
+     * and redirect the user to Stripe-hosted checkout page.
+     */
+    public function checkout(Request $request, Reservation $reservation)
+{
+    // 1) Ensure the reservation belongs to the current user
+    if (Auth::check() && $reservation->user_id && $reservation->user_id !== Auth::id()) {
+        abort(403);
     }
 
-    // Stripe webhook (mark as paid)
+    // 2) Prevent double payment
+    $status = $reservation->payment_status ?? 'unpaid';
+    if ($status === 'paid') {
+        return back()->with('success', 'This reservation is already paid.');
+    }
+
+    // 3) Prepare amount and currency (server-side only)
+    $currency = strtoupper($reservation->currency ?? 'JPY');
+    $rawTotal = (float) ($reservation->total_price ?? 0.0);
+
+    // Determine zero-decimal currencies
+    $zeroDecimal = in_array($currency, [
+        'BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG',
+        'RWF','UGX','VND','VUV','XAF','XOF','XPF'
+    ], true);
+
+    $amount = (int) round($rawTotal * ($zeroDecimal ? 1 : 100));
+    if ($amount <= 0) {
+        return back()->with('error', 'Invalid payment amount.');
+    }
+
+    // 4) Initialize Stripe (hard guard & sanitize)
+    // Ensure Stripe secret is present and clean before using it
+    $secret = (string) config('services.stripe.secret');
+    // strip BOM / stray unicode spaces just in case
+    $secret = preg_replace('/^\xEF\xBB\xBF/', '', $secret ?? '');
+    $secret = preg_replace('/^\s+/u', '', $secret ?? '');
+    $secret = preg_replace('/\s+$/u', '', $secret ?? '');
+
+    // Log basic diagnostics (safe: only prefix/length/last4)
+    \Log::info('Stripe key diag', [
+        'starts_with_sk' => str_starts_with($secret, 'sk_'),
+        'length'         => strlen($secret),
+        'first7'         => substr($secret, 0, 7),
+        'last4'          => substr($secret, -4),
+    ]);
+
+    if (!$secret || !str_starts_with($secret, 'sk_') || strlen($secret) < 20) {
+        abort(500, 'Stripe secret key is missing or invalid. Check .env and config cache.');
+    }
+    \Stripe\Stripe::setApiKey($secret);
+
+    // Success / Cancel URLs
+    $successUrl = route('payments.success', ['reservation' => $reservation->id]) . '?session_id={CHECKOUT_SESSION_ID}';
+    $cancelUrl  = route('payments.cancel',  ['reservation' => $reservation->id]);
+
+    // Product name (optional)
+    $spaceName   = optional($reservation->space)->name ?? "Space #{$reservation->space_id}";
+    $day         = optional($reservation->date)->format('Y-m-d'); // make date display consistent
+    $productName = "{$spaceName} / {$day} {$reservation->start_time}-{$reservation->end_time}";
+
+    // Idempotency key (to prevent duplicate sessions)
+    $idempotencyKey = "reserve_srv_{$reservation->id}_{$reservation->updated_at?->timestamp}";
+
+    // 5) Create checkout session
+    $session = \Stripe\Checkout\Session::create([
+        'mode' => 'payment',
+        'payment_method_types' => ['card'],
+        'customer_email' => Auth::user()->email ?? null,
+        'line_items' => [[
+            'price_data' => [
+                'currency' => strtolower($currency),
+                'unit_amount' => $amount,
+                'product_data' => [
+                    'name' => $productName,
+                    'metadata' => [
+                        'reservation_id' => (string) $reservation->id,
+                        'user_id'        => (string) Auth::id(),
+                    ],
+                ],
+            ],
+            'quantity' => 1,
+        ]],
+        'success_url' => $successUrl,
+        'cancel_url'  => $cancelUrl,
+        'metadata' => [
+            'reservation_id' => (string) $reservation->id,
+            'user_id'        => (string) Auth::id(),
+        ],
+    ], [
+        'idempotency_key' => $idempotencyKey,
+    ]);
+
+    // 6) Mark as pending until Stripe confirms via webhook
+    $reservation->payment_status = 'pending';
+    $reservation->payment_intent_id = $session->payment_intent ?? null;
+    $reservation->save();
+
+    // 7) Redirect to Stripe checkout page
+    return redirect()->away($session->url);
+    }
+
+
+    /**
+     * Handle Stripe webhook events.
+     * This is the source of truth for marking a payment as "paid".
+     */
     public function webhook(Request $request)
     {
         $payload = $request->getContent();
-        $sig = $request->header('Stripe-Signature');
-        $secret = Config::get('services.stripe.webhook_secret');
+        $sig     = $request->header('Stripe-Signature');
+        $secret  = Config::get('services.stripe.webhook_secret');
 
         try {
-            // verify signature
+            // Verify Stripe signature
             $event = Webhook::constructEvent($payload, $sig, $secret);
         } catch (\Throwable $e) {
-            Log::warning('stripe webhook signature failed', ['error' => $e->getMessage()]);
+            Log::warning('Stripe webhook signature verification failed', ['error' => $e->getMessage()]);
             return response('Invalid signature', 400);
         }
 
-        // handle important events only
-        if (in_array($event->type, ['checkout.session.completed','payment_intent.succeeded'], true)) {
+        // Listen for relevant events
+        if (in_array($event->type, ['checkout.session.completed', 'payment_intent.succeeded'], true)) {
             $obj = $event->data['object'];
 
-            // read common fields
-            $reservationId = null;
-            $paymentIntentId = null;
-            $amount = null;
-            $currency = null;
-            $region = null;
-
-            if ($event->type === 'checkout.session.completed') {
-                // from session
-                $reservationId   = $obj['metadata']['reservation_id'] ?? null;
-                $paymentIntentId = $obj['payment_intent'] ?? null;
-                $amount          = (int)($obj['amount_total'] ?? 0);
-                $currency        = strtoupper($obj['currency'] ?? 'JPY'); // e.g., jpy -> JPY
-                // region from payment_details if available later (optional extra fetch)
-            } else {
-                // from payment_intent
-                $reservationId   = $obj['metadata']['reservation_id'] ?? null;
-                $paymentIntentId = $obj['id'] ?? null;
-                $amount          = (int)($obj['amount'] ?? 0);
-                $currency        = strtoupper($obj['currency'] ?? 'JPY');
-                // try to read card country (if exists)
-                $region = strtoupper($obj['payment_method_options']['card']['mandate_options']['start_date'] ?? '');
-            }
-
-            // try to resolve region from nested payment_method_details if provided
-            // (Stripe may include country under payment_method_details->card->country in some events)
-            if (!$region && isset($obj['payment_method_details']['card']['country'])) {
-                $region = strtoupper($obj['payment_method_details']['card']['country']);
-            }
+            $reservationId   = $obj['metadata']['reservation_id'] ?? null;
+            $paymentIntentId = $obj['payment_intent'] ?? $obj['id'] ?? null;
+            $amount          = (int) ($obj['amount_total'] ?? $obj['amount'] ?? 0);
+            $currency        = strtoupper($obj['currency'] ?? 'JPY');
+            $region          = strtoupper($obj['payment_method_details']['card']['country'] ?? '');
 
             if ($reservationId) {
                 DB::transaction(function () use ($reservationId, $paymentIntentId, $amount, $currency, $region) {
-                    /** @var Reservation $res */
                     $res = Reservation::lockForUpdate()->find($reservationId);
                     if (!$res) return;
 
-                    // idempotent: skip if already paid
+                    // Skip if already paid
                     if ($res->payment_status === 'paid') return;
 
+                    // Update payment details
                     $res->payment_status    = 'paid';
                     $res->payment_intent_id = $paymentIntentId;
-                    $res->amount_paid       = $amount ?: ($res->amount_paid ?? (int) round($res->total_price ?? 0));
-                    $res->currency          = $currency ?: ($res->currency ?? 'JPY');
+                    $res->amount_paid       = $amount ?: (int) round($res->total_price ?? 0);
+                    $res->currency          = $currency;
                     $res->payment_region    = $region ?: ($res->payment_region ?? null);
                     $res->paid_at           = Carbon::now();
-                    // optional: app-side reservation status
-                    // $res->status = 'confirmed';
                     $res->save();
                 });
             }
@@ -148,7 +167,26 @@ class PaymentController extends Controller
         return response()->noContent();
     }
 
-    // success/ cancel page
-    public function success() { return view('payments.success'); }
-    public function cancel()  { return view('payments.cancel');  }
+    /**
+     * Show success page after Stripe redirects back.
+     * Note: The actual "paid" state should be confirmed by webhook.
+     */
+    public function success(Request $request, Reservation $reservation)
+    {
+        return view('payments.success', [
+            'reservation' => $reservation,
+            'session_id'  => $request->query('session_id'),
+        ]);
+    }
+
+    /**
+     * Show cancel page when user aborts payment.
+     */
+    public function cancel(Request $request, Reservation $reservation)
+    {
+        return view('payments.cancel', [
+            'reservation' => $reservation,
+        ]);
+    }
+    
 }

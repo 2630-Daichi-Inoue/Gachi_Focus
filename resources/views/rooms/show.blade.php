@@ -1,176 +1,139 @@
-@extends('layout.app')
+@extends('layouts.app')
+
+@section('title', ($space->name ?? 'Room').' | GachiFocus')
 
 @section('content')
+@php
+  // Prepare image and display name (same logic as reserve page)
+  $displayName = $space->name ?? 'Room';
+  $rawImage = $space->image ?? null;
+  $imgSrc = asset('images/room-b.jpg');
+  if ($rawImage) {
+      if (str_starts_with($rawImage, 'http://') || str_starts_with($rawImage, 'https://') || str_starts_with($rawImage, 'data:image')) {
+          $imgSrc = $rawImage;
+      } elseif (str_starts_with($rawImage, 'storage/') || str_st_starts_with($rawImage, 'images/')) {
+          $imgSrc = asset($rawImage);
+      } else {
+          $imgSrc = asset('storage/'.$rawImage);
+      }
+  }
+@endphp
 
-<div class="min-h-screen flex items-center justify-center" x-data="{ showCancel:false }">
-    <div class="m-auto grid md:grid-cols-2">
+<div class="container-xxl py-5">
+  <div class="row g-0 shadow-lg rounded overflow-hidden">
 
-        {{-- left --}}
-        <div>
-            <img src="{{ asset('images/room-b.jpg') }}" class="shadow w-full h-full object-cover" alt="Room photo">
-        </div>
+    {{-- Left picture (keep consistent with reserve page) --}}
+    <div class="col-lg-6 position-relative">
+      <img src="{{ $imgSrc }}" alt="{{ $displayName }}"
+           class="img-fluid w-100 h-100 object-fit-cover" style="min-height:420px;">
+      <div class="position-absolute top-0 start-0 p-4">
+        <div class="display-5 fw-bold text-white text-shadow">{{ $displayName }}</div>
+      </div>
+    </div>
 
-        {{-- right --}}
-        <div class="bg-white shadow p-6 rounded-lg flex flex-col justify-between">
-            <div class="space-y-4 px-10 py-10">
-                <h2 class="text-2xl font-serif">
-                    Type
-                    {{-- {{ $reservation->type }} --}}
-                </h2>
+    {{-- Right detail panel --}}
+    <div class="col-lg-6 bg-white p-4 p-md-5">
+      {{-- Space info --}}
+      <div class="mb-4">
+        <h2 class="fw-bold mb-2">{{ $displayName }}</h2>
+        <div class="text-muted">{{ $space->location_for_details ?? 'No details available.' }}</div>
+      </div>
 
-                <dl class="grid grid-cols-3 gap-y-3 text-sm">
-                    <dt class="text-gray-500">Date</dt>
-                    <dd class="col-span-2">
-                        {{ \Carbon\Carbon::parse($reservation->date)->format('M j') }}
-                        {{ $reservation->start_time }} - {{ $reservation->end_time }}
-                    </dd>
+      {{-- Reservation summary (show only when available) --}}
+      @isset($reservation)
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h3 class="h5 fw-bold mb-3">Reservation Summary</h3>
+            <dl class="row gy-2 mb-0">
+              <dt class="col-4 text-muted">Date</dt>
+              <dd class="col-8">{{ optional($reservation->date)->format('Y/m/d') ?? '-' }}</dd>
 
-                    <dt class="text-gray-500">Adults</dt>
-                    <dd class="col-span-2">{{ $reservation->adults }}</dd>
+              <dt class="col-4 text-muted">Time</dt>
+              <dd class="col-8">{{ $reservation->start_time }} - {{ $reservation->end_time }}</dd>
 
-                    <dt class="text-gray-500">Facilities</dt>
-                    <dd class="col-span-2">
-                        @forelse(($reservation->facilities ?? []) as $f)
-                            <span class="px-2 py-0.5 rounded bg-gray-100">
-                                {{ config('reservations.facilities')[$f]['label'] ?? $f }}
-                            </span>
-                        @empty
-                            <span class="text-gray-400">None</span>
-                        @endforelse
-                    </dd>
+              <dt class="col-4 text-muted">Type</dt>
+              <dd class="col-8">{{ $reservation->type }}</dd>
 
-                    @php
-                        // use total_price if exists, else quote_total
-                        $total = (int)($reservation->total_price ?? $reservation->quote_total ?? 0);
-                    @endphp
+              <dt class="col-4 text-muted">People</dt>
+              <dd class="col-8">{{ $reservation->adults }}</dd>
 
-                    <dt class="text-gray-500">Total</dt>
-                    <dd class="col-span-2 font-semibold">
-                        ¥{{ number_format($total) }}
-                    </dd>
-
-                    <dt class="text-gray-500">Payment</dt>
-                    <dd class="col-span-2">
-                        @if(($reservation->payment_status ?? 'unpaid') === 'paid')
-                            <span class="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 px-3 py-1 text-sm">Paid</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 px-3 py-1 text-sm">Unpaid</span>
-                        @endif
-                    </dd>
-                </dl>
-            </div>
-
-            {{-- actions --}}
-            <div class="space-y-2 mt-6 text-center">
-
-                {{-- show pay button only when unpaid and amount > 0 --}}
-                @if(($reservation->payment_status ?? 'unpaid') !== 'paid' && $total > 0)
-                    <script src="https://js.stripe.com/v3/"></script>
-
-                    {{-- primary: pay --}}
-                    <button id="pay-btn"
-                        type="button"
-                        class="inline-flex w-full justify-center rounded-lg bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700">
-                        Pay with card
-                    </button>
+              <dt class="col-4 text-muted">Facilities</dt>
+              <dd class="col-8">
+                @if(!empty($reservation->facilities))
+                  <div class="d-flex flex-wrap gap-2">
+                    @foreach($reservation->facilities as $f)
+                      <span class="badge bg-light text-dark border">{{ $f }}</span>
+                    @endforeach
+                  </div>
+                @else
+                  <span class="text-muted">None</span>
                 @endif
+              </dd>
 
-                {{-- secondary: change --}}
-                <a href="{{ route('reservations.edit', $reservation) }}"
-                   class="inline-flex w-full justify-center rounded-lg bg-neutral-900 text-white py-3 font-semibold">
-                   Change reservation
-                </a>
+              <dt class="col-4 text-muted">Total</dt>
+              <dd class="col-8 fw-semibold">¥{{ number_format((int)($reservation->total_price ?? 0), 0) }}</dd>
+            </dl>
 
-                {{-- tertiary: cancel (open modal) --}}
-                <button type="button"
-                        class="inline-flex w-full justify-center rounded-lg border-2 border-red-500 py-3 font-semibold text-red-600 hover:bg-red-50"
-                        x-on:click="showCancel=true">
-                    Cancel
-                </button>
+            {{-- Action buttons --}}
+            <div class="d-flex gap-3 mt-4">
+            {{-- Edit button --}}
+            <a href="{{ route('reservations.edit', ['reservation' => $reservation->id]) }}"
+                class="btn btn-dark btn-lg flex-fill">
+                Change reservation
+            </a>
+
+           @php $cancelModalId = 'cancelModal-'.$reservation->id; @endphp
+
+            {{-- Cancel button (red) --}}
+            <button type="button"
+                    class="btn btn-danger btn-lg flex-fill"
+                    data-bs-toggle="modal"
+                    data-bs-target="#{{ $cancelModalId }}">
+            Cancel reservation
+            </button>
+
+            {{-- Include modal --}}
+            @include('rooms.cancel.modal', [
+            'reservation' => $reservation,
+            'modalId'     => $cancelModalId,
+            'title'       => 'Cancel Reservation',
+            ])
+            
+
             </div>
-        </div>
-    </div>
 
-    {{-- cancel modal --}}
-    <div x-show="showCancel" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="absolute inset-0 bg-black/40" x-on:click="showCancel=false"></div>
-
-        <div class="relative w-[92%] max-w-md rounded-xl bg-white shadow-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Are you sure?</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-600" aria-label="Close"
-                        x-on:click="showCancel=false">&times;</button>
-            </div>
-
-            <p class="mb-6 text-gray-700">Are you sure you want to cancel this reservation?</p>
-
-            <div class="flex gap-3">
-                <form method="POST" action="{{ route('reservations.destroy', $reservation) }}" class="flex-1">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                            class="w-full rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white hover:bg-red-700">
-                        Cancel
-                    </button>
+            {{-- Pay (primary) - show only if unpaid or pending --}}
+            <div class="d-flex gap-3 mt-4">
+            @if(($reservation->payment_status ?? 'unpaid') !== 'paid')
+                <form method="POST" action="{{ route('reservations.pay', ['reservation' => $reservation->id]) }}" class="flex-fill">
+                  @csrf
+                  <button type="submit" class="btn btn-primary btn-lg w-100">
+                    Pay with card
+                  </button>
                 </form>
-
-                <button type="button"
-                        class="flex-1 rounded-lg border px-4 py-2.5 font-semibold text-gray-700 hover:bg-gray-50"
-                        x-on:click="showCancel=false">
-                    Not now
-                </button>
+              @endif
             </div>
+          </div>
         </div>
+      @else
+        {{-- No reservation fallback --}}
+        <div class="alert alert-secondary">No reservation data found.</div>
+      @endisset
+
+      {{-- Map embed (keep same visual style) --}}
+      @if(!empty($space->map_embed))
+        <div class="mt-3">
+          <div class="ratio ratio-16x9 rounded overflow-hidden border">
+            {!! $space->map_embed !!}
+          </div>
+        </div>
+      @endif
     </div>
+  </div>
 </div>
 
-{{-- pay script (simple & safe) --}}
-@if(($reservation->payment_status ?? 'unpaid') !== 'paid' && $total > 0)
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('pay-btn');
-  if (!btn) return;
-
-  let busy = false; // prevent double click
-
-  btn.addEventListener('click', async () => {
-    if (busy) return;
-    busy = true;
-    btn.disabled = true;
-    btn.textContent = 'Processing...';
-
-    try {
-      const stripe = Stripe(@json(config('services.stripe.public'))); // public key
-      const res = await fetch(@json(route('payments.checkout')), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': @json(csrf_token()),
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ reservation_id: @json($reservation->id) }) // required id
-      });
-
-      if (!res.ok) {
-        const t = await res.text();
-        alert('Failed to start payment.\n' + t);
-        btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
-        return;
-      }
-
-      const { id } = await res.json(); // checkout session id
-      const { error } = await stripe.redirectToCheckout({ sessionId: id });
-      if (error) {
-        alert(error.message || 'Stripe error');
-        btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
-      }
-    } catch (e) {
-      alert((e && e.message) ? e.message : 'Unexpected error');
-      btn.disabled = false; btn.textContent = 'Pay with card'; busy = false;
-    }
-  });
-});
-</script>
-@endif
-
+<style>
+  .object-fit-cover { object-fit: cover; }
+  .text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+</style>
 @endsection
