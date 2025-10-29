@@ -26,8 +26,7 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer('layouts.app', function($view){
             if(auth()->check()){
-                $notifications = auth()->user()
-                        ->customNotifications()
+                $notifications = CustomNotification::where('receiver_id', auth()->id())
                         ->orderBy('created_at', 'desc')
                         ->take(5)
                         ->get();

@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('custom_notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeonDelete();
+            $table->foreignId('sender_id')->nullable()->constrained('users')->cascadeonDelete();
+            $table->foreignId('receiver_id')->nullable()->constrained('users')->cascadeonDelete();
             $table->string('type'); // the notification's type: approved reservation, changed coworking space, and so on.
             $table->text('message');
             $table->foreignId('reservation_id')->nullable()->constrained()->cascadeOnDelete(); // It is related to reservation of coworking space.

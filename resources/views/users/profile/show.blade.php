@@ -22,22 +22,22 @@
 
                     <!-- profile information -->
                     <div class="col-8 mb-5">
-                        <h5>Name</h5>
-                        <h6 class="border border-1 ps-2 pt-2 pb-2 mb-3">{{ $user->name }}</h6>
-                        <h5>Email Address</h5>
-                        <h6 class="border border-1 ps-2 pt-2 pb-2 mb-3">{{ $user->email }}</h6>
-                        <h5>Phone Number (optional)</h5>
-                        <h6 class="border border-1 ps-2 pt-2 pb-2 mb-3">{{ $user->phone ?? '-' }}</h6>
-                        <h5>Country (optional)</h5>
-                        <h6 class="border border-1 ps-2 pt-2 pb-2 mb-3">{{ $user->country ?? '-' }}</h6>
+                        <h5 class="fw-bold">Name</h5>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->name }}</h6>
+                        <h5 class="fw-bold">Email Address</h5>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->email }}</h6>
+                        <h5 class="fw-bold">Phone Number (optional)</h5>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->phone ?? '-' }}</h6>
+                        <h5 class="fw-bold">Country (optional)</h5>
+                        <h6 class="border rounded ps-2 pt-2 pb-2 mb-3">{{ $user->country ?? '-' }}</h6>
 
                         <!-- Button -->
                         <div class="row mt-5 g-2">
                             <div class="col-6">
-                                <button class="w-100 h-100 bg-white text-danger border border-danger fw-bold rounded-1" data-bs-toggle="modal" data-bs-target="#delete-user-{{ $user->id }}">Delete Account</button>
+                                <button class="w-100 h-100 bg-white text-danger border border-danger fw-bold rounded" data-bs-toggle="modal" data-bs-target="#delete-user-{{ $user->id }}">Delete Account</button>
                             </div>
                             <div class="col-6">
-                                <a href="{{ route('profile.edit') }}" class="btn w-100 btn-success text-white fw-bold">Edit Profile</a>
+                                <a href="{{ route('profile.edit') }}" class="btn w-100 btn-success text-white fw-bold rounded">Edit Profile</a>
                             </div>
 
                             <!-- delete modal -->

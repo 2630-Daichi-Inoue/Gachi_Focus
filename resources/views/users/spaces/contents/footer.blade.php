@@ -1,7 +1,7 @@
-<div class="card-footer border-bottom border-start border-end border-dark bg-grey">
+<div class="card-footer border-bottom border-start border-end bg-grey">
     <div class="col">
         @forelse ($space->categorySpace as $category_space)
-            <div class="badge text-dark fw-light border border-dark" style="background-color: #C9DFEC">
+            <div class="badge text-dark fw-light border" style="background-color: #C9DFEC">
                 {{ $category_space->category->name }}
             </div>
         @empty
