@@ -51,19 +51,6 @@ class SpacesController extends Controller
             'min_capacity.required' => 'The capacity field is required.'
         ]);
 
-        # 2. Save the space
-        // $this->space->name = $request->name;
-        // $this->space->location_for_overview = $request->location_for_overview;
-        // $this->space->location_for_details = $request->location_for_details;
-        // $this->space->min_capacity = $request->min_capacity;
-        // $this->space->max_capacity = $request->max_capacity;
-        // $this->space->area = $request->area;
-        // $this->space->weekday_price = $request->weekday_price;
-        // $this->space->weekend_price = $request->weekend_price;
-        // $this->space->description = $request->description;
-        // $this->space->image = 'data:image/' . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
-        // $this->space->save();
-
         // 2) Save space（例外が出ないように丁寧に）
         $this->space->fill([
             'name' => $validated['name'],
@@ -98,14 +85,6 @@ class SpacesController extends Controller
                     ->withTrashed()
                     ->findOrFail($id);
 
-
-        #if the auth user is NOT the owner, redirect to homepage
-        // != NOT EQUAL
-        // if(Auth::user()->id != $space->user->id)
-        // {
-        //     return redirect()->route('index');
-        // }
-
         $all_categories = $this->category->all();
 
         # get all category IDS of the post. save in an array
@@ -132,8 +111,8 @@ class SpacesController extends Controller
             'min_capacity' => 'required|integer|min:1|max:99|lte:max_capacity',
             'max_capacity' => 'required|integer|min:1|max:99|gte:min_capacity',
             'area' => 'required|numeric|min:1|max:9999.99',
-            'weekday-price' => 'required|numeric|min:10|max:999999',
-            'weekend-price' => 'required|numeric|min:10|max:999999',
+            'weekday_price' => 'required|numeric|min:10|max:999999',
+            'weekend_price' => 'required|numeric|min:10|max:999999',
             'description' => 'required|min:1|max:1000',
             'category' => 'nullable|array',
             'image' => 'nullable|mimes:jpeg,jpg,png,gif|max:1048'
@@ -175,10 +154,8 @@ class SpacesController extends Controller
             $space->categorySpace()->createMany($newCategories);
         }
 
-
         # 5, redirect to the index
         return redirect()->route('index')->with('status', 'Space updated.');
-        // return redirect()->route('post.show', $id);
     }
 
     public function destroy($id)

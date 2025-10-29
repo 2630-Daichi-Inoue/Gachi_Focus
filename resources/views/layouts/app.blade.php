@@ -65,6 +65,39 @@
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
                                 <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
                                 <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
+                                <!-- notification -->
+                                <li class="nav-item dropdown">
+                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
+                                
+                                    <!-- Unread mark on the bell icon -->
+                                        @php
+                                            $hasUnread = auth()->user()->receivedNotifications()->whereNull('read_at')->exists();
+                                        @endphp
+                                        @if($hasUnread)
+                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
+                                            </span>
+                                        @endif
+                                    </a>
+
+                                    <!-- popup window of notifications -->
+                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                        <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
+                                            @forelse($notifications as $notification)
+                                            <div class="notification-item mb-2">
+                                                <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
+                                                <p class="mb-0">{{ $notification->message }}</p>
+                                            </div>
+                                            <hr class="my-2">
+                                            @empty
+                                                <p>No notifications found.</p>
+                                            @endforelse
+                                        </div>
+
+                                        <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
+                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">All Notifications &gt;</a>
+                                        </div>
+                                    </div>
+                                </li>
                             @else
                                 <!-- USER LINKS -->
                                 <!-- Current Reservation -->
@@ -81,33 +114,41 @@
                             <li class="nav-item dropdown">
                                 <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
                             
-                                <!-- Unread mark on the bell icon -->
-                                    @php
-                                        $hasUnread = auth()->user()->customNotifications()->whereNull('read_at')->exists();
-                                    @endphp
-                                    @if($hasUnread)
-                                        <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
-                                        </span>
-                                    @endif
-                                </a>
+                                <!-- notification -->
+                                <li class="nav-item dropdown">
+                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
+                                
+                                    <!-- Unread mark on the bell icon -->
+                                        @php
+                                            $hasUnread = auth()->user()->receivedNotifications()->whereNull('read_at')->exists();
+                                        @endphp
+                                        @if($hasUnread)
+                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
+                                            </span>
+                                        @endif
+                                    </a>
 
-                                <!-- popup window of notifications -->
-                                <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
-                                    <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                        @foreach($notifications as $notification)
-                                        <div class="notification-item mb-2">
-                                            <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
-                                            <p class="mb-0">{{ $notification->message }}</p>
+                                    <!-- popup window of notifications -->
+                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                        <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
+                                            @forelse($notifications as $notification)
+                                            <div class="notification-item mb-2">
+                                                <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
+                                                <p class="mb-0">{{ $notification->message }}</p>
+                                            </div>
+                                            <hr class="my-2">
+                                            @empty
+                                                <p>No notifications found.</p>
+                                            @endforelse
+                                            
                                         </div>
-                                        <hr class="my-2">
-                                    @endforeach
-                                    </div>
 
-                                    <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                        <a href="{{ route('notifications.index') }}" class="text-primary">see more &gt;</a>
+                                        <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
+                                            <a href="{{ route('notifications.index') }}" class="text-primary">All Notifications &gt;</a>
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
+                                </li>
+                            @endif
 
                             @if(auth()->user()->isAdmin())
                                 <i class="fas fa-circle-user text-secondary icon-sm"></i>
@@ -130,11 +171,8 @@
                             @else
 
                                 <!-- user icon -->
-                                @php
-                                    $user = Auth::user();
-                                @endphp
-                                @if($user->avatar)
-                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="img-fluid rounded-circle image-sm">
+                                @if(auth()->user()->avatar)
+                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="img-fluid rounded-circle image-sm">
                                 @else
                                     <i class="fas fa-circle-user text-secondary icon-sm"></i>
                                 @endif
