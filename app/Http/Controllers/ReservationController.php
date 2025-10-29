@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use App\Support\Pricing;
 use App\Models\Reservation;
 use App\Services\TaxService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use App\Support\Pricing;
+use Illuminate\Support\Facades\Http;
+use Prumm\Iso3166Currency\Currency;    // country code -> currency code 
 
 /**
  * Reservation flow (public):
@@ -96,7 +99,7 @@ class ReservationController extends Controller
         }
 
         // Blade: use $fromTimes/$toTimes (NOT $fromPeriod/$toPeriod)
-        return view('rooms.reserve', compact('room','fromTimes','toTimes'));
+        return view('rooms.reserve', compact('room', 'fromTimes', 'toTimes'));
     }
 
     /**
@@ -146,7 +149,7 @@ class ReservationController extends Controller
             'end_time'    => $data['end_time'],
             'adults'      => (int)$data['adults'],
             'facilities'  => $data['facilities'] ?? [],
-            'total_price' => $total,
+            'price' => $total,
         ]);
 
         return redirect()->route('reservations.show', $reservation);
@@ -162,13 +165,13 @@ class ReservationController extends Controller
         $room = $this->room();
 
         $validated = $req->validate([
-            'type'        => ['required','string'],
-            'date'        => ['required','date'],
-            'time_from'   => ['required','date_format:H:i'],
-            'time_to'     => ['required','date_format:H:i','after:time_from'],
-            'adults'      => ['required','integer','min:1'],
+            'type'        => ['required', 'string'],
+            'date'        => ['required', 'date'],
+            'time_from'   => ['required', 'date_format:H:i'],
+            'time_to'     => ['required', 'date_format:H:i', 'after:time_from'],
+            'adults'      => ['required', 'integer', 'min:1'],
             'facilities'  => ['array'],
-            'facilities.*'=> ['string'],
+            'facilities.*' => ['string'],
         ]);
 
         $payload = $validated + ['room_name' => $room->name];
@@ -247,7 +250,7 @@ class ReservationController extends Controller
             'end_time'    => $data['end_time'],
             'adults'      => (int)$data['adults'],
             'facilities'  => $data['facilities'] ?? [],
-            'total_price' => $total,
+            'price' => $total,
         ]);
 
         return redirect()->route('reservations.show', $reservation)
@@ -275,12 +278,12 @@ class ReservationController extends Controller
         $room = $this->room();
 
         $data = $request->validate([
-            'type'        => ['required','string'],
-            'date'        => ['required','date'],
-            'time_from'   => ['required','date_format:H:i'],
-            'time_to'     => ['required','date_format:H:i','after:time_from'],
+            'type'        => ['required', 'string'],
+            'date'        => ['required', 'date'],
+            'time_from'   => ['required', 'date_format:H:i'],
+            'time_to'     => ['required', 'date_format:H:i', 'after:time_from'],
             'facilities'  => ['array'],
-            'facilities.*'=> ['string'],
+            'facilities.*' => ['string'],
         ]);
 
         $payload = $data + ['room_name' => $room->name];
@@ -341,6 +344,7 @@ class ReservationController extends Controller
         return view('reservations.past-show', compact('reservations'));
     }
 
+    // invoice section
     public function downloadInvoice($id)
     {
         $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
@@ -350,28 +354,77 @@ class ReservationController extends Controller
         }
 
         $user = Auth::user();
+        $space = $reservation->space;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
+        // tax 
+        if ($space->country_code === 'US') {
+            // each states
+            $vatRate = match ($space->state) {
+                'CA' => 9.5,
+                'NY' => 8.9,
+                'TX' => 8.25,
+                'FL' => 7.0,
+                'WA' => 10.1,
+                default => 7.0,
+            };
+            $taxMethod = 'external'; // external tax
+        } else {
+            $vatRate = match ($space->country_code) {
+                'JP' => 10,   // include tax
+                'PH' => 12,   // external tax
+                'AU' => 10,   // include tax
+                default => 0,
+            };
+
+            $taxMethod = match ($space->country_code) {
+                'JP', 'AU' => 'internal',
+                default => 'external',
+            };
+        }
+
+        // rate
+        $exchangeRate = match ($space->country_code) {
+            'JP' => 150.0, // USD→JPY
+            'PH' => 58.0,  // USD→PHP
+            'AU' => 1.55,  // USD→AUD
+            'US' => 1.0,   // USD→USD
+            default => 1.0,
+        };
+
+        $localCurrency = match ($space->country_code) {
+            'JP' => 'JPY',
+            'PH' => 'PHP',
+            'AU' => 'AUD',
+            'US' => 'USD',
+            default => 'USD',
+        };
+
+        // tac calculation
+        $subtotal = $reservation->price ?? 0;
+        $taxAmount = 0;
+        $totalWithTax = 0;
+
+        if ($taxMethod === 'internal') {
+            $taxAmount = $subtotal * ($vatRate / (100 + $vatRate));
+            $totalWithTax = $subtotal;
+        } else {
+            $taxAmount = $subtotal * ($vatRate / 100);
+            $totalWithTax = $subtotal + $taxAmount;
+        }
+
+        // genarate PDF
+        $pdf = Pdf::loadView('reservations.invoice-pdf', [
             'reservation' => $reservation,
             'user' => $user,
-            'issuedDate' => now()->format('Y/m/d'),
-            'company' => [
-                'name' => 'Gachi Focus Co-working',
-                'address' => '2-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo',
-                'email' => 'dummy123@gachifocus.com',
-                'signature' => 'Representative: Gachi Manager',
-            ],
+            'space' => $space,
+            'vatRate' => $vatRate,
+            'subtotalUSD' => $subtotal,
+            'taxUSD' => $taxAmount,
+            'totalUSD' => $totalWithTax,
+            'exchangeRate' => $exchangeRate,
+            'localCurrency' => $localCurrency,
         ]);
 
-        $fileName = 'invoice_' . $reservation->id . '.pdf';
-        return "Invoice feature coming soon for reservation ID: {$id}";
+        return $pdf->download("invoice_{$reservation->id}.pdf");
     }
-
-    // tax caluculate　TODO later / rio
-    // private function __construct(Reservation $reservation, TaxService $taxService)
-    // {
-    //     $this->reservation = $reservation;
-    //     $this->taxService = $taxService;
-    // }
-
 }
