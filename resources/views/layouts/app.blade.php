@@ -74,10 +74,8 @@
                             <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
 
                             <!-- Contact -->
-                            <a href="" class="nav-link me-3">Contact</a>
+                            <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
 
-                                <!-- Contact -->
-                                <a href="" class="nav-link me-3">Contact</a>
                             @endif
                             <!-- notification -->
                             <li class="nav-item dropdown">

@@ -142,13 +142,19 @@ class ReservationController extends Controller
         $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
         [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
 
-        // alpine defaults
-        $defaultType        = $reservation->type ?? ($types[0] ?? 'Standard');
-        $defaultDate        = optional($reservation->date)->toDateString() ?? now()->toDateString();
-        $defaultStart       = $reservation->start_time ?? ($fromTimes[0] ?? '09:00');
-        $defaultEnd         = $reservation->end_time ?? ($toTimes[0] ?? '10:00');
-        $defaultAdults      = (int) ($reservation->adults ?? 1);
-        $defaultFacilities  = is_array($reservation->facilities) ? $reservation->facilities : [];
+        // --- Normalize defaults for SSR & Alpine ---
+        // date -> "YYYY-MM-DD"; time -> "HH:MM"
+        $defaultType  = $reservation->type ?? ($types[0] ?? 'Standard');
+        $defaultDate  = optional($reservation->date)->toDateString() ?? Carbon::today()->toDateString();
+
+        // Ensure "HH:MM" (DB might store "HH:MM:SS")
+        $defaultStart = $reservation->start_time ? substr((string)$reservation->start_time, 0, 5) : ($fromTimes[0] ?? '09:00');
+        $defaultEnd   = $reservation->end_time   ? substr((string)$reservation->end_time,   0, 5) : ($toTimes[0]   ?? '10:00');
+
+        // Facilities must be an array for both Blade @checked and Alpine x-model
+        $defaultFacilities = is_array($reservation->facilities) ? $reservation->facilities : [];
+
+        $defaultAdults = (int) ($reservation->adults ?? 1);
 
         $space = $reservation->space ?? Space::find($reservation->space_id);
 

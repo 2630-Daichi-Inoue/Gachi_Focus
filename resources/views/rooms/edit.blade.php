@@ -177,7 +177,8 @@
             </dd>
             <dt class="col-3 text-muted">Total</dt>
             <dd class="col-9 fw-semibold">
-              <span x-show="!busy" x-text="formatJPY(total)"></span>
+              <span x-show="!busy" x-text="formatMoney(total, currency)"></span>
+              <span x-show="!busy" class="text-muted">（tax <span x-text="formatMoney(tax, currency)"></span>）</span>
               <span x-show="busy" class="text-muted">calculating...</span>
             </dd>
           </dl>
@@ -193,7 +194,7 @@
 </style>
 
 <script>
-  // Alpine.js component
+  // Alpine.js component (tax-inclusive summary)
   function editPage(init) {
     return {
       csrf: init.csrf,
@@ -205,18 +206,20 @@
       end_time: init.end_time || '',
       adults: init.adults || 1,
       facilities: Array.isArray(init.facilities) ? init.facilities : [],
-      total: 0,
+
+      // totals from quote API
+      total: 0,   // tax-in
+      tax: 0,     // tax amount
+      currency: 'JPY',
+
       busy: false,
 
-      // Normalize HH:mm format
       normalizeTime(v) {
         if (!v) return null;
         const [h, m] = v.split(':');
-        if (!h || !m) return null;
-        return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+        return h && m ? `${h.padStart(2,'0')}:${m.padStart(2,'0')}` : null;
       },
 
-      // Fetch quote
       async recalc() {
         if (!this.type || !this.date || !this.start_time || !this.end_time) return;
         this.busy = true;
@@ -239,6 +242,8 @@
           });
           const data = await res.json();
           this.total = Number(data.total || 0);
+          this.tax   = Number(data.tax_amount || 0);
+          this.currency = data.currency || 'JPY';
         } catch (e) {
           console.error('quote error', e);
         } finally {
@@ -246,17 +251,20 @@
         }
       },
 
-      // Helpers
-      formatJPY(v) {
+      formatMoney(v, curr) {
+        const c = String(curr || 'JPY').toUpperCase();
+        const zero = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'].includes(c);
         const n = Number(v || 0);
-        return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(n);
+        if (c === 'JPY') return '¥' + n.toLocaleString('ja-JP');
+        return n.toLocaleString(undefined, { minimumFractionDigits: zero ? 0 : 2 }) + ' ' + c;
       },
+
       formatDate(iso) {
         if (!iso) return '-';
         const d = new Date(iso + 'T00:00:00');
         if (isNaN(d)) return iso;
         return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-      }
+      },
     }
   }
 </script>
