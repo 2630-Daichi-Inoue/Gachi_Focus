@@ -1,118 +1,202 @@
-@extends('layout.app')
+@extends('layouts.app')
+
+@section('title', 'Category List')
 
 @section('content')
-{{-- modal --}}
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<div class="container-xxl">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-9">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 mb-0">Category List</h1>
+      </div>
 
-<div class="max-w-5xl mx-auto py-10" x-data="utilityPage()">
-    <h1 class="text-3xl font-bold mb-6">Category List</h1>
+      {{-- flash success --}}
+      @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+      @endif
 
-    {{-- flash --}}
-    @if(session('success'))
-        <div class="mb-4 rounded bg-green-50 border border-green-200 px-4 py-3 text-green-800">
-            {{ session('success') }}
+      {{-- validation summary (optional) --}}
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            @foreach ($errors->all() as $e)
+              <li>{{ $e }}</li>
+            @endforeach
+          </ul>
         </div>
-    @endif
-    @if ($errors->any())
-        <div class="mb-4 rounded bg-red-50 border border-red-200 px-4 py-3 text-red-800">
-            <ul class="list-disc list-inside">
-                @foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-            </ul>
+      @endif
+
+      {{-- add form --}}
+      <div class="card mb-4 border-0 shadow-sm rounded-4">
+        <div class="card-body">
+          <form class="row gy-2 gx-2 align-items-center" method="POST" action="{{ route('utilities.store') }}">
+            @csrf
+            <div class="col-12 col-md">
+              <input
+                type="text"
+                name="name"
+                value="{{ old('name') }}"
+                class="form-control"
+                placeholder="Add Utility"
+                required
+              >
+            </div>
+            <div class="col-12 col-md-auto">
+              {{-- gray button per your preference --}}
+              <button type="submit" class="btn btn-secondary px-4">
+                + add
+              </button>
+            </div>
+          </form>
         </div>
-    @endif
+      </div>
 
-    {{-- form to add--}}
-    <form class="flex gap-3 mb-6" method="POST" action="{{ route('utilities.store') }}">
-        @csrf
-        <input name="name" placeholder="Add Utility" class="flex-1 rounded border px-3 py-2"
-               value="{{ old('name') }}">
-        <button class="rounded bg-gray-800 px-4 py-2 text-white bg-gray-700 hover:bg-gray-600 transition">+ add</button>
-    </form>
-
-    {{-- show--}}
-    <div class="overflow-hidden rounded border">
-        <table class="w-full bg-white">
-            <thead class="bg-gray-50 text-gray-500">
+      {{-- list table --}}
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead class="table-light">
                 <tr>
-                    <th class="px-5 py-3 text-left w-2/3">Category</th>
-                    <th class="px-5 py-3 text-center">Action</th>
+                  <th class="w-75">Category</th>
+                  <th class="text-center">Action</th>
                 </tr>
-            </thead>
-            <tbody class="divide-y">
+              </thead>
+              <tbody>
                 @forelse ($utilities as $u)
-                    <tr>
-                        <td class="px-5 py-4 text-lg">{{ $u->name }}</td>
-                        <td class="px-5 py-4">
-                            <div class="flex justify-center gap-4">
-                                <button
-                                    class="w-24 inline-flex items-center justify-center rounded bg-emerald-600 py-2 text-white hover:bg-emerald-700 transition"
-                                    @click="openEdit({{ $u->id }}, '{{ e($u->name) }}')">
-                                    Edit
-                                </button>
+                  <tr>
+                    <td class="fs-5">{{ $u->name }}</td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+                            {{-- Edit button: deeper blue --}}
+                            <button
+                            type="button"
+                            class="btn text-white px-3 py-2"
+                            style="background-color:#576b69; border:none; width:90px; transition:0.2s;"
+                            onmouseover="this.style.backgroundColor='#428bca';"
+                            onmouseout="this.style.backgroundColor='#5a9bd8';"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editModal"
+                            data-id="{{ $u->id }}"
+                            data-name="{{ e($u->name) }}"
+                            >
+                            Edit
+                            </button>
 
-                                <button
-                                    class="w-24 inline-flex items-center justify-center rounded border-2 border-red-300 py-2 text-red-700 hover:bg-red-50 transition"
-                                    @click="openDelete({{ $u->id }}, '{{ e($u->name) }}')">
-                                    Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                            {{-- Delete button: same size --}}
+                            <button
+                            type="button"
+                            class="btn text-danger px-3 py-2"
+                            style="border:2px solid #e27b7b; background-color:transparent; width:90px; transition:0.2s;"
+                            onmouseover="this.style.backgroundColor='#ffeaea';"
+                            onmouseout="this.style.backgroundColor='transparent';"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-id="{{ $u->id }}"
+                            data-name="{{ e($u->name) }}"
+                            >
+                            Delete
+                            </button>
+                        </div>
+                    </td>
+                  </tr>
                 @empty
-                    <tr><td class="px-5 py-6 text-gray-500" colspan="2">No tags yet.</td></tr>
+                  <tr>
+                    <td colspan="2" class="text-muted py-4">No tags yet.</td>
+                  </tr>
                 @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-6">{{ $utilities->links() }}</div>
-
-    {{-- edit modal--}}
-    <div x-show="showEdit" x-cloak class="fixed inset-0 z-50 grid place-items-center bg-black/40">
-        <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-            <h2 class="mb-4 text-2xl font-bold">Edit category</h2>
-
-            <form :action="editAction" method="POST" class="space-y-4">
-                @csrf @method('PUT')
-                <input type="text" name="name" class="w-full rounded border px-3 py-2" x-model="editName">
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" class="px-4 py-2 rounded border" @click="showEdit=false">Cancel</button>
-                    <button class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Edit</button>
-                </div>
-            </form>
+              </tbody>
+            </table>
+          </div>
         </div>
-    </div>
+      </div>
 
-    {{-- delete modal --}}
-    <div x-show="showDelete" x-cloak class="fixed inset-0 z-50 grid place-items-center bg-black/40">
-        <div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-            <h2 class="mb-4 text-2xl font-bold">Are you sure you want to delete?</h2>
-            <p class="text-gray-600 mb-6" x-text="editName"></p>
-            <form :action="deleteAction" method="POST" class="flex justify-end gap-3">
-                @csrf @method('DELETE')
-                <button type="button" class="px-4 py-2 rounded border" @click="showDelete=false">Cancel</button>
-                <button class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Delete</button>
-            </form>
-        </div>
+      {{-- pagination --}}
+      <div class="mt-3">
+        {{ $utilities->links() }}
+      </div>
     </div>
+  </div>
 </div>
 
+{{-- Edit Modal --}}
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="editForm" method="POST" class="modal-content">
+      @csrf
+      @method('PUT')
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {{-- populated via JS --}}
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input type="text" name="name" id="editName" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Edit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{-- Delete Modal --}}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="deleteForm" method="POST" class="modal-content">
+      @csrf
+      @method('DELETE')
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete category</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">Are you sure you want to delete <strong id="deleteName"></strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{{-- Minimal JS: populate modal forms (no Alpine needed) --}}
 <script>
-function utilityPage() {
-    return {
-        showEdit: false,
-        showDelete: false,
-        editId: null,
-        editName: '',
-        get editAction() { return this.editId ? `{{ url('/utilities') }}/${this.editId}` : '#'; },
-        get deleteAction() { return this.editAction; },
-        openEdit(id, name) {
-            this.editId = id; this.editName = name; this.showEdit = true;
-        },
-        openDelete(id, name) {
-            this.editId = id; this.editName = name; this.showDelete = true;
-        }
-    }
-}
+  // Util: build RESTful resource URL
+  function utilityUrl(id) {
+    // Ensure same as your route('utilities.update', id) / route('utilities.destroy', id)
+    return "{{ url('/utilities') }}/" + id;
+  }
+
+  // Edit modal handler
+  const editModalEl = document.getElementById('editModal');
+  editModalEl.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const id = button.getAttribute('data-id');
+    const name = button.getAttribute('data-name');
+
+    // Set form action and field
+    const form = document.getElementById('editForm');
+    form.action = utilityUrl(id);
+    document.getElementById('editName').value = name;
+  });
+
+  // Delete modal handler
+  const deleteModalEl = document.getElementById('deleteModal');
+  deleteModalEl.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    const id = button.getAttribute('data-id');
+    const name = button.getAttribute('data-name');
+
+    // Set form action and label
+    const form = document.getElementById('deleteForm');
+    form.action = utilityUrl(id);
+    document.getElementById('deleteName').textContent = name;
+  });
 </script>
 @endsection

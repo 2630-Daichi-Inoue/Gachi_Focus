@@ -4,8 +4,7 @@
 
 @section('content')
 
-    <div class="container-fluid py-4"
-     style="height: 100vh; overflow: hidden; position: fixed; top: 95px; left: 0; right: 0;">
+    <div class="container-fluid py-4" style="height: 100vh; overflow: hidden; position: fixed; top: 95px; left: 0; right: 0;">
         <div class="row" style="display: flex; align-items: stretch; height: calc(100vh - 150px); overflow: hidden;">
 
             {{-- left --}}
@@ -29,7 +28,6 @@
 
                     @php
                         $rating = round($space->rating ?? 0, 1);
-                        $reviewCount = $space->reviews_count ?? 0;
                         $fullStars = floor($rating);
                         $halfStar = $rating - $fullStars >= 0.5 ? 1 : 0;
                         $emptyStars = 5 - $fullStars - $halfStar;
