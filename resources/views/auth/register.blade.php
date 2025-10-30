@@ -9,7 +9,7 @@
         <form method="POST" action="{{ route('register') }}">
             @csrf
             <div class="row mb-3">
-                <label for="name" class="form-label">Name</label>
+                <label for="name" class="form-label fw-bold">Name</label>
                 <input type="text" id="name" class="form-control w-100  @error('name') is-invalid @enderror" name="name" placeholder="Enter your first name, last name" required>
                                 
                     @error('name')
@@ -20,7 +20,7 @@
             </div>
 
             <div class="row mb-3">
-                <label for="email" class="form-label">Email Address</label>
+                <label for="email" class="form-label fw-bold">Email Address</label>
                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="Enter your email address" required autocomplete="email">
 
                     @error('email')
@@ -31,12 +31,12 @@
             </div>
 
             <div class="row mb-3">
-                <label for="email-confirm" class="form-label">Confirm Email Address</label>
+                <label for="email-confirm" class="form-label fw-bold">Confirm Email Address</label>
                 <input id="email-confirm" type="email" class="form-control @error('email') is-invalid @enderror" name="email_confirmation" placeholder="Confirm your email address" required autocomplete="email">
             </div>
 
             <div class="row mb-3">
-                <label for="password" class="form-label">Password</label>
+                <label for="password" class="form-label fw-bold">Password</label>
                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="Enter your password" required autocomplete="new-password">
 
                 @error('password')
@@ -47,7 +47,7 @@
             </div>
 
             <div class="row mb-3">
-                <label for="password-confirm" class="form-label">Confirm Password</label>
+                <label for="password-confirm" class="form-label fw-bold">Confirm Password</label>
                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" placeholder="Confirm your password" required autocomplete="new-password">
             </div>
 
