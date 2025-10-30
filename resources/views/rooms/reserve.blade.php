@@ -19,10 +19,20 @@
     }
     $minCap = $space->min_capacity ?? 1;
     $maxCap = $space->max_capacity ?? 10;
+
+    // Optional: pass country/currency defaults to JS to keep tax logic aligned with show page
+    $defaultCountry = $space->country_code ?? 'JP';
+    $defaultCurrency = $space->currency ?? 'JPY';
 @endphp
 
 <div 
-  x-data="reservePage('{{ csrf_token() }}', '{{ route('pricing.quote') }}', {{ json_encode($space->id) }})"
+  x-data="reservePage({
+    csrf: '{{ csrf_token() }}',
+    quoteUrl: '{{ route('pricing.quote') }}',
+    spaceId: {{ json_encode($space->id) }},
+    country: '{{ $defaultCountry }}',
+    currency: '{{ $defaultCurrency }}',
+  })"
   class="container-xxl py-5">
 
   <div class="row g-0 shadow-lg rounded overflow-hidden">
@@ -45,10 +55,9 @@
             class="mb-4">
         @csrf
 
-        {{-- ✅ hidden fields for backend validation (no design change) --}}
+        {{-- Hidden fields for backend (keep server as source of truth) --}}
         <input type="hidden" name="start_time" :value="time_from">
         <input type="hidden" name="end_time"   :value="time_to">
-
         <input type="hidden" name="space_id" value="{{ $space->id }}">
         <input type="hidden" name="total_price" :value="total">
 
@@ -66,9 +75,20 @@
         </div>
 
         {{-- Date --}}
+        @php
+          $today = \Carbon\Carbon::today()->toDateString();
+        @endphp
         <div class="mb-3">
           <label class="form-label small text-uppercase text-muted">Date</label>
-          <input type="date" name="date" class="form-control" x-model="date" x-on:change="recalc()" required>
+          <input
+            type="date"
+            name="date"
+            class="form-control"
+            x-model="date"
+            x-on:change="recalc()"
+            min="{{ $today }}"   {{-- block past dates in UI --}}
+            required
+          >
         </div>
 
         {{-- Time --}}
@@ -127,14 +147,7 @@
 
         {{-- Buttons --}}
         <div class="d-grid gap-2">
-          {{-- Main reserve button -> goes to /rooms/{space}/show --}}
           <button type="submit" class="btn btn-dark btn-lg">Reserve</button>
-
-          {{-- Optional: go to preview/payment --}}
-          {{-- <button type="submit" formaction="{{ route('rooms.reserve.preview') }}" 
-                  class="btn btn-outline-dark btn-lg">
-            Proceed to payment
-          </button> --}}
         </div>
       </form>
 
@@ -176,7 +189,10 @@
 
             <dt class="col-3 text-muted">Total</dt>
             <dd class="col-9 fw-semibold">
-              <span x-show="!busy" x-text="formatJPY(total)"></span>
+              <span x-show="!busy" x-text="formatMoney(total, currency)"></span>
+              <span x-show="!busy" class="text-muted">
+                （tax <span x-text="formatMoney(tax, currency)"></span>）
+              </span>
               <span x-show="busy" class="text-muted">calculating...</span>
             </dd>
           </dl>
@@ -201,8 +217,10 @@
 </style>
 
 <script>
-  function reservePage(csrf, quoteUrl, spaceId) {
+  // Alpine component for reservation form (tax-inclusive)
+  function reservePage(init) {
     return {
+      // state
       type: '',
       date: '',
       time_from: '',
@@ -210,34 +228,51 @@
       adults: 1,
       facilities: [],
 
-      total: 0,
-      busy: false,
+      // amounts from quote API
+      total: 0,         // tax-included
+      tax: 0,           // tax amount
+      currency: init.currency || 'JPY',
 
-      // Recalculate total
+      // misc
+      busy: false,
+      csrf: init.csrf,
+      quoteUrl: init.quoteUrl,
+      spaceId: init.spaceId,
+      country: init.country || 'JP',
+
+      // call quote API and update totals
       async recalc() {
         if (!this.type || !this.date || !this.time_from || !this.time_to) return;
         this.busy = true;
         try {
-          const res = await fetch(quoteUrl, {
+          const res = await fetch(this.quoteUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': csrf,
+              'X-CSRF-TOKEN': this.csrf,
               'Accept': 'application/json',
             },
             body: JSON.stringify({
-              space_id: spaceId,
+              space_id: this.spaceId,
               type: this.type,
               date: this.date,
               time_from: this.time_from,
               time_to: this.time_to,
               facilities: this.facilities,
               adults: this.adults,
+
+              // optional hints so Pricing::calc picks same region/currency as show page
+              country_code: this.country,
+              currency_override: this.currency,
             }),
           });
           if (!res.ok) throw new Error('Quote request failed: ' + res.status);
           const data = await res.json();
-          this.total = Number(data.total || 0);
+
+          // update amounts (ensure numbers)
+          this.total    = Number(data.total || 0);
+          this.tax      = Number(data.tax_amount || 0);
+          this.currency = data.currency || this.currency;
         } catch (e) {
           console.error(e);
         } finally {
@@ -245,15 +280,20 @@
         }
       },
 
-      // Inject total before submit
+      // inject total before submit (best-effort)
       injectTotal() {
         if (!this.total) this.recalc();
       },
 
-      // Format helpers
-      formatJPY(v) {
+      // formatters
+      formatMoney(v, curr) {
+        const c = String(curr || 'JPY').toUpperCase();
+        const isZero = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'].includes(c);
         const n = Number(v || 0);
-        return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(n);
+        if (c === 'JPY') {
+          return '¥' + n.toLocaleString('ja-JP', { maximumFractionDigits: 0 });
+        }
+        return n.toLocaleString(undefined, { minimumFractionDigits: isZero ? 0 : 2, maximumFractionDigits: isZero ? 0 : 2 }) + ' ' + c;
       },
       formatDate(iso) {
         if (!iso) return '-';
