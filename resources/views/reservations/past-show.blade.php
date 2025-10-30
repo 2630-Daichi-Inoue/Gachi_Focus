@@ -91,22 +91,12 @@
 
                     <!-- Write a review -->
                     @if (strtolower($reservation->status) === 'completed')
-                        <a href="{{ route('reviews.index', $reservation->id) }}"
-                            style="background-color:#fff;
-           color:#000;
-           border:1.5px solid #000;
-           border-radius:6px;
-           padding:2px 0;
-           width:140px;
-           height:30px;
-           font-size:0.85rem;
-           font-weight:500;
-           display:flex;
-           align-items:center;
-           justify-content:center;
-           text-decoration:none;">
-                            <i class="fa-solid fa-pen me-1" style="color:#000;"></i>
-                            Write a review
+                        <a href="{{ route('reviews.index', $reservation->space_id) }}"
+                            class="d-flex align-items-center justify-content-center fw-semibold"
+                            style="color:#2f3640; border:1.4px solid #2f3640; border-radius:6px;
+                                padding:6px 0; width:140px; height:32px; font-size:0.86rem;
+                                background-color:#f8f9fa; letter-spacing:.02em; transition:all .25s ease; text-decoration:none;">
+                                View Reviews
                         </a>
                     @endif
                 </div>
