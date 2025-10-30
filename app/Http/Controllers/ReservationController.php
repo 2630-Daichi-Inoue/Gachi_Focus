@@ -329,12 +329,11 @@ class ReservationController extends Controller
     public function currentShow()
     {
         $reservations = Reservation::where('user_id', Auth::id())
-            ->whereDate('date', '>=', Carbon::today())
-            ->orderBy('date')
+            ->whereDate('start_time', '>=', Carbon::today())
             ->orderBy('start_time')
             ->get();
 
-        return view('reservations.current', compact('reservations'));
+        return view('reservations.current-show', compact('reservations'));
     }
 
     /**
@@ -343,8 +342,7 @@ class ReservationController extends Controller
     public function pastShow()
     {
         $reservations = Reservation::where('user_id', Auth::id())
-            ->whereDate('date', '<', Carbon::today())
-            ->orderByDesc('date')
+            ->whereDate('end_time', '<', Carbon::today())
             ->orderByDesc('start_time')
             ->get();
 
@@ -363,50 +361,5 @@ class ReservationController extends Controller
             'date'  => optional($old->date)->toDateString(),
         ]);
     }
-
-    // Past reservations show
-    public function pastShow()
-    {
-        $reservations = Reservation::with('space.photos')
-            ->where('user_id', Auth::id())
-            ->where('start_time', '<', Carbon::now())
-            ->orderByDesc('end_time')
-            ->get();
-
-        return view('reservations.past-show', compact('reservations'));
-    }
-
-    public function downloadInvoice($id)
-    {
-        $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
-
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $user = Auth::user();
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
-            'reservation' => $reservation,
-            'user' => $user,
-            'issuedDate' => now()->format('Y/m/d'),
-            'company' => [
-                'name' => 'Gachi Focus Co-working',
-                'address' => '2-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo',
-                'email' => 'dummy123@gachifocus.com',
-                'signature' => 'Representative: Gachi Manager',
-            ],
-        ]);
-
-        $fileName = 'invoice_' . $reservation->id . '.pdf';
-        return "Invoice feature coming soon for reservation ID: {$id}";
-    }
-
-    // tax caluculate　TODO later / rio
-    // private function __construct(Reservation $reservation, TaxService $taxService)
-    // {
-    //     $this->reservation = $reservation;
-    //     $this->taxService = $taxService;
-    // }
-
 }
+
