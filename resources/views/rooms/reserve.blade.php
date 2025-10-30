@@ -1,256 +1,307 @@
-@extends('layout.app')
+@extends('layouts.app')
 
-@section('title', $room->name.' | GachiFocus')
+@section('title', ($space->name ?? 'Reserve').' | GachiFocus')
 
 @section('content')
-{{-- Alpine for live pricing --}}
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+@php
+    // Setup image and display name
+    $displayName = $space->name ?? 'Room';
+    $rawImage = $space->image ?? null;
+    $imgSrc = asset('images/room-b.jpg');
+    if ($rawImage) {
+        if (str_starts_with($rawImage, 'http://') || str_starts_with($rawImage, 'https://') || str_starts_with($rawImage, 'data:image')) {
+            $imgSrc = $rawImage;
+        } elseif (str_starts_with($rawImage, 'storage/') || str_starts_with($rawImage, 'images/')) {
+            $imgSrc = asset($rawImage);
+        } else {
+            $imgSrc = asset('storage/'.$rawImage);
+        }
+    }
+    $minCap = $space->min_capacity ?? 1;
+    $maxCap = $space->max_capacity ?? 10;
 
-<body class="relative min-h-screen"
-      x-data="reservePage('{{ csrf_token() }}', '{{ route('pricing.quote') }}', '{{ $room->name }}')">
+    // Optional: pass country/currency defaults to JS to keep tax logic aligned with show page
+    $defaultCountry = $space->country_code ?? 'JP';
+    $defaultCurrency = $space->currency ?? 'JPY';
+@endphp
 
-  {{-- background --}}
-  <div class="absolute inset-0 bg-cover bg-center opacity-20"
-       style="background-image: url('{{ asset('images/room-temp.jpg') }}')"></div>
+<div 
+  x-data="reservePage({
+    csrf: '{{ csrf_token() }}',
+    quoteUrl: '{{ route('pricing.quote') }}',
+    spaceId: {{ json_encode($space->id) }},
+    country: '{{ $defaultCountry }}',
+    currency: '{{ $defaultCurrency }}',
+  })"
+  class="container-xxl py-5">
 
-  {{-- contents --}}
-  <div class="relative z-10 max-w-6xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-2 items-stretch gap-0">
+  <div class="row g-0 shadow-lg rounded overflow-hidden">
 
-      {{-- left: photo --}}
-      <div class="relative overflow-hidden shadow-lg">
-        <img src="{{ asset('images/room-b.jpg') }}" alt="{{ $room->name }}" class="w-full h-full object-cover">
-        <div class="absolute top-4 left-4 text-white/95 drop-shadow-lg">
-          <div class="text-5xl font-extrabold">{{ $room->name }}</div>
-        </div>
+    {{-- Left image --}}
+    <div class="col-lg-6 position-relative">
+      <img src="{{ $imgSrc }}" alt="{{ $displayName }}"
+           class="img-fluid w-100 h-100 object-fit-cover" style="min-height:420px;">
+      <div class="position-absolute top-0 start-0 p-4">
+        <div class="display-5 fw-bold text-white text-shadow">{{ $displayName }}</div>
       </div>
+    </div>
 
-      {{-- right: form + summary --}}
-      <div class="bg-white/90 shadow-xl p-8 flex flex-col">
-        <form method="POST" action="{{ route('rooms.reserve.submit') }}"
-            class="w-full max-w-2xl space-y-8">
+    {{-- Right form section --}}
+    <div class="col-lg-6 bg-white p-4 p-md-5">
+      {{-- Main reservation form --}}
+      <form method="POST" 
+            action="{{ route('rooms.reserve.submit', ['space' => $space->id]) }}" 
+            x-on:submit="injectTotal()" 
+            class="mb-4">
         @csrf
-        {{-- Rebook: --}}
-        <input type="hidden" name="space_id"
-          value="{{ $space->id ?? optional($previousReservation->space)->id ?? '' }}">
 
-          <h2 class="text-3xl lg:text-4xl font-semibold text-gray-900">
-            Reserve {{ $room->name }}
-          </h2>
+        {{-- Hidden fields for backend (keep server as source of truth) --}}
+        <input type="hidden" name="start_time" :value="time_from">
+        <input type="hidden" name="end_time"   :value="time_to">
+        <input type="hidden" name="space_id" value="{{ $space->id }}">
+        <input type="hidden" name="total_price" :value="total">
 
-          {{-- TYPE --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Type</label>
-            <select name="type"
-                    x-model="type" x-on:change="recalc()"
-                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                    required>
-              <option value="" disabled selected>Select type</option>
-              @foreach($room->types as $t)
-                <option value="{{ $t }}">{{ $t }}</option>
+        <h2 class="fw-bold mb-4">Reserve {{ $displayName }}</h2>
+
+        {{-- Type --}}
+        <div class="mb-3">
+          <label class="form-label small text-uppercase text-muted">Type</label>
+          <select name="type" class="form-select" x-model="type" x-on:change="recalc()" required>
+            <option value="" disabled selected>Select type</option>
+            @foreach($types as $t)
+              <option value="{{ $t }}">{{ $t }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        {{-- Date --}}
+        @php
+          $today = \Carbon\Carbon::today()->toDateString();
+        @endphp
+        <div class="mb-3">
+          <label class="form-label small text-uppercase text-muted">Date</label>
+          <input
+            type="date"
+            name="date"
+            class="form-control"
+            x-model="date"
+            x-on:change="recalc()"
+            min="{{ $today }}"   {{-- block past dates in UI --}}
+            required
+          >
+        </div>
+
+        {{-- Time --}}
+        <div class="row g-4 mb-3">
+          <div class="col-6">
+            <label class="form-label small text-uppercase text-muted">Time (From)</label>
+            <select name="time_from" class="form-select" x-model="time_from" x-on:change="recalc()" required>
+              <option value="" disabled selected>Select time</option>
+              @foreach($fromTimes as $val)
+                <option value="{{ $val }}">{{ $val }}</option>
               @endforeach
             </select>
           </div>
-
-          {{-- DATE --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Date</label>
-            <input type="date" name="date"
-                   x-model="date" x-on:change="recalc()"
-                   class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                   required>
-          </div>
-
-          {{-- TIME --}}
-          <div class="grid grid-cols-2 gap-8">
-            <div>
-              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (From)</label>
-              <select name="time_from"
-                      x-model="time_from" x-on:change="recalc()"
-                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                      required>
-                <option value="" disabled selected>Select time</option>
-                @foreach($fromTimes as $val)
-                  <option value="{{ $val }}">{{ $val }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (To)</label>
-              <select name="time_to"
-                      x-model="time_to" x-on:change="recalc()"
-                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                      required>
-                <option value="" disabled selected>Select time</option>
-                @foreach($toTimes as $val)
-                  <option value="{{ $val }}">{{ $val }}</option>
-                @endforeach
-              </select>
-            </div>
-          </div>
-
-          {{-- ADULTS --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Adults</label>
-            <select name="adults"
-                    x-model.number="adults" x-on:change="recalc()"
-                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                    required>
-              @for($i = 1; $i <= $room->max_adults; $i++)
-                <option value="{{ $i }}">{{ $i }}</option>
-              @endfor
-            </select>
-          </div>
-
-          {{-- FACILITIES --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">Facilities</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
-              @foreach($room->facilities as $f)
-                <label class="flex items-center gap-3 text-gray-900">
-                  <input type="checkbox"
-                         name="facilities[]"
-                         value="{{ $f }}"
-                         x-model="facilities" x-on:change="recalc()"
-                         class="h-4 w-4 rounded-sm border-gray-400 text-neutral-900 focus:ring-neutral-900">
-                  <span>{{ $f }}</span>
-                </label>
+          <div class="col-6">
+            <label class="form-label small text-uppercase text-muted">Time (To)</label>
+            <select name="time_to" class="form-select" x-model="time_to" x-on:change="recalc()" required>
+              <option value="" disabled selected>Select time</option>
+              @foreach($toTimes as $val)
+                <option value="{{ $val }}">{{ $val }}</option>
               @endforeach
-            </div>
-          </div>
-
-          {{-- hidden: total to submit --}}
-          <input type="hidden" name="total_price" :value="total">
-
-          {{-- ACTIONS --}}
-          <div class="pt-2 space-y-3">
-            <button type="submit"
-                    class="w-full h-12 rounded-md bg-neutral-900 text-white text-lg font-semibold tracking-wide hover:bg-black transition-colors">
-              Reserve
-            </button>
-
-            {{-- Optional: go to preview/payment using the same form values --}}
-            <button type="submit"
-                    formaction="{{ route('rooms.reserve.preview') }}"
-                    class="w-full h-12 rounded-md border-2 border-neutral-900 text-neutral-900 text-lg font-semibold tracking-wide hover:bg-gray-50 transition-colors">
-              Proceed to payment
-            </button>
-          </div>
-        </form>
-
-        {{-- SUMMARY (live, same style as your show/preview) --}}
-        <div class="bg-white shadow mt-8 p-6 rounded-lg">
-          <div class="space-y-4 px-4 py-4">
-            <h2 class="text-2xl font-serif">
-              <span x-text="type || 'Type'"></span>
-            </h2>
-
-            <dl class="grid grid-cols-3 gap-y-3 text-sm">
-              <dt class="text-gray-500">Date</dt>
-              <dd class="col-span-2">
-                <span x-text="formatDate(date)"></span>
-                <template x-if="time_from && time_to">
-                  <span>
-                    <span x-text="time_from"></span> - <span x-text="time_to"></span>
-                  </span>
-                </template>
-              </dd>
-
-              <dt class="text-gray-500">Adults</dt>
-              <dd class="col-span-2" x-text="adults || '-'"></dd>
-
-              <dt class="text-gray-500">Facilities</dt>
-              <dd class="col-span-2">
-                <template x-if="facilities.length">
-                  <div class="flex flex-wrap gap-2">
-                    <template x-for="f in facilities" :key="f">
-                      <span class="px-2 py-0.5 rounded bg-gray-100" x-text="f"></span>
-                    </template>
-                  </div>
-                </template>
-                <template x-if="!facilities.length">
-                  <span class="text-gray-400">None</span>
-                </template>
-              </dd>
-
-              <dt class="text-gray-500">Total</dt>
-              <dd class="col-span-2 font-semibold">
-                <span x-show="!busy" x-text="formatJPY(total)"></span>
-                <span x-show="busy" class="text-gray-400">calculating...</span>
-              </dd>
-            </dl>
+            </select>
           </div>
         </div>
 
+        {{-- Number of people --}}
+        <div class="mb-2">
+          <label class="form-label small text-uppercase text-muted">Number of people</label>
+          <select name="adults" class="form-select" x-model.number="adults" x-on:change="recalc()" required>
+            @for($i = max(1, $minCap); $i <= max($minCap, $maxCap); $i++)
+              <option value="{{ $i }}">{{ $i }}</option>
+            @endfor
+          </select>
+          <div class="form-text">Capacity: {{ $minCap }}–{{ $maxCap }} ppl</div>
+        </div>
+
+        {{-- Facilities --}}
+        <div class="mb-4">
+          <label class="form-label small text-uppercase text-muted d-block mb-2">Facilities</label>
+          <div class="row">
+            @foreach(($facilityOptions ?? []) as $f)
+              <div class="col-sm-6 mb-2">
+                <div class="form-check">
+                  <input class="form-check-input" 
+                         type="checkbox" 
+                         value="{{ $f }}"
+                         name="facilities[]" 
+                         x-model="facilities" 
+                         x-on:change="recalc()" 
+                         id="f-{{ Str::slug($f) }}">
+                  <label class="form-check-label" for="f-{{ Str::slug($f) }}">{{ $f }}</label>
+                </div>
+              </div>
+            @endforeach
+          </div>
+        </div>
+
+        {{-- Buttons --}}
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-dark btn-lg">Reserve</button>
+        </div>
+      </form>
+
+      {{-- Summary card --}}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h4 fw-bold mb-3">
+            <span x-text="type || 'Type'"></span>
+          </h3>
+
+          <dl class="row gy-2">
+            <dt class="col-3 text-muted">Date</dt>
+            <dd class="col-9">
+              <span x-text="formatDate(date)"></span>
+              <template x-if="time_from && time_to">
+                <span class="ms-2">
+                  <span x-text="time_from"></span> - 
+                  <span x-text="time_to"></span>
+                </span>
+              </template>
+            </dd>
+
+            <dt class="col-3 text-muted">Number of people</dt>
+            <dd class="col-9" x-text="adults || '-'"></dd>
+
+            <dt class="col-3 text-muted">Facilities</dt>
+            <dd class="col-9">
+              <template x-if="facilities.length">
+                <div class="d-flex flex-wrap gap-2">
+                  <template x-for="f in facilities" :key="f">
+                    <span class="badge bg-light text-dark border" x-text="f"></span>
+                  </template>
+                </div>
+              </template>
+              <template x-if="!facilities.length">
+                <span class="text-muted">None</span>
+              </template>
+            </dd>
+
+            <dt class="col-3 text-muted">Total</dt>
+            <dd class="col-9 fw-semibold">
+              <span x-show="!busy" x-text="formatMoney(total, currency)"></span>
+              <span x-show="!busy" class="text-muted">
+                （tax <span x-text="formatMoney(tax, currency)"></span>）
+              </span>
+              <span x-show="busy" class="text-muted">calculating...</span>
+            </dd>
+          </dl>
+
+          {{-- Map embed --}}
+          @if(!empty($space->map_embed))
+            <div class="mt-3">
+              <div class="ratio ratio-16x9 rounded overflow-hidden border">
+                {!! $space->map_embed !!}
+              </div>
+            </div>
+          @endif
+        </div>
       </div>
     </div>
   </div>
+</div>
 
-  {{-- Alpine component: calls /pricing/quote and shows total --}}
-  <script>
-    function reservePage(csrf, quoteUrl, roomName) {
-      return {
-        // form state
-        type: '',
-        date: '',
-        time_from: '',
-        time_to: '',
-        adults: 1,
-        facilities: [],
+<style>
+  .object-fit-cover { object-fit: cover; }
+  .text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+</style>
 
-        // result
-        total: 0,
-        busy: false,
+<script>
+  // Alpine component for reservation form (tax-inclusive)
+  function reservePage(init) {
+    return {
+      // state
+      type: '',
+      date: '',
+      time_from: '',
+      time_to: '',
+      adults: 1,
+      facilities: [],
 
-        async recalc() {
-          // wait until the minimum required fields are filled
-          if (!this.type || !this.date || !this.time_from || !this.time_to) return;
+      // amounts from quote API
+      total: 0,         // tax-included
+      tax: 0,           // tax amount
+      currency: init.currency || 'JPY',
 
-          this.busy = true;
-          try {
-            const res = await fetch(quoteUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrf,
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify({
-                type: this.type,
-                date: this.date,
-                time_from: this.time_from,
-                time_to: this.time_to,
-                facilities: this.facilities,
-                adults: this.adults,   // not used by current Pricing, but fine to send
-              }),
-            });
-            if (!res.ok) throw new Error('Quote request failed: ' + res.status);
-            const data = await res.json();
-            this.total = Number(data.total || 0);
-          } catch (e) {
-            console.error(e);
-          } finally {
-            this.busy = false;
-          }
-        },
+      // misc
+      busy: false,
+      csrf: init.csrf,
+      quoteUrl: init.quoteUrl,
+      spaceId: init.spaceId,
+      country: init.country || 'JP',
 
-        injectTotal() {
-          // Just ensure latest total is written to hidden input before submit
-          if (!this.total) this.recalc();
-        },
+      // call quote API and update totals
+      async recalc() {
+        if (!this.type || !this.date || !this.time_from || !this.time_to) return;
+        this.busy = true;
+        try {
+          const res = await fetch(this.quoteUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': this.csrf,
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              space_id: this.spaceId,
+              type: this.type,
+              date: this.date,
+              time_from: this.time_from,
+              time_to: this.time_to,
+              facilities: this.facilities,
+              adults: this.adults,
 
-        formatJPY(v) {
-          const n = Number(v || 0);
-          return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(n);
-        },
-        formatDate(iso) {
-          if (!iso) return '-';
-          const d = new Date(iso + 'T00:00:00');
-          if (isNaN(d)) return iso;
-          return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+              // optional hints so Pricing::calc picks same region/currency as show page
+              country_code: this.country,
+              currency_override: this.currency,
+            }),
+          });
+          if (!res.ok) throw new Error('Quote request failed: ' + res.status);
+          const data = await res.json();
+
+          // update amounts (ensure numbers)
+          this.total    = Number(data.total || 0);
+          this.tax      = Number(data.tax_amount || 0);
+          this.currency = data.currency || this.currency;
+        } catch (e) {
+          console.error(e);
+        } finally {
+          this.busy = false;
         }
+      },
+
+      // inject total before submit (best-effort)
+      injectTotal() {
+        if (!this.total) this.recalc();
+      },
+
+      // formatters
+      formatMoney(v, curr) {
+        const c = String(curr || 'JPY').toUpperCase();
+        const isZero = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'].includes(c);
+        const n = Number(v || 0);
+        if (c === 'JPY') {
+          return '¥' + n.toLocaleString('ja-JP', { maximumFractionDigits: 0 });
+        }
+        return n.toLocaleString(undefined, { minimumFractionDigits: isZero ? 0 : 2, maximumFractionDigits: isZero ? 0 : 2 }) + ' ' + c;
+      },
+      formatDate(iso) {
+        if (!iso) return '-';
+        const d = new Date(iso + 'T00:00:00');
+        if (isNaN(d)) return iso;
+        return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
       }
     }
-  </script>
-</body>
+  }
+</script>
 @endsection
