@@ -60,7 +60,7 @@
 
                 <div
                     style="background: #fafafa; border-radius: 8px; padding: 12px; margin-top: 10px;
-                        height: 400px; min-height: 320px; overflow-y: auto; display: flex; flex-direction: column;
+                        flex-grow:1; overflow-y: auto; display: flex; flex-direction: column;
                         justify-content: flex-start;">
                     <h4 class="fw-bold pt-2 mb-3">Amenities</h4>
                     <ul class="list-unstyled mb-0">
