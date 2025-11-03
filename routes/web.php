@@ -165,8 +165,8 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
 | Reviews (public or switch to auth if desired)
 |--------------------------------------------------------------------------
 */
-Route::get('/reviews/{reservation}', [ReviewController::class, 'index'])->name('reviews.index');
-Route::post('/reviews/{reservation}', [ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/reviews/{space}', [ReviewController::class, 'index'])->name('reviews.index');
+Route::post('/reviews/{space}', [ReviewController::class, 'store'])->name('reviews.store');
 Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
 Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
@@ -192,14 +192,24 @@ Route::middleware('auth')->group(function () {
     Route::post('/utilities', [UtilityController::class, 'store'])->name('utilities.store');
     Route::put('/utilities/{utility}', [UtilityController::class, 'update'])->name('utilities.update');
     Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
+
+    // Reservations (user side)
+    Route::get('/room-b', [ReservationController::class, 'create'])->name('rooms.reserve.form');
+    Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit');
+    Route::resource('reservations', ReservationController::class)->only(['show', 'edit', 'update']);
+    Route::delete('/reservations/{reservation}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
+    // current
+    Route::get('/current-reservation', [ReservationController::class, 'currentShow'])->name('reservations.current');
+    Route::post('/reservations/{id}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::get('/reservations/{id}/rebook', [ReservationController::class, 'rebook'])->name('reservations.rebook');
+    // past
+    Route::get('/past-reservation', [ReservationController::class, 'pastShow'])->name('reservations.past');
+    Route::get('/reservations/{id}/invoice', [ReservationController::class, 'downloadInvoice'])->name('reservations.invoice');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Admin Area
-|--------------------------------------------------------------------------
-| NOTE: Avoid route name/path collisions with resource routes.
-*/
+// ================================================
+// Admin Area
+// ================================================
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     // Dashboard
     Route::get('/home', [AdminHomeController::class, 'index'])->name('home');
@@ -221,4 +231,14 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/space/{id}/edit', [SpacesController::class, 'edit'])->name('space.edit');
     Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
     Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
+
+    // Notifications
+    Route::resource('notifications', AdminNotificationController::class);
+    Route::post('/notifications/{notification}/read', [AdminNotificationController::class, 'markAsRead'])->name('notifications.read');
+
+    // Categories (optional)
+    // Route::get('/categories', [CategoriesController::class, 'index'])->name('categories');
+    // Route::post('/categories/store', [CategoriesController::class, 'store'])->name('categories.store');
+    // Route::patch('/categories/{id}/update', [CategoriesController::class, 'update'])->name('categories.update');
+    // Route::delete('/categories/{id}/destroy', [CategoriesController::class, 'destroy'])->name('categories.destroy');
 });

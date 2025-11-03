@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Reservation;
+use App\Models\Space;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -11,11 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ReviewController extends Controller
 {
-    public function index(Request $request, $reservationId)
+    public function index(Request $request, $spaceId)
     {
-        $reservation = Reservation::with('space')->findOrFail($reservationId);
-
-        $query = Review::with('user')->where('space_id', $reservation->space_id);
+        $space = Space::findOrFail($spaceId);
+        $query = Review::with('user')->where('space_id', $spaceId);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -57,17 +57,20 @@ class ReviewController extends Controller
         $facilities  = round($reviews->avg('facilities') ?? 0, 1);
 
         return view('reviews.index', compact(
-            'reservation',
+            'space',
             'reviews',
             'averageRating',
             'cleanliness',
             'conditions',
             'facilities'
         ));
+
+        $space = Space::with(['reviews.user'])->findOrFail($spaceId);
+        return view('reviews.index', compact('space'));
     }
 
     // Post
-    public function store(Request $request, $reservationId)
+    public function store(Request $request, $spaceId)
     {
         $request->validate([
             'cleanliness' => 'required|numeric|min:1|max:5',
@@ -77,7 +80,7 @@ class ReviewController extends Controller
             'photo'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        $reservation = Reservation::findOrFail($reservationId);
+        $space = Space::findOrFail($spaceId);
 
         $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
 
@@ -99,7 +102,7 @@ class ReviewController extends Controller
 
         Review::create([
             'user_id'     => Auth::id(),
-            'space_id'    => $reservation->space_id,
+            'space_id'    => $space->id,
             'cleanliness' => $request->cleanliness,
             'conditions'  => $request->conditions,
             'facilities'  => $request->facilities,
@@ -108,7 +111,8 @@ class ReviewController extends Controller
             'photo'       => $photoPath,
         ]);
 
-        return redirect()->route('reviews.index', $reservationId)->with('success', 'Thank you for your review!');
+        return redirect()->route('reviews.index', ['space' => $space->id])
+            ->with('success', 'Thank you for your review!');
     }
 
     // Update

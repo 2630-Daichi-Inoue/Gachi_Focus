@@ -9,7 +9,7 @@
             </div>
 
             {{-- Form --}}
-            <form action="{{ url('reviews/' . $reservation->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('reviews.store', ['space' => $space->id]) }}" method="POST"
                 enctype="multipart/form-data">
                 @csrf
 
@@ -214,7 +214,7 @@
                 form.querySelector('#comment').value = '';
                 form.querySelectorAll('input[type=radio]').forEach(i => i.checked = false);
 
-                form.action = "{{ url('reviews/' . $reservation->id) }}";
+                form.action = "{{ url('reviews/' . $space->id) }}";
                 form.method = 'POST';
 
                 const methodInput = form.querySelector('input[name="_method"]');

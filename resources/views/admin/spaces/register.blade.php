@@ -64,7 +64,7 @@
 
             <div class="col-md-2">
                 <label for="weekday_rice" class="form-label fw-bold">Weekday Price(¥ / h) <span class="text-danger">※</span></label>
-                <input type="number" name="weekday_price" id="weekday_price" class="form-control" value="{{ old('weekday_price') }}" min="10" max="999999" step="10">
+                <input type="number" name="weekday_price" id="weekday_price" class="form-control" value="{{ old('weekday_price') }}" min="1" max="999999" step="1">
                 {{-- Error --}}
                 @error('weekday_price')
                     <p class="text-danger small">{{ $message }}</p>
@@ -73,7 +73,7 @@
 
             <div class="col-md-2">
                 <label for="weekend_price" class="form-label fw-bold">Weekend Price($ / h) <span class="text-danger">※</span></label>
-                <input type="number" name="weekend_price" id="weekend_price" class="form-control" value="{{ old('weekend_price') }}" min="10" max="999999" step="10">
+                <input type="number" name="weekend_price" id="weekend_price" class="form-control" value="{{ old('weekend_price') }}" min="1" max="999999" step="1">
                 {{-- Error --}}
                 @error('weekend_price')
                     <p class="text-danger small">{{ $message }}</p>
