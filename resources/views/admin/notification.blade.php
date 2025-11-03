@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Notification')
+@section('title', 'Admin Notification')
 
 @section('content')
 
 <div class="container mt-4 mx-auto" style="max-width: 900px;">
 
-    <h4 class="mb-3 fw-bold">All Notifications</h4>
+    <h4 class="mb-3 fw-bold">All Admin Notifications</h4>
 
     @forelse($notifications as $notification)
         <div 
@@ -19,7 +19,7 @@
                 </div>
                 <div class="notification-message {{ $notification->read_at ? '' : 'fw-bold' }}">
                     <!-- Dot of unread -->
-                    <span class="unread-dot {{ $notification->read_at ? 'd-none' : '' }} bg-danger" style="display:inline-block;width:5px; height:5px; border-radius:50%; margin-right:8px; "></span>
+                    <span class="unread-dot {{ $notification->read_at ? 'd-none' : '' }} bg-danger" style="display:inline-block; width:5px; height:5px; border-radius:50%; margin-right:8px; "></span>
                     
                     <!-- The contents of notification -->
                     {{ $notification->message }}
@@ -28,11 +28,13 @@
 
             <!-- Go to page button -->
             <div class="mt-3">
-                @if($notification->type === 'Reservation Approved')
-                    <a href="{{ route('reservations.current') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
-                @elseif($notification->type === 'Cancelation Approved')
-                    <a href="{{ route('reservations.past') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
-                @elseif($notification->type === 'Review Request')
+                @if($notification->type === 'Reservation Request')
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                @elseif($notification->type === 'Cancel Request')
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                @elseif($notification->type === 'Change Reservation')
+                    <a href="{{ route('admin.reservations') }}" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
+                @elseif($notification->type === 'Contact Message')
                     <a href="#" class="btn btn-color btn-sm text-white"><i class="fa-solid fa-arrow-up-right-from-square"></i> Go to page</a>
                 @endif
             </div>
@@ -103,5 +105,3 @@
 </script>
 
 @endsection
-
-

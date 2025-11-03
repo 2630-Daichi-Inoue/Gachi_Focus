@@ -75,7 +75,7 @@
             {{-- Right Column --}}
             <div class="col-md-8">
 
-                <form method="GET" action="{{ route('reviews.index', $reservation->id) }}"
+                <form method="GET" action="{{ route('reviews.index', $space->id) }}"
                     class="d-flex gap-3 mb-4 w-100">
 
                     {{-- Sort Select --}}

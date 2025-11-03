@@ -2,27 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Reservation;
-use App\Models\Space;
-use App\Models\Utility;
-use App\Support\Pricing;
-use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Reservation;
+use App\Services\TaxService;
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
+use App\Support\Pricing;
 
+/**
+ * Reservation flow (public):
+ * - GET  /room-b        -> create()  : show reservation form for "Room B"
+ * - POST /room-b        -> store()   : validate + compute price (server-side) + save + redirect to show
+ * - POST /rooms/reserve/preview -> preview() : validate + compute price (server-side) + show confirmation page
+ * - GET  /reservations/{id}          -> show()   : show saved reservation
+ * - GET  /reservations/{reservation}/edit -> edit()   : show edit form
+ * - PUT  /reservations/{reservation} -> update() : validate + recompute + save
+ * - DELETE /reservations/{reservation} -> destroy(): soft delete and redirect to home
+ *
+ * Optional (for live pricing on the form):
+ * - POST /pricing/quote -> quote(): returns JSON pricing using Pricing::calc()
+ */
 class ReservationController extends Controller
 {
+    private Reservation $reservation;
+
+    public function __construct(Reservation $reservation)
+    {
+        $this->reservation = $reservation;
+    }
+
     /**
-     * Show reservation form for a specific space.
+     * In-memory room definition for the demo.
+     * In real apps, fetch this from DB (e.g., Room model).
      */
-    public function create(Space $space)
+    private function room(): object
     {
         // NOTE: keep labels aligned with Pricing::$cfg['types']
         $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
         $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
 
-        // time options
-        [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
+    /**
+     * Map display label -> key (used if you prefer storing keys in DB).
+     */
+    private function typeLabelToKey(): array
+    {
+        return [
+            'Focus Booth' => 'focus_booth',
+            'Meeting'     => 'meeting',
+            'Phone Call'  => 'phone_call',
+        ];
+    }
 
         // prefill
         $prefillDate = request('date', Carbon::today()->toDateString());
@@ -106,10 +137,19 @@ class ReservationController extends Controller
      * Render the show page with latest reservation (from session/query).
      * No recalculation: show the saved amounts to avoid drift.
      */
-    public function showRoom(Space $space, Request $request)
+    public function preview(Request $req)
     {
-        $rid = $request->session()->get('reservation_id', $request->query('reservation_id'));
-        $reservation = null;
+        $room = $this->room();
+
+        $validated = $req->validate([
+            'type'        => ['required','string'],
+            'date'        => ['required','date'],
+            'time_from'   => ['required','date_format:H:i'],
+            'time_to'     => ['required','date_format:H:i','after:time_from'],
+            'adults'      => ['required','integer','min:1'],
+            'facilities'  => ['array'],
+            'facilities.*'=> ['string'],
+        ]);
 
         if ($rid) {
             // IMPORTANT: don't call ->find($rid) on a constrained builder; it ignores previous where()
@@ -119,9 +159,10 @@ class ReservationController extends Controller
                 ->first();
         }
 
-        return view('rooms.show', [
-            'space'       => $space,
-            'reservation' => $reservation,
+        return view('checkout.preview', [
+            'room'     => (object)['name' => $room->name],
+            'input'    => $validated,
+            'pricing'  => $pricing,
         ]);
     }
 
@@ -326,17 +367,27 @@ class ReservationController extends Controller
             $cur->addMinutes($stepMinutes);
         }
 
-        $from = $times;
-        $to   = $times;
-        if (count($times) >= 2) {
-            array_pop($from);
-            array_shift($to);
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access.');
         }
 
         if (empty($from)) $from = ['09:00'];
         if (empty($to))   $to   = ['10:00'];
 
-        return [$from, $to];
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
+            'reservation' => $reservation,
+            'user' => $user,
+            'issuedDate' => now()->format('Y/m/d'),
+            'company' => [
+                'name' => 'Gachi Focus Co-working',
+                'address' => '2-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo',
+                'email' => 'dummy123@gachifocus.com',
+                'signature' => 'Representative: Gachi Manager',
+            ],
+        ]);
+
+        $fileName = 'invoice_' . $reservation->id . '.pdf';
+        return "Invoice feature coming soon for reservation ID: {$id}";
     }
 
     private function normalizeTime(?string $v): string
