@@ -39,14 +39,9 @@ class ReservationController extends Controller
      */
     private function room(): object
     {
-        return (object)[
-            'name'       => 'Room B',
-            'image_path' => '/images/room-b.jpg',
-            'max_adults' => 4,
-            'types'      => ['Focus Booth', 'Meeting', 'Phone Call'],
-            'facilities' => ['Monitor', 'Whiteboard', 'Power Outlet', 'HDMI', 'USB-C'],
-        ];
-    }
+        // NOTE: keep labels aligned with Pricing::$cfg['types']
+        $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
+        $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
 
     /**
      * Map display label -> key (used if you prefer storing keys in DB).
@@ -60,43 +55,26 @@ class ReservationController extends Controller
         ];
     }
 
-    private function typePrices(): array
-    {
-        return ['focus_booth' => 10, 'meeting' => 15, 'phone_call' => 8];
-    }
+        // prefill
+        $prefillDate = request('date', Carbon::today()->toDateString());
+        $prefillFrom = request('start_time', $fromTimes[0] ?? '09:00');
+        $nextIdx     = array_search($prefillFrom, $fromTimes, true);
+        $prefillTo   = $toTimes[($nextIdx === false ? 0 : $nextIdx)] ?? '10:00';
 
-    private function facilityPrices(): array
-    {
-        return ['Monitor' => 3, 'Whiteboard' => 2, 'Power Outlet' => 0, 'HDMI' => 0, 'USB-C' => 0];
-    }
-
-    /** show form（GET /room-b） */
-    public function create()
-    {
-        $room  = $this->room();
-
-        // Opening hours and slot size (minutes). Adjust per room if needed.
-        $open  = '09:00';
-        $close = '21:00';
-        $slot  = 30;
-
-        $fromTimes = [];
-        $toTimes   = [];
-
-        $from = Carbon::createFromTimeString($open);
-        $to   = Carbon::createFromTimeString($close);
-
-        // Start time options: 09:00 .. 20:30 (end - slot)
-        for ($t = $from->copy(); $t->lt($to->copy()->subMinutes($slot)); $t->addMinutes($slot)) {
-            $fromTimes[] = $t->format('H:i');
-        }
-        // End time options: 09:30 .. 21:00
-        for ($t = $from->copy()->addMinutes($slot); $t->lte($to); $t->addMinutes($slot)) {
-            $toTimes[] = $t->format('H:i');
-        }
-
-        // Blade: use $fromTimes/$toTimes (NOT $fromPeriod/$toPeriod)
-        return view('rooms.reserve', compact('room','fromTimes','toTimes'));
+        return view('rooms.reserve', [
+            'space'           => $space,
+            'types'           => $types,
+            'facilityOptions' => $facilityOptions,
+            'fromTimes'       => $fromTimes,
+            'toTimes'         => $toTimes,
+            'displayName'     => $space->name,
+            'prefill'         => [
+                'date'       => $prefillDate,
+                'start_time' => $prefillFrom,
+                'end_time'   => $prefillTo,
+                'type'       => $types[0] ?? 'Standard',
+            ],
+        ]);
     }
 
     /**
@@ -105,46 +83,59 @@ class ReservationController extends Controller
     public function store(Request $request, Space $space)
     {
         $data = $request->validate([
-            'date'        => 'required|date',
-            'start_time'  => 'required',
-            'end_time'    => 'required',
-            'type'        => 'nullable|string',
-            'adults'      => 'required|integer|min:1',
-            'facilities'  => 'nullable|array',
+            'date'               => 'required|date',
+            'start_time'         => 'required',
+            'end_time'           => 'required',
+            'type'               => 'nullable|string',
+            'adults'             => 'required|integer|min:1',
+            'facilities'         => 'nullable|array',
+            'country_code'       => 'nullable|string|max:5',
+            'currency_override'  => 'nullable|string|max:3',
         ]);
 
-        // price calc
+        // normalize time to HH:mm
+        $startHHmm  = $this->normalizeTime($data['start_time']);
+        $endHHmm    = $this->normalizeTime($data['end_time']);
+
+        // Quote (type normalization is handled inside Pricing::calc)
         $quote = Pricing::calc([
-            'space_id'   => $space->id,
-            'date'       => $data['date'],
-            'time_from'  => $data['start_time'],
-            'time_to'    => $data['end_time'],
-            'type'       => $data['type'] ?? 'Standard',
-            'facilities' => $data['facilities'] ?? [],
+            'space_id'          => $space->id,
+            'date'              => $data['date'],
+            'time_from'         => $startHHmm,
+            'time_to'           => $endHHmm,
+            'type'              => $data['type'] ?? 'Standard', // raw in, normalized inside
+            'facilities'        => $data['facilities'] ?? [],
+            'country_code'      => $request->input('country_code', $space->country_code ?? 'JP'),
+            'currency_override' => $request->input('currency_override', $space->currency ?? null),
         ]);
 
-        // Optionally store a key (instead of label) for the "type" column
-        $typeKey = $this->typeLabelToKey()[$data['type']] ?? $data['type'];
-
-        $reservation = $this->reservation->create([
-            'user_id'     => Auth::id(),
-            'room'        => 'B',
-            'type'        => $typeKey,
-            'date'        => $data['date'],
-            'start_time'  => $data['start_time'],
-            'end_time'    => $data['end_time'],
-            'adults'      => (int)$data['adults'],
-            'facilities'  => $data['facilities'] ?? [],
-            'total_price' => $total,
+        // Save authoritative values (use canonicalized type from Pricing)
+        $reservation = Reservation::create([
+            'user_id'        => Auth::id(),
+            'space_id'       => $space->id,
+            'date'           => $data['date'],
+            'start_time'     => $startHHmm,
+            'end_time'       => $endHHmm,
+            'type'           => $quote['unit']['type'] ?? ($data['type'] ?? 'Standard'), // canonical
+            'facilities'     => $data['facilities'] ?? [],
+            'adults'         => $data['adults'],
+            'total_price'    => $quote['total'],
+            'currency'       => $quote['currency'],
+            'payment_region' => $quote['country'] ?? 'JP',
+            'tax_amount'     => $quote['tax_amount'] ?? null,
+            'tax_rate'       => $quote['tax_rate'] ?? null, // decimal
+            'payment_status' => 'unpaid',
         ]);
 
-        return redirect()->route('reservations.show', $reservation);
+        return redirect()->route('rooms.show', [
+            'space'          => $space->id,
+            'reservation_id' => $reservation->id,
+        ])->with('reservation_id', $reservation->id);
     }
 
     /**
-     * Preview page before payment.
-     * Validates inputs, recomputes price via Pricing::calc(), and shows a confirmation view.
-     * NOTE: room_name is injected server-side (not trusted from client).
+     * Render the show page with latest reservation (from session/query).
+     * No recalculation: show the saved amounts to avoid drift.
      */
     public function preview(Request $req)
     {
@@ -160,8 +151,13 @@ class ReservationController extends Controller
             'facilities.*'=> ['string'],
         ]);
 
-        $payload = $validated + ['room_name' => $room->name];
-        $pricing = Pricing::calc($payload);
+        if ($rid) {
+            // IMPORTANT: don't call ->find($rid) on a constrained builder; it ignores previous where()
+            $reservation = Reservation::where('user_id', Auth::id())
+                ->where('space_id', $space->id)
+                ->where('id', $rid) // <- keep constraints
+                ->first();
+        }
 
         return view('checkout.preview', [
             'room'     => (object)['name' => $room->name],
@@ -171,14 +167,11 @@ class ReservationController extends Controller
     }
 
     /**
-     * Resource: show a reservation (fallback → redirect to rooms.show).
+     * Resource: show a reservation (redirect to rooms.show).
      */
     public function show(Reservation $reservation)
     {
-        // ensure owner
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        if ($reservation->user_id !== Auth::id()) abort(403);
 
         return redirect()->route('rooms.show', [
             'space'          => $reservation->space_id,
@@ -191,44 +184,25 @@ class ReservationController extends Controller
      */
     public function edit(Reservation $reservation)
     {
-        // ensure owner
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        if ($reservation->user_id !== Auth::id()) abort(403);
 
         $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
         $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
         [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
 
-        // --- Normalize defaults for SSR & Alpine ---
-        // date -> "YYYY-MM-DD"; time -> "HH:MM"
-        $defaultType  = $reservation->type ?? ($types[0] ?? 'Standard');
-        $defaultDate  = optional($reservation->date)->toDateString() ?? Carbon::today()->toDateString();
-
-        // Ensure "HH:MM" (DB might store "HH:MM:SS")
-        $defaultStart = $reservation->start_time ? substr((string)$reservation->start_time, 0, 5) : ($fromTimes[0] ?? '09:00');
-        $defaultEnd   = $reservation->end_time   ? substr((string)$reservation->end_time,   0, 5) : ($toTimes[0]   ?? '10:00');
-
-        // Facilities must be an array for both Blade @checked and Alpine x-model
-        $defaultFacilities = is_array($reservation->facilities) ? $reservation->facilities : [];
-
-        $defaultAdults = (int) ($reservation->adults ?? 1);
+        // Alpine defaults (leave type as saved; Pricing will normalize again on update)
+        $defaultType        = $reservation->type ?? ($types[0] ?? 'Standard');
+        $defaultDate        = optional($reservation->date)->toDateString() ?? now()->toDateString();
+        $defaultStart       = $this->normalizeTime($reservation->start_time ?? ($fromTimes[0] ?? '09:00'));
+        $defaultEnd         = $this->normalizeTime($reservation->end_time   ?? ($toTimes[0] ?? '10:00'));
+        $defaultAdults      = (int) ($reservation->adults ?? 1);
+        $defaultFacilities  = is_array($reservation->facilities) ? $reservation->facilities : [];
 
         $space = $reservation->space ?? Space::find($reservation->space_id);
 
         return view('rooms.edit', compact(
-            'reservation',
-            'space',
-            'types',
-            'facilityOptions',
-            'fromTimes',
-            'toTimes',
-            'defaultType',
-            'defaultDate',
-            'defaultStart',
-            'defaultEnd',
-            'defaultAdults',
-            'defaultFacilities'
+            'reservation','space','types','facilityOptions','fromTimes','toTimes',
+            'defaultType','defaultDate','defaultStart','defaultEnd','defaultAdults','defaultFacilities'
         ));
     }
 
@@ -237,36 +211,46 @@ class ReservationController extends Controller
      */
     public function update(Request $request, Reservation $reservation)
     {
-        // ensure owner
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        if ($reservation->user_id !== Auth::id()) abort(403);
 
         $data = $request->validate([
-            'date'        => 'required|date',
-            'start_time'  => 'required',
-            'end_time'    => 'required',
-            'type'        => 'nullable|string',
-            'adults'      => 'required|integer|min:1',
-            'facilities'  => 'nullable|array',
+            'date'               => 'required|date',
+            'start_time'         => 'required',
+            'end_time'           => 'required',
+            'type'               => 'nullable|string',
+            'adults'             => 'required|integer|min:1',
+            'facilities'         => 'nullable|array',
+            'country_code'       => 'nullable|string|max:5',
+            'currency_override'  => 'nullable|string|max:3',
         ]);
 
+        $startHHmm = $this->normalizeTime($data['start_time']);
+        $endHHmm   = $this->normalizeTime($data['end_time']);
+        $space     = $reservation->space ?? Space::find($reservation->space_id);
+
         $quote = Pricing::calc([
-            'space_id'   => $reservation->space_id,
-            'date'       => $data['date'],
-            'time_from'  => $data['start_time'],
-            'time_to'    => $data['end_time'],
-            'type'       => $data['type'] ?? 'Standard',
-            'facilities' => $data['facilities'] ?? [],
+            'space_id'          => $reservation->space_id,
+            'date'              => $data['date'],
+            'time_from'         => $startHHmm,
+            'time_to'           => $endHHmm,
+            'type'              => $data['type'] ?? $reservation->type ?? 'Standard',
+            'facilities'        => $data['facilities'] ?? [],
+            'country_code'      => $request->input('country_code', $reservation->payment_region ?: ($space->country_code ?? 'JP')),
+            'currency_override' => $request->input('currency_override', $reservation->currency ?: ($space->currency ?? null)),
         ]);
 
         $reservation->update([
-            'date'        => $data['date'],
-            'start_time'  => $data['start_time'],
-            'end_time'    => $data['end_time'],
-            'type'        => $data['type'] ?? 'Standard',
-            'facilities'  => $data['facilities'] ?? [],
-            'total_price' => $total,
+            'date'           => $data['date'],
+            'start_time'     => $startHHmm,
+            'end_time'       => $endHHmm,
+            'type'           => $quote['unit']['type'] ?? ($data['type'] ?? 'Standard'), // canonical
+            'facilities'     => $data['facilities'] ?? [],
+            'adults'         => $data['adults'],
+            'total_price'    => $quote['total'], // tax-in
+            'currency'       => $quote['currency'],
+            'payment_region' => $quote['country'] ?? $reservation->payment_region,
+            'tax_amount'     => $quote['tax_amount'] ?? null,
+            'tax_rate'       => $quote['tax_rate']   ?? null,
         ]);
 
         return redirect()->route('rooms.show', [
@@ -294,37 +278,11 @@ class ReservationController extends Controller
      */
     public function destroy(Reservation $reservation)
     {
-        // ensure owner
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        if ($reservation->user_id !== Auth::id()) abort(403);
 
         $reservation->delete();
         return redirect()->route('reservations.current')->with('status', 'Deleted.');
     }
-
-    /**
-     * OPTIONAL: Live pricing endpoint for the form.
-     * Returns JSON using Pricing::calc().
-     * Safe to expose publicly (protected by CSRF).
-     */
-    public function quote(Request $request)
-    {
-        $room = $this->room();
-
-        $data = $request->validate([
-            'type'        => ['required','string'],
-            'date'        => ['required','date'],
-            'time_from'   => ['required','date_format:H:i'],
-            'time_to'     => ['required','date_format:H:i','after:time_from'],
-            'facilities'  => ['array'],
-            'facilities.*'=> ['string'],
-        ]);
-
-        $payload = $data + ['room_name' => $room->name];
-        return response()->json(Pricing::calc($payload));
-    }
-
 
     public function currentShow()
     {
@@ -337,9 +295,6 @@ class ReservationController extends Controller
         return view('reservations.current', compact('reservations'));
     }
 
-    /**
-     * Past reservations for the logged-in user.
-     */
     public function pastShow()
     {
         $reservations = Reservation::where('user_id', Auth::id())
@@ -351,9 +306,6 @@ class ReservationController extends Controller
         return view('reservations.past', compact('reservations'));
     }
 
-    /**
-     * Rebook a past reservation (shortcut back to form).
-     */
     public function rebook($id)
     {
         $old = Reservation::where('user_id', Auth::id())->findOrFail($id);
@@ -364,27 +316,63 @@ class ReservationController extends Controller
         ]);
     }
 
-    // Past reservations show
-    public function pastShow()
-    {
-        $reservations = Reservation::with('space.photos')
-            ->where('user_id', Auth::id())
-            ->where('start_time', '<', Carbon::now())
-            ->orderByDesc('end_time')
-            ->get();
-
-        return view('reservations.past-show', compact('reservations'));
-    }
-
     public function downloadInvoice($id)
     {
-        $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
+        $reservation = Reservation::where('user_id', Auth::id())->findOrFail($id);
+        return view('reservations.invoice', compact('reservation'));
+    }
+
+    /**
+     * Pricing quote API (AJAX).
+     */
+    public function quote(Request $request)
+    {
+        $data = $request->validate([
+            'space_id'          => 'required|integer',
+            'date'              => 'required|date',
+            'time_from'         => 'required',
+            'time_to'           => 'required',
+            'type'              => 'nullable|string',
+            'facilities'        => 'nullable|array',
+            'country_code'      => 'nullable|string|max:5',
+            'currency_override' => 'nullable|string|max:3',
+        ]);
+
+        $startHHmm = $this->normalizeTime($data['time_from']);
+        $endHHmm   = $this->normalizeTime($data['time_to']);
+
+        $quote = Pricing::calc([
+            'space_id'          => (int) $data['space_id'],
+            'date'              => $data['date'],
+            'time_from'         => $startHHmm,
+            'time_to'           => $endHHmm,
+            'type'              => $data['type'] ?? 'Standard', // raw, normalized inside
+            'facilities'        => $data['facilities'] ?? [],
+            'country_code'      => $data['country_code'] ?? null,
+            'currency_override' => $data['currency_override'] ?? null,
+        ]);
+
+        return response()->json($quote);
+    }
+
+    private function buildTimeOptions(string $start, string $end, int $stepMinutes = 30): array
+    {
+        $base = Carbon::today();
+        $cur  = Carbon::parse($base->toDateString().' '.$start);
+        $last = Carbon::parse($base->toDateString().' '.$end);
+
+        $times = [];
+        while ($cur <= $last) {
+            $times[] = $cur->format('H:i'); // HH:mm
+            $cur->addMinutes($stepMinutes);
+        }
 
         if ($reservation->user_id !== Auth::id()) {
             abort(403, 'Unauthorized access.');
         }
 
-        $user = Auth::user();
+        if (empty($from)) $from = ['09:00'];
+        if (empty($to))   $to   = ['10:00'];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
             'reservation' => $reservation,
@@ -402,11 +390,9 @@ class ReservationController extends Controller
         return "Invoice feature coming soon for reservation ID: {$id}";
     }
 
-    // tax caluculate　TODO later / rio
-    // private function __construct(Reservation $reservation, TaxService $taxService)
-    // {
-    //     $this->reservation = $reservation;
-    //     $this->taxService = $taxService;
-    // }
-
+    private function normalizeTime(?string $v): string
+    {
+        if (!$v) return '00:00';
+        return substr($v, 0, 5); // "HH:mm"
+    }
 }

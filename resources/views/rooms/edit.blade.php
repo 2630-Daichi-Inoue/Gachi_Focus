@@ -144,7 +144,7 @@
 
         {{-- Submit --}}
         <div class="d-grid">
-          <button type="submit" class="btn btn-dark btn-lg">Save Changes</button>
+          <button type="submit" class="btn btn-secondary btn-lg">Save Changes</button>
         </div>
       </form>
 
