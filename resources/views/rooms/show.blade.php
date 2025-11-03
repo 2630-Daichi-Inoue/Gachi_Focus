@@ -133,7 +133,7 @@
             <div class="d-flex gap-3 mt-4">
               {{-- Edit --}}
               <a href="{{ route('reservations.edit', ['reservation' => $reservation->id]) }}"
-                 class="btn btn-dark btn-lg flex-fill">
+                 class="btn btn-light border-dark-subtle text-secondary btn-lg flex-fill">
                 Change reservation
               </a>
 
@@ -141,9 +141,9 @@
 
               {{-- Cancel (modal) --}}
               <button type="button"
-                      class="btn btn-danger btn-lg flex-fill"
-                      data-bs-toggle="modal"
-                      data-bs-target="#{{ $cancelModalId }}">
+                        class="btn btn-outline-danger btn-lg flex-fill bg-white text-danger border-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#{{ $cancelModalId }}">
                 Cancel reservation
               </button>
 
@@ -160,7 +160,8 @@
               @if(($reservation->payment_status ?? 'unpaid') !== 'paid')
                 <form method="POST" action="{{ route('reservations.pay', ['reservation' => $reservation->id]) }}" class="flex-fill">
                   @csrf
-                  <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <button type="submit"
+                        class="btn btn-secondary btn-lg w-100">
                     Pay with card
                   </button>
                 </form>

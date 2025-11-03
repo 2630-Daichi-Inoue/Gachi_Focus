@@ -147,7 +147,7 @@
 
         {{-- Buttons --}}
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-dark btn-lg">Reserve</button>
+          <button type="submit" class="btn btn-secondary btn-lg">Reserve</button>
         </div>
       </form>
 
