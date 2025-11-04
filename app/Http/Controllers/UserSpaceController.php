@@ -21,6 +21,11 @@ class UserSpaceController extends Controller
 
         $space->rating = $averageRating;
 
-        return view('spaces.detail', compact('space', 'reviewCount'));
+        return view('spaces.detail', compact(
+            'space', 
+            'reviews',
+            'reviewCount',
+            'averageRating'
+        ));
     }
 }
