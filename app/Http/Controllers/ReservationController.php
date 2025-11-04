@@ -305,7 +305,9 @@ class ReservationController extends Controller
     // cancel
     public function cancel($id)
     {
-        $reservation = Reservation::findOrFail($id);
+        $reservation = Reservation::where('id', $id)
+        ->where('user_id', Auth::id())
+        ->firstOrFail();
 
         $reservation->update(['status' => 'canceled']);
 

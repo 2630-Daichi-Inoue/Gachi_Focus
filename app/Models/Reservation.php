@@ -25,12 +25,15 @@ class Reservation extends Model
             'adults',
             'facilities',
             'total_price',
+            'status',
         ];
 
     // cast JSON/date fields
     protected $casts = [
         'facilities' => 'array',
         'date'       => 'date',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
     ];
 
     public const STATUS_MAP = [
