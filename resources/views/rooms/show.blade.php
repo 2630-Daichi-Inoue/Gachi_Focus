@@ -52,7 +52,7 @@
           $tFrom = \Illuminate\Support\Str::of($reservation->start_time)->beforeLast(':')->__toString();
           $tTo   = \Illuminate\Support\Str::of($reservation->end_time)->beforeLast(':')->__toString();
 
-          // --- Get tax_rate (only) from Pricing::calc() using same context ---
+          // --- Probe tax_rate with same context (do not recalc total) ---
           $probe = \App\Support\Pricing::calc([
               'space_id'          => $space->id,
               'type'              => $reservation->type,
@@ -64,26 +64,40 @@
               'currency_override' => $savedCurr  ?: ($space->currency ?? 'JPY'),
           ]);
 
-          $taxRate = (float)($probe['tax_rate'] ?? 0.0);      // decimal (0.10 = 10%)
+          $taxRate = (float)($probe['tax_rate'] ?? 0.0);            // decimal (0.10 = 10%)
           $currency = strtoupper($reservation->currency ?? ($probe['currency'] ?? 'JPY'));
 
-          // --- Derive tax amount from saved total & tax_rate ---
-          // total = net * (1 + rate) => tax = total * rate / (1 + rate)
-          $rawTax = $taxRate > 0 ? ($savedTotal * $taxRate / (1 + $taxRate)) : 0.0;
+          // --- Zero-decimal currencies (Stripe-style) ---
+          $zeroDec = in_array($currency, [
+            'BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG',
+            'RWF','UGX','VND','VUV','XAF','XOF','XPF'
+          ], true);
 
-          // --- Stripe-style zero-decimal handling for display ---
-          $zeroDec = in_array($currency, ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'], true);
+          // --- Currency symbol map; fallback to code if unknown ---
+          // Keep it pragmatic; extend when you add markets.
+          $curSymbols = [
+            'JPY' => '¥','USD' => '$','EUR' => '€','GBP' => '£',
+            'AUD' => 'A$','NZD' => 'NZ$','CAD' => 'C$','CHF' => 'CHF',
+            'CNY' => '¥','HKD' => 'HK$','SGD' => 'S$','TWD' => 'NT$',
+            'KRW' => '₩','THB' => '฿','PHP' => '₱','VND' => '₫',
+            'INR' => '₹','IDR' => 'Rp','MYR' => 'RM','MXN' => 'MX$',
+            'BRL' => 'R$','SEK' => 'kr','NOK' => 'kr','DKK' => 'kr',
+            'PLN' => 'zł','CZK' => 'Kč','HUF' => 'Ft','ZAR' => 'R',
+            'TRY' => '₺','AED' => 'AED','SAR' => 'SAR','RUB' => '₽',
+            'ILS' => '₪'
+          ];
+          $symbol = $curSymbols[$currency] ?? $currency; // unknown -> show code
 
-          // --- Formatters (simple, currency-aware) ---
-          $fmt = function (float $v) use ($currency, $zeroDec) {
-              if ($currency === 'JPY') {
-                  return '¥' . number_format($v, 0);
-              }
+          // --- Simple currency formatter with symbol ---
+          $fmt = function (float $v) use ($currency, $zeroDec, $symbol) {
               $digits = $zeroDec ? 0 : 2;
-              return number_format($v, $digits) . ' ' . $currency;
+              // Most locales show symbol before the number; good enough for UI.
+              return $symbol . number_format($v, $digits);
           };
 
-          // Round tax consistently for display
+          // --- Derive tax from saved total & tax_rate ---
+          // total = net * (1 + rate) => tax = total * rate / (1 + rate)
+          $rawTax = $taxRate > 0 ? ($savedTotal * $taxRate / (1 + $taxRate)) : 0.0;
           $taxAmount = $zeroDec ? (int) round($rawTax) : round($rawTax, 2);
         @endphp
 
@@ -133,7 +147,7 @@
             <div class="d-flex gap-3 mt-4">
               {{-- Edit --}}
               <a href="{{ route('reservations.edit', ['reservation' => $reservation->id]) }}"
-                 class="btn btn-dark btn-lg flex-fill">
+                 class="btn btn-light border-dark-subtle text-secondary btn-lg flex-fill">
                 Change reservation
               </a>
 
@@ -141,9 +155,9 @@
 
               {{-- Cancel (modal) --}}
               <button type="button"
-                      class="btn btn-danger btn-lg flex-fill"
-                      data-bs-toggle="modal"
-                      data-bs-target="#{{ $cancelModalId }}">
+                        class="btn btn-outline-danger btn-lg flex-fill bg-white text-danger border-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#{{ $cancelModalId }}">
                 Cancel reservation
               </button>
 
@@ -160,7 +174,8 @@
               @if(($reservation->payment_status ?? 'unpaid') !== 'paid')
                 <form method="POST" action="{{ route('reservations.pay', ['reservation' => $reservation->id]) }}" class="flex-fill">
                   @csrf
-                  <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <button type="submit"
+                        class="btn btn-secondary btn-lg w-100">
                     Pay with card
                   </button>
                 </form>

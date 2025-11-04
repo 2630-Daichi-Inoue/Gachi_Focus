@@ -23,6 +23,9 @@
     // --- Capacity range ---
     $minCap = $space->min_capacity ?? 1;
     $maxCap = $space->max_capacity ?? 10;
+
+    // --- Let server decide currency by country (do not force override) ---
+    $defaultCountry = $space->country_code ?? 'JP';
 @endphp
 
 <div
@@ -36,6 +39,7 @@
     end_time: @js($defaultEnd),
     adults: @js($defaultAdults),
     facilities: @js($defaultFacilities),
+    country: '{{ $defaultCountry }}', // hint for tax/currency selection
   })"
   x-init="recalc()"
   class="container-xxl py-5">
@@ -144,7 +148,7 @@
 
         {{-- Submit --}}
         <div class="d-grid">
-          <button type="submit" class="btn btn-dark btn-lg">Save Changes</button>
+          <button type="submit" class="btn btn-secondary btn-lg">Save Changes</button>
         </div>
       </form>
 
@@ -197,6 +201,7 @@
   // Alpine.js component (tax-inclusive summary)
   function editPage(init) {
     return {
+      // ---- props / init ----
       csrf: init.csrf,
       quoteUrl: init.quoteUrl,
       spaceId: init.spaceId,
@@ -206,44 +211,68 @@
       end_time: init.end_time || '',
       adults: init.adults || 1,
       facilities: Array.isArray(init.facilities) ? init.facilities : [],
+      country: init.country || 'JP', // send as hint for currency/tax
 
-      // totals from quote API
-      total: 0,   // tax-in
+      // ---- totals from quote API ----
+      total: 0,   // tax-included
       tax: 0,     // tax amount
-      currency: 'JPY',
+      currency: 'JPY', // temporary till first quote (will be replaced by API)
 
       busy: false,
 
+      // ---- currency config (shared idea: symbol map + zero-decimals) ----
+      curSymbols: {
+        JPY:'¥', USD:'$', EUR:'€', GBP:'£',
+        AUD:'A$', NZD:'NZ$', CAD:'C$', CHF:'CHF',
+        CNY:'¥', HKD:'HK$', SGD:'S$', TWD:'NT$',
+        KRW:'₩', THB:'฿', PHP:'₱', VND:'₫',
+        INR:'₹', IDR:'Rp', MYR:'RM', MXN:'MX$',
+        BRL:'R$', SEK:'kr', NOK:'kr', DKK:'kr',
+        PLN:'zł', CZK:'Kč', HUF:'Ft', ZAR:'R',
+        TRY:'₺', AED:'AED', SAR:'SAR', RUB:'₽',
+        ILS:'₪'
+      },
+      zeroDecimals: ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'],
+
+      // ---- utils ----
       normalizeTime(v) {
         if (!v) return null;
         const [h, m] = v.split(':');
         return h && m ? `${h.padStart(2,'0')}:${m.padStart(2,'0')}` : null;
       },
 
+      // ---- recalc via quote API ----
       async recalc() {
         if (!this.type || !this.date || !this.start_time || !this.end_time) return;
         this.busy = true;
         try {
+          const payload = {
+            space_id: this.spaceId,
+            type: this.type,
+            date: this.date,
+            time_from: this.normalizeTime(this.start_time),
+            time_to: this.normalizeTime(this.end_time),
+            facilities: this.facilities,
+            adults: this.adults,
+            country_code: this.country, // let server select currency by country
+            // DO NOT send currency_override unless user explicitly picks a currency
+          };
           const res = await fetch(this.quoteUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-TOKEN': this.csrf,
+              'Accept': 'application/json',
             },
-            body: JSON.stringify({
-              space_id: this.spaceId,
-              type: this.type,
-              date: this.date,
-              time_from: this.normalizeTime(this.start_time),
-              time_to: this.normalizeTime(this.end_time),
-              facilities: this.facilities,
-              adults: this.adults,
-            }),
+            body: JSON.stringify(payload),
           });
+          if (!res.ok) throw new Error('Quote request failed: ' + res.status);
           const data = await res.json();
-          this.total = Number(data.total || 0);
-          this.tax   = Number(data.tax_amount || 0);
-          this.currency = data.currency || 'JPY';
+
+          // Reflect server-decided currency & amounts
+          this.total    = Number(data.total || 0);
+          this.tax      = Number(data.tax_amount || 0);
+          this.currency = String(data.currency || this.currency || 'JPY').toUpperCase();
         } catch (e) {
           console.error('quote error', e);
         } finally {
@@ -251,12 +280,17 @@
         }
       },
 
+      // ---- formatters ----
       formatMoney(v, curr) {
         const c = String(curr || 'JPY').toUpperCase();
-        const zero = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'].includes(c);
         const n = Number(v || 0);
-        if (c === 'JPY') return '¥' + n.toLocaleString('ja-JP');
-        return n.toLocaleString(undefined, { minimumFractionDigits: zero ? 0 : 2 }) + ' ' + c;
+        const isZero = this.zeroDecimals.includes(c);
+        const symbol = this.curSymbols[c] ?? c; // fallback to code if unknown
+        if (isZero) {
+          return symbol + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        } else {
+          return symbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
       },
 
       formatDate(iso) {

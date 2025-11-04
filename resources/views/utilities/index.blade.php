@@ -43,7 +43,7 @@
             </div>
             <div class="col-12 col-md-auto">
               {{-- gray button per your preference --}}
-              <button type="submit" class="btn btn-secondary px-4">
+              <button type="submit" class="btn btn-dark px-4">
                 + add
               </button>
             </div>
@@ -72,9 +72,9 @@
                             <button
                             type="button"
                             class="btn text-white px-3 py-2"
-                            style="background-color:#576b69; border:none; width:90px; transition:0.2s;"
-                            onmouseover="this.style.backgroundColor='#428bca';"
-                            onmouseout="this.style.backgroundColor='#5a9bd8';"
+                            style="background-color:#858788; border:none; width:90px; transition:0.2s;"
+                            onmouseover="this.style.backgroundColor='#428bca';"  
+                            onmouseout="this.style.backgroundColor='#858788';"   
                             data-bs-toggle="modal"
                             data-bs-target="#editModal"
                             data-id="{{ $u->id }}"
@@ -83,11 +83,12 @@
                             Edit
                             </button>
 
+
                             {{-- Delete button: same size --}}
                             <button
                             type="button"
                             class="btn text-danger px-3 py-2"
-                            style="border:2px solid #e27b7b; background-color:transparent; width:90px; transition:0.2s;"
+                            style="border:0.5px solid #e27b7b; background-color:transparent; width:90px; transition:0.2s;"
                             onmouseover="this.style.backgroundColor='#ffeaea';"
                             onmouseout="this.style.backgroundColor='transparent';"
                             data-bs-toggle="modal"

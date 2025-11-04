@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    // Setup image and display name
+    // Build display name & image URL
     $displayName = $space->name ?? 'Room';
     $rawImage = $space->image ?? null;
     $imgSrc = asset('images/room-b.jpg');
@@ -17,12 +17,14 @@
             $imgSrc = asset('storage/'.$rawImage);
         }
     }
+
+    // Capacity guardrails
     $minCap = $space->min_capacity ?? 1;
     $maxCap = $space->max_capacity ?? 10;
 
-    // Optional: pass country/currency defaults to JS to keep tax logic aligned with show page
-    $defaultCountry = $space->country_code ?? 'JP';
-    $defaultCurrency = $space->currency ?? 'JPY';
+    // Pass region defaults only. Let server decide currency by country.
+    $defaultCountry  = $space->country_code ?? 'JP';
+    // NOTE: do NOT force a default currency here; server will choose by country.
 @endphp
 
 <div 
@@ -31,7 +33,6 @@
     quoteUrl: '{{ route('pricing.quote') }}',
     spaceId: {{ json_encode($space->id) }},
     country: '{{ $defaultCountry }}',
-    currency: '{{ $defaultCurrency }}',
   })"
   class="container-xxl py-5">
 
@@ -55,7 +56,7 @@
             class="mb-4">
         @csrf
 
-        {{-- Hidden fields for backend (keep server as source of truth) --}}
+        {{-- Hidden fields for backend (server remains source of truth) --}}
         <input type="hidden" name="start_time" :value="time_from">
         <input type="hidden" name="end_time"   :value="time_to">
         <input type="hidden" name="space_id" value="{{ $space->id }}">
@@ -75,9 +76,7 @@
         </div>
 
         {{-- Date --}}
-        @php
-          $today = \Carbon\Carbon::today()->toDateString();
-        @endphp
+        @php $today = \Carbon\Carbon::today()->toDateString(); @endphp
         <div class="mb-3">
           <label class="form-label small text-uppercase text-muted">Date</label>
           <input
@@ -147,7 +146,7 @@
 
         {{-- Buttons --}}
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-dark btn-lg">Reserve</button>
+          <button type="submit" class="btn btn-secondary btn-lg">Reserve</button>
         </div>
       </form>
 
@@ -220,7 +219,7 @@
   // Alpine component for reservation form (tax-inclusive)
   function reservePage(init) {
     return {
-      // state
+      // ---- state ----
       type: '',
       date: '',
       time_from: '',
@@ -231,7 +230,7 @@
       // amounts from quote API
       total: 0,         // tax-included
       tax: 0,           // tax amount
-      currency: init.currency || 'JPY',
+      currency: 'JPY',  // temporary until first quote (will be replaced by API)
 
       // misc
       busy: false,
@@ -240,11 +239,36 @@
       spaceId: init.spaceId,
       country: init.country || 'JP',
 
-      // call quote API and update totals
+      // ---- helpers: currency symbol & zero-decimal config ----
+      curSymbols: {
+        JPY:'¥', USD:'$', EUR:'€', GBP:'£',
+        AUD:'A$', NZD:'NZ$', CAD:'C$', CHF:'CHF',
+        CNY:'¥', HKD:'HK$', SGD:'S$', TWD:'NT$',
+        KRW:'₩', THB:'฿', PHP:'₱', VND:'₫',
+        INR:'₹', IDR:'Rp', MYR:'RM', MXN:'MX$',
+        BRL:'R$', SEK:'kr', NOK:'kr', DKK:'kr',
+        PLN:'zł', CZK:'Kč', HUF:'Ft', ZAR:'R',
+        TRY:'₺', AED:'AED', SAR:'SAR', RUB:'₽',
+        ILS:'₪'
+      },
+      zeroDecimals: ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'],
+
+      // ---- API: call quote and update totals ----
       async recalc() {
         if (!this.type || !this.date || !this.time_from || !this.time_to) return;
         this.busy = true;
         try {
+          // Build payload WITHOUT currency_override, so server can auto-select by country
+          const payload = {
+            space_id: this.spaceId,
+            type: this.type,
+            date: this.date,
+            time_from: this.time_from,
+            time_to: this.time_to,
+            facilities: this.facilities,
+            adults: this.adults,
+            country_code: this.country, // hint for server currency/tax
+          };
           const res = await fetch(this.quoteUrl, {
             method: 'POST',
             headers: {
@@ -252,27 +276,15 @@
               'X-CSRF-TOKEN': this.csrf,
               'Accept': 'application/json',
             },
-            body: JSON.stringify({
-              space_id: this.spaceId,
-              type: this.type,
-              date: this.date,
-              time_from: this.time_from,
-              time_to: this.time_to,
-              facilities: this.facilities,
-              adults: this.adults,
-
-              // optional hints so Pricing::calc picks same region/currency as show page
-              country_code: this.country,
-              currency_override: this.currency,
-            }),
+            body: JSON.stringify(payload),
           });
           if (!res.ok) throw new Error('Quote request failed: ' + res.status);
           const data = await res.json();
 
-          // update amounts (ensure numbers)
+          // Update amounts & currency from server response
           this.total    = Number(data.total || 0);
           this.tax      = Number(data.tax_amount || 0);
-          this.currency = data.currency || this.currency;
+          this.currency = String(data.currency || this.currency || 'JPY').toUpperCase();
         } catch (e) {
           console.error(e);
         } finally {
@@ -280,21 +292,25 @@
         }
       },
 
-      // inject total before submit (best-effort)
+      // Inject total before submit (best-effort)
       injectTotal() {
         if (!this.total) this.recalc();
       },
 
-      // formatters
+      // ---- formatters ----
       formatMoney(v, curr) {
         const c = String(curr || 'JPY').toUpperCase();
-        const isZero = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'].includes(c);
         const n = Number(v || 0);
-        if (c === 'JPY') {
-          return '¥' + n.toLocaleString('ja-JP', { maximumFractionDigits: 0 });
+        const isZero = this.zeroDecimals.includes(c);
+        const symbol = this.curSymbols[c] ?? c; // unknown -> code
+        if (isZero) {
+          return symbol + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        } else {
+          return symbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-        return n.toLocaleString(undefined, { minimumFractionDigits: isZero ? 0 : 2, maximumFractionDigits: isZero ? 0 : 2 }) + ' ' + c;
       },
+
+      // Format ISO date (YYYY/MM/DD)
       formatDate(iso) {
         if (!iso) return '-';
         const d = new Date(iso + 'T00:00:00');
