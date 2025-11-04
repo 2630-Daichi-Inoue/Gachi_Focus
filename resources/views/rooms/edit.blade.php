@@ -1,290 +1,305 @@
-@extends('layout.app')
+@extends('layouts.app')
 
-@section('title', 'Edit '.$room->name.' | GachiFocus')
+@section('title', 'Edit '.($space->name ?? 'Reservation').' | GachiFocus')
 
 @section('content')
-{{-- Alpine for live pricing --}}
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 @php
-  // If controller didn't provide time arrays, build fallback here (09:00-21:00 / 30min slot)
-  if (!isset($fromTimes) || !isset($toTimes)) {
-      $open  = '09:00';
-      $close = '21:00';
-      $slot  = 30;
-      $fromTimes = [];
-      $toTimes   = [];
-      $from = \Carbon\Carbon::createFromTimeString($open);
-      $to   = \Carbon\Carbon::createFromTimeString($close);
-      for ($t = $from->copy(); $t->lt($to->copy()->subMinutes($slot)); $t->addMinutes($slot)) {
-          $fromTimes[] = $t->format('H:i');
-      }
-      for ($t = $from->copy()->addMinutes($slot); $t->lte($to); $t->addMinutes($slot)) {
-          $toTimes[] = $t->format('H:i');
-      }
-  }
+    use Illuminate\Support\Str;
 
-  // Defaults for form/x-data (prefer old() then reservation)
-  $defaultTypeLabel = old('type', $currentTypeLabel ?? null);
-  $defaultDate      = old('date', \Illuminate\Support\Carbon::parse($reservation->date)->toDateString());
-  $defaultStart     = old('start_time', \Illuminate\Support\Carbon::parse($reservation->start_time)->format('H:i'));
-  $defaultEnd       = old('end_time',   \Illuminate\Support\Carbon::parse($reservation->end_time)->format('H:i'));
-  $defaultAdults    = (int) old('adults', (int)$reservation->adults);
-  $defaultFacilities= old('facilities', $reservation->facilities ?? []);
-  if (!is_array($defaultFacilities)) $defaultFacilities = [];
+    // --- Image source ---
+    $displayName = $space->name ?? 'Room';
+    $rawImage = $space->image ?? null;
+    $imgSrc = asset('images/room-b.jpg');
+    if ($rawImage) {
+        if (str_starts_with($rawImage, 'http') || str_starts_with($rawImage, 'https://') || str_starts_with($rawImage, 'data:image')) {
+            $imgSrc = $rawImage;
+        } elseif (str_starts_with($rawImage, 'storage/') || str_starts_with($rawImage, 'images/')) {
+            $imgSrc = asset($rawImage);
+        } else {
+            $imgSrc = asset('storage/'.$rawImage);
+        }
+    }
+
+    // --- Capacity range ---
+    $minCap = $space->min_capacity ?? 1;
+    $maxCap = $space->max_capacity ?? 10;
+
+    // --- Let server decide currency by country (do not force override) ---
+    $defaultCountry = $space->country_code ?? 'JP';
 @endphp
 
-<body class="relative min-h-screen"
-      x-data="editPage({
-        csrf: '{{ csrf_token() }}',
-        quoteUrl: '{{ route('pricing.quote') }}',
-        roomName: '{{ $room->name }}',
-        type: @js($defaultTypeLabel),
-        date: @js($defaultDate),
-        start_time: @js($defaultStart),
-        end_time: @js($defaultEnd),
-        adults: @js($defaultAdults),
-        facilities: @js($defaultFacilities),
-      })"
-      x-init="recalc()">
+<div
+  x-data="editPage({
+    csrf: '{{ csrf_token() }}',
+    quoteUrl: '{{ route('pricing.quote') }}',
+    spaceId: {{ json_encode($space->id) }},
+    type: @js($defaultType),
+    date: @js($defaultDate),
+    start_time: @js($defaultStart),
+    end_time: @js($defaultEnd),
+    adults: @js($defaultAdults),
+    facilities: @js($defaultFacilities),
+    country: '{{ $defaultCountry }}', // hint for tax/currency selection
+  })"
+  x-init="recalc()"
+  class="container-xxl py-5">
 
-  {{-- background --}}
-  <div class="absolute inset-0 bg-cover bg-center opacity-20 pointer-events-none"
-       style="background-image: url('{{ asset('images/room-temp.jpg') }}')"></div>
+  <div class="row g-0 shadow-lg rounded overflow-hidden">
 
-  {{-- contents --}}
-  <div class="relative z-10 max-w-6xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-2 items-stretch">
-
-      {{-- left: photo --}}
-      <div class="relative overflow-hidden shadow-lg">
-        <img src="{{ asset('images/room-b.jpg') }}" alt="{{ $room->name }}" class="w-full h-full object-cover">
-        <div class="absolute top-4 left-4 text-white/95 drop-shadow-lg">
-          <div class="text-5xl font-extrabold">{{ $room->name }}</div>
-        </div>
+    {{-- Left: Image --}}
+    <div class="col-lg-6 position-relative">
+      <img src="{{ $imgSrc }}" alt="{{ $displayName }}"
+           class="img-fluid w-100 h-100 object-fit-cover" style="min-height:420px;">
+      <div class="position-absolute top-0 start-0 p-4">
+        <div class="display-5 fw-bold text-white text-shadow">{{ $displayName }}</div>
       </div>
+    </div>
 
-      {{-- right: form + live summary --}}
-      <div class="bg-white/90 shadow-xl p-8 flex flex-col">
-        <form method="POST" action="{{ route('reservations.update', $reservation) }}"
-              class="w-full max-w-2xl space-y-8">
-          @csrf
-          @method('PUT')
+    {{-- Right: Form --}}
+    <div class="col-lg-6 bg-white p-4 p-md-5">
+      <form method="POST" action="{{ route('reservations.update', $reservation) }}" class="mb-4">
+        @csrf
+        @method('PUT')
 
-          <h2 class="text-3xl lg:text-4xl font-semibold text-gray-900">
-            Edit {{ $room->name }} Reservation
-          </h2>
+        {{-- Hidden inputs --}}
+        <input type="hidden" name="space_id" value="{{ $space->id }}">
+        <input type="hidden" name="total_price" :value="total">
 
-          {{-- TYPE (label-based) --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Type</label>
-            <select name="type"
-                    x-model="type" x-on:change="recalc()"
-                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                    required>
-              <option value="" disabled {{ $defaultTypeLabel ? '' : 'selected' }}>Select type</option>
-              @foreach($room->types as $t)
-                <option value="{{ $t }}">{{ $t }}</option>
+        <h2 class="fw-bold mb-4">Edit {{ $displayName }} Reservation</h2>
+
+        {{-- Type --}}
+        <div class="mb-3">
+          <label class="form-label small text-uppercase text-muted">Type</label>
+          <select name="type" class="form-select" x-model="type" x-on:change="recalc()" required>
+            <option value="" disabled>Select type</option>
+            @foreach($types as $t)
+              <option value="{{ $t }}" {{ ($defaultType ?? '') === $t ? 'selected' : '' }}>
+                {{ $t }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+
+        {{-- Date --}}
+        <div class="mb-3">
+          <label class="form-label small text-uppercase text-muted">Date</label>
+          <input type="date" name="date" class="form-control" x-model="date" x-on:change="recalc()" required>
+        </div>
+
+        {{-- Time --}}
+        <div class="row g-4 mb-3">
+          <div class="col-6">
+            <label class="form-label small text-uppercase text-muted">Time (From)</label>
+            <select name="start_time" class="form-select" x-model="start_time" x-on:change="recalc()" required>
+              @foreach($fromTimes as $val)
+                <option value="{{ $val }}" {{ ($defaultStart ?? '') === $val ? 'selected' : '' }}>
+                  {{ $val }}
+                </option>
               @endforeach
             </select>
-            @error('type') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
           </div>
-
-          {{-- DATE --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Date</label>
-            <input type="date" name="date"
-                   x-model="date" x-on:change="recalc()"
-                   class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                   required>
-            @error('date') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-          </div>
-
-          {{-- TIME (we submit start_time/end_time, but quote() needs time_from/time_to → JS側で変換して送る) --}}
-          <div class="grid grid-cols-2 gap-8">
-            <div>
-              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (From)</label>
-              <select name="start_time"
-                      x-model="start_time" x-on:change="recalc()"
-                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                      required>
-                <option value="" disabled {{ $defaultStart ? '' : 'selected' }}>Select time</option>
-                @foreach($fromTimes as $val)
-                  <option value="{{ $val }}">{{ $val }}</option>
-                @endforeach
-              </select>
-              @error('start_time') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Time (To)</label>
-              <select name="end_time"
-                      x-model="end_time" x-on:change="recalc()"
-                      class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                      required>
-                <option value="" disabled {{ $defaultEnd ? '' : 'selected' }}>Select time</option>
-                @foreach($toTimes as $val)
-                  <option value="{{ $val }}">{{ $val }}</option>
-                @endforeach
-              </select>
-              @error('end_time') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-            </div>
-          </div>
-
-          {{-- ADULTS --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Adults</label>
-            <select name="adults"
-                    x-model.number="adults" x-on:change="recalc()"
-                    class="w-full bg-transparent border-0 border-b border-gray-300 focus:border-gray-900 focus:ring-0 text-gray-900 py-2"
-                    required>
-              @for($i=1; $i <= $room->max_adults; $i++)
-                <option value="{{ $i }}">{{ $i }}</option>
-              @endfor
+          <div class="col-6">
+            <label class="form-label small text-uppercase text-muted">Time (To)</label>
+            <select name="end_time" class="form-select" x-model="end_time" x-on:change="recalc()" required>
+              @foreach($toTimes as $val)
+                <option value="{{ $val }}" {{ ($defaultEnd ?? '') === $val ? 'selected' : '' }}>
+                  {{ $val }}
+                </option>
+              @endforeach
             </select>
-            @error('adults') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
           </div>
+        </div>
 
-          {{-- FACILITIES --}}
-          <div>
-            <label class="block text-xs font-medium uppercase tracking-wide text-gray-500 mb-3">Facilities</label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
-              @foreach($room->facilities as $f)
-                <label class="flex items-center gap-3 text-gray-900">
-                  <input type="checkbox"
+        {{-- Adults --}}
+        <div class="mb-2">
+          <label class="form-label small text-uppercase text-muted">Adults</label>
+          <select name="adults" class="form-select" x-model.number="adults" x-on:change="recalc()" required>
+            @for($i = max(1, $minCap); $i <= max($minCap, $maxCap); $i++)
+              <option value="{{ $i }}" {{ ($defaultAdults ?? 1) == $i ? 'selected' : '' }}>
+                {{ $i }}
+              </option>
+            @endfor
+          </select>
+          <div class="form-text">Capacity: {{ $minCap }}–{{ $maxCap }} ppl</div>
+        </div>
+
+        {{-- Facilities --}}
+        <div class="mb-4">
+          <label class="form-label small text-uppercase text-muted d-block mb-2">Facilities</label>
+          <div class="row">
+            @foreach(($facilityOptions ?? []) as $f)
+              @php $id='f-'.Str::slug($f); @endphp
+              <div class="col-sm-6 mb-2">
+                <div class="form-check">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         id="{{ $id }}"
                          name="facilities[]"
                          value="{{ $f }}"
-                         x-model="facilities" x-on:change="recalc()"
-                         @checked(in_array($f, $defaultFacilities, true))
-                         class="h-4 w-4 rounded-sm border-gray-400 text-neutral-900 focus:ring-neutral-900">
-                  <span>{{ $f }}</span>
-                </label>
-              @endforeach
-            </div>
-            @error('facilities') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-          </div>
-
-          {{-- (optional) send total to server as hidden, even if server recomputes --}}
-          <input type="hidden" name="total_price" :value="total">
-
-          {{-- SUBMIT --}}
-          <div class="pt-2">
-            <button type="submit"
-                    class="w-full h-12 rounded-md bg-neutral-900 text-white text-lg font-semibold tracking-wide hover:bg-black transition-colors">
-              Save Changes
-            </button>
-          </div>
-        </form>
-
-        {{-- Live summary (same look & feel as your show page) --}}
-        <div class="bg-white shadow mt-8 p-6 rounded-lg">
-          <div class="space-y-4 px-4 py-4">
-            <h2 class="text-2xl font-serif">
-              <span x-text="type || 'Type'"></span>
-            </h2>
-
-            <dl class="grid grid-cols-3 gap-y-3 text-sm">
-              <dt class="text-gray-500">Date</dt>
-              <dd class="col-span-2">
-                <span x-text="formatDate(date)"></span>
-                <template x-if="start_time && end_time">
-                  <span> <span x-text="start_time"></span> - <span x-text="end_time"></span></span>
-                </template>
-              </dd>
-
-              <dt class="text-gray-500">Adults</dt>
-              <dd class="col-span-2" x-text="adults || '-'"></dd>
-
-              <dt class="text-gray-500">Facilities</dt>
-              <dd class="col-span-2">
-                <template x-if="facilities.length">
-                  <div class="flex flex-wrap gap-2">
-                    <template x-for="f in facilities" :key="f">
-                      <span class="px-2 py-0.5 rounded bg-gray-100" x-text="f"></span>
-                    </template>
-                  </div>
-                </template>
-                <template x-if="!facilities.length">
-                  <span class="text-gray-400">None</span>
-                </template>
-              </dd>
-
-              <dt class="text-gray-500">Total</dt>
-              <dd class="col-span-2 font-semibold">
-                <span x-show="!busy" x-text="formatJPY(total)"></span>
-                <span x-show="busy" class="text-gray-400">calculating...</span>
-              </dd>
-            </dl>
+                         x-model="facilities"
+                         x-on:change="recalc()"
+                         @checked(in_array($f, $defaultFacilities, true))>
+                  <label class="form-check-label" for="{{ $id }}">{{ $f }}</label>
+                </div>
+              </div>
+            @endforeach
           </div>
         </div>
 
+        {{-- Submit --}}
+        <div class="d-grid">
+          <button type="submit" class="btn btn-secondary btn-lg">Save Changes</button>
+        </div>
+      </form>
+
+      {{-- Summary --}}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h3 class="h4 fw-bold mb-3"><span x-text="type || 'Type'"></span></h3>
+          <dl class="row gy-2">
+            <dt class="col-3 text-muted">Date</dt>
+            <dd class="col-9">
+              <span x-text="formatDate(date)"></span>
+              <template x-if="start_time && end_time">
+                <span class="ms-2"><span x-text="start_time"></span> - <span x-text="end_time"></span></span>
+              </template>
+            </dd>
+            <dt class="col-3 text-muted">Adults</dt>
+            <dd class="col-9" x-text="adults || '-'"></dd>
+            <dt class="col-3 text-muted">Facilities</dt>
+            <dd class="col-9">
+              <template x-if="facilities.length">
+                <div class="d-flex flex-wrap gap-2">
+                  <template x-for="f in facilities" :key="f">
+                    <span class="badge bg-light text-dark border" x-text="f"></span>
+                  </template>
+                </div>
+              </template>
+              <template x-if="!facilities.length">
+                <span class="text-muted">None</span>
+              </template>
+            </dd>
+            <dt class="col-3 text-muted">Total</dt>
+            <dd class="col-9 fw-semibold">
+              <span x-show="!busy" x-text="formatMoney(total, currency)"></span>
+              <span x-show="!busy" class="text-muted">（tax <span x-text="formatMoney(tax, currency)"></span>）</span>
+              <span x-show="busy" class="text-muted">calculating...</span>
+            </dd>
+          </dl>
+        </div>
       </div>
     </div>
   </div>
+</div>
 
-  {{-- Alpine logic: reuse server-side Pricing::calc() via /pricing/quote --}}
-  <script>
-    function editPage(init) {
-      return {
-        csrf: init.csrf,
-        quoteUrl: init.quoteUrl,
-        roomName: init.roomName,
+<style>
+  .object-fit-cover { object-fit: cover; }
+  .text-shadow { text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+</style>
 
-        // form state
-        type: init.type || '',
-        date: init.date || '',
-        start_time: init.start_time || '',
-        end_time: init.end_time || '',
-        adults: init.adults || 1,
-        facilities: Array.isArray(init.facilities) ? init.facilities : [],
+<script>
+  // Alpine.js component (tax-inclusive summary)
+  function editPage(init) {
+    return {
+      // ---- props / init ----
+      csrf: init.csrf,
+      quoteUrl: init.quoteUrl,
+      spaceId: init.spaceId,
+      type: init.type || '',
+      date: init.date || '',
+      start_time: init.start_time || '',
+      end_time: init.end_time || '',
+      adults: init.adults || 1,
+      facilities: Array.isArray(init.facilities) ? init.facilities : [],
+      country: init.country || 'JP', // send as hint for currency/tax
 
-        // result state
-        total: 0,
-        busy: false,
+      // ---- totals from quote API ----
+      total: 0,   // tax-included
+      tax: 0,     // tax amount
+      currency: 'JPY', // temporary till first quote (will be replaced by API)
 
-        async recalc() {
-          if (!this.type || !this.date || !this.start_time || !this.end_time) return;
-          this.busy = true;
-          try {
-            const res = await fetch(this.quoteUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': this.csrf,
-                'Accept': 'application/json',
-              },
-              // quote() expects time_from/time_to, while form uses start_time/end_time
-              body: JSON.stringify({
-                type: this.type,
-                date: this.date,
-                time_from: this.start_time,
-                time_to: this.end_time,
-                facilities: this.facilities,
-                adults: this.adults,
-              }),
-            });
-            if (!res.ok) throw new Error('Quote failed: ' + res.status);
-            const data = await res.json();
-            this.total = Number(data.total || 0);
-          } catch (e) {
-            console.error(e);
-          } finally {
-            this.busy = false;
-          }
-        },
+      busy: false,
 
-        formatJPY(v) {
-          const n = Number(v || 0);
-          return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(n);
-        },
-        formatDate(iso) {
-          if (!iso) return '-';
-          const d = new Date(iso + 'T00:00:00');
-          if (isNaN(d)) return iso;
-          return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+      // ---- currency config (shared idea: symbol map + zero-decimals) ----
+      curSymbols: {
+        JPY:'¥', USD:'$', EUR:'€', GBP:'£',
+        AUD:'A$', NZD:'NZ$', CAD:'C$', CHF:'CHF',
+        CNY:'¥', HKD:'HK$', SGD:'S$', TWD:'NT$',
+        KRW:'₩', THB:'฿', PHP:'₱', VND:'₫',
+        INR:'₹', IDR:'Rp', MYR:'RM', MXN:'MX$',
+        BRL:'R$', SEK:'kr', NOK:'kr', DKK:'kr',
+        PLN:'zł', CZK:'Kč', HUF:'Ft', ZAR:'R',
+        TRY:'₺', AED:'AED', SAR:'SAR', RUB:'₽',
+        ILS:'₪'
+      },
+      zeroDecimals: ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'],
+
+      // ---- utils ----
+      normalizeTime(v) {
+        if (!v) return null;
+        const [h, m] = v.split(':');
+        return h && m ? `${h.padStart(2,'0')}:${m.padStart(2,'0')}` : null;
+      },
+
+      // ---- recalc via quote API ----
+      async recalc() {
+        if (!this.type || !this.date || !this.start_time || !this.end_time) return;
+        this.busy = true;
+        try {
+          const payload = {
+            space_id: this.spaceId,
+            type: this.type,
+            date: this.date,
+            time_from: this.normalizeTime(this.start_time),
+            time_to: this.normalizeTime(this.end_time),
+            facilities: this.facilities,
+            adults: this.adults,
+            country_code: this.country, // let server select currency by country
+            // DO NOT send currency_override unless user explicitly picks a currency
+          };
+          const res = await fetch(this.quoteUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': this.csrf,
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error('Quote request failed: ' + res.status);
+          const data = await res.json();
+
+          // Reflect server-decided currency & amounts
+          this.total    = Number(data.total || 0);
+          this.tax      = Number(data.tax_amount || 0);
+          this.currency = String(data.currency || this.currency || 'JPY').toUpperCase();
+        } catch (e) {
+          console.error('quote error', e);
+        } finally {
+          this.busy = false;
         }
-      }
+      },
+
+      // ---- formatters ----
+      formatMoney(v, curr) {
+        const c = String(curr || 'JPY').toUpperCase();
+        const n = Number(v || 0);
+        const isZero = this.zeroDecimals.includes(c);
+        const symbol = this.curSymbols[c] ?? c; // fallback to code if unknown
+        if (isZero) {
+          return symbol + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        } else {
+          return symbol + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+      },
+
+      formatDate(iso) {
+        if (!iso) return '-';
+        const d = new Date(iso + 'T00:00:00');
+        if (isNaN(d)) return iso;
+        return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+      },
     }
-  </script>
-</body>
+  }
+</script>
 @endsection

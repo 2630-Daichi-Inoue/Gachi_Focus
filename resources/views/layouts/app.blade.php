@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,16 +11,19 @@
     <title>{{ config('app.name', 'GachiFocus') }} | @yield('title')</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('images/GachiFocus_logo_favicon.png') }}" type="image/phg">
+    <link rel="icon" href="{{ asset('images/GachiFocus_logo_favicon.png') }}" type="image/png">
 
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-    <!-- css -->
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
+    <!-- Alpine.js -->
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <style>
@@ -29,9 +33,10 @@
     }
 
     .navbar-custom {
-        background-color:#D9D9D9 ;
+        background-color: #D9D9D9;
     }
 </style>
+
 <body>
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-custom shadow-sm fixed-top">
@@ -39,15 +44,16 @@
                 <a class="navbar-brand" href="{{ url('/') }}">
                     <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="" height="60">
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-
-                    </ul>
+                    <ul class="navbar-nav me-auto"></ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
@@ -59,42 +65,54 @@
                                 </li>
                             @endif
                         @else
-                            @if(auth()->user()->isAdmin()) <!-- ← Admin or User -->
+                            <!-- Admin or User -->
+                            @if (auth()->user()->isAdmin())
                                 <!-- ADMIN LINKS -->
-                                <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking
+                                    Space</a>
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
                                 <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
                                 <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
-                                <!-- notification -->
+
+                                <!-- Notification -->
                                 <li class="nav-item dropdown">
-                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
-                                
-                                    <!-- Unread mark on the bell icon -->
+                                    <a id="notificationDropdown" href="#" class="nav-link position-relative me-3"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-bell"></i>
+
+                                        <!-- Unread mark on the bell icon -->
                                         @php
-                                            $hasUnread = auth()->user()->receivedNotifications()->whereNull('read_at')->exists();
+                                            $hasUnread = auth()
+                                                ->user()
+                                                ->receivedNotifications()
+                                                ->whereNull('read_at')
+                                                ->exists();
                                         @endphp
-                                        @if($hasUnread)
-                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
-                                            </span>
+                                        @if ($hasUnread)
+                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle"
+                                                style="width: 10px; height: 10px; bottom: 9px; right: 2px;"></span>
                                         @endif
                                     </a>
 
-                                    <!-- popup window of notifications -->
-                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                    <!-- Popup window of notifications -->
+                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white"
+                                        aria-labelledby="notificationDropdown" style="width: 300px;">
                                         <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
                                             @forelse($notifications as $notification)
-                                            <div class="notification-item mb-2">
-                                                <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
-                                                <p class="mb-0">{{ $notification->message }}</p>
-                                            </div>
-                                            <hr class="my-2">
+                                                <div class="notification-item mb-2">
+                                                    <small
+                                                        class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
+                                                    <p class="mb-0">{{ $notification->message }}</p>
+                                                </div>
+                                                <hr class="my-2">
                                             @empty
                                                 <p>No notifications found.</p>
                                             @endforelse
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">All Notifications &gt;</a>
+                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">All
+                                                Notifications &gt;</a>
                                         </div>
                                     </div>
                                 </li>
@@ -108,89 +126,82 @@
 
                                 <!-- Contact -->
                                 <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
-                            
-                                <!-- notification -->
+
+                                <!-- Notification -->
                                 <li class="nav-item dropdown">
-                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
-                                
-                                    <!-- Unread mark on the bell icon -->
+                                    <a id="notificationDropdown" href="#" class="nav-link position-relative me-3"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-bell"></i>
+
+                                        <!-- Unread mark on the bell icon -->
                                         @php
-                                            $hasUnread = auth()->user()->receivedNotifications()->whereNull('read_at')->exists();
+                                            $hasUnread = auth()
+                                                ->user()
+                                                ->receivedNotifications()
+                                                ->whereNull('read_at')
+                                                ->exists();
                                         @endphp
-                                        @if($hasUnread)
-                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle" style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
-                                            </span>
+                                        @if ($hasUnread)
+                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle"
+                                                style="width: 10px; height: 10px; bottom: 9px; right: 2px;"></span>
                                         @endif
                                     </a>
 
-                                    <!-- popup window of notifications -->
-                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                    <!-- Popup window of notifications -->
+                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white"
+                                        aria-labelledby="notificationDropdown" style="width: 300px;">
                                         <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
                                             @forelse($notifications as $notification)
-                                            <div class="notification-item mb-2">
-                                                <small class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
-                                                <p class="mb-0">{{ $notification->message }}</p>
-                                            </div>
-                                            <hr class="my-2">
+                                                <div class="notification-item mb-2">
+                                                    <small
+                                                        class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
+                                                    <p class="mb-0">{{ $notification->message }}</p>
+                                                </div>
+                                                <hr class="my-2">
                                             @empty
                                                 <p>No notifications found.</p>
                                             @endforelse
-                                            
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('notifications.index') }}" class="text-primary">All Notifications &gt;</a>
+                                            <a href="{{ route('notifications.index') }}" class="text-primary">All
+                                                Notifications &gt;</a>
                                         </div>
                                     </div>
                                 </li>
                             @endif
 
-                            @if(auth()->user()->isAdmin())
-                                <i class="fas fa-circle-user text-secondary icon-sm"></i>
-                                <li class="nav-item dropdown">                                
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                        {{ Auth::user()->name }}
-                                    </a>
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                        onclick="event.preventDefault();
-                                                        document.getElementById('logout-form').submit();">
-                                            <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
-                                        </a>
-
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                            @csrf
-                                        </form>
-                                    </div>
-                                </li>
-                            @else
-
-                                <!-- user icon -->
-                                @if(auth()->user()->avatar)
-                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="img-fluid rounded-circle image-sm">
+                            <!-- Common Profile / Logout Section -->
+                            <li class="nav-item dropdown">
+                                @if (auth()->user()->avatar)
+                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}"
+                                        alt="{{ auth()->user()->name }}" class="img-fluid rounded-circle image-sm me-2"
+                                        style="width: 34px; height: 34px; object-fit: cover;">
                                 @else
-                                    <i class="fas fa-circle-user text-secondary icon-sm"></i>
+                                    <i class="fas fa-circle-user text-secondary icon-sm me-1"></i>
                                 @endif
-                                <li class="nav-item dropdown">                                
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                        {{ Auth::user()->name }}
+
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
+                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    {{ Auth::user()->name }}
+                                </a>
+
+                                <!-- Profile & Logout -->
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}">
+                                        <i class="fa-solid fa-user"></i> Profile
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fa-solid fa-right-from-bracket"></i> Logout
                                     </a>
 
-                                    <!-- Profile & logout -->
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}"><i class="fa-solid fa-user"></i> Profile</a>
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                        onclick="event.preventDefault();
-                                                        document.getElementById('logout-form').submit();">
-                                            <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
-                                        </a>
-
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                            @csrf
-                                        </form>
-                                    </div>
-                                </li>
-                            @endif
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                        class="d-none">
+                                        @csrf
+                                    </form>
+                                </div>
+                            </li>
                         @endguest
                     </ul>
                 </div>
@@ -203,8 +214,9 @@
             </div>
         </main>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
