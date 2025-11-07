@@ -109,7 +109,7 @@
                             <!-- Contact -->
                             <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
 
-                            @endif
+                            {{-- @endif --}}
                             <!-- notification -->
                             <li class="nav-item dropdown">
                                 <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
@@ -195,7 +195,7 @@
                                         </form>
                                     </div>
                                 </li>
-                            @endif
+                            {{-- @endif  --}}
                         @endguest
                     </ul>
                 </div>

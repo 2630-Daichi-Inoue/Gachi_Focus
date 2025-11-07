@@ -287,23 +287,11 @@ class ReservationController extends Controller
     public function currentShow()
     {
         $reservations = Reservation::where('user_id', Auth::id())
-            ->whereDate('date', '>=', Carbon::today())
-            ->orderBy('date')
+            ->whereDate('start_time', '>=', Carbon::today())
             ->orderBy('start_time')
             ->get();
 
-        return view('reservations.current', compact('reservations'));
-    }
-
-    public function pastShow()
-    {
-        $reservations = Reservation::where('user_id', Auth::id())
-            ->whereDate('date', '<', Carbon::today())
-            ->orderByDesc('date')
-            ->orderByDesc('start_time')
-            ->get();
-
-        return view('reservations.past', compact('reservations'));
+        return view('reservations.current-show', compact('reservations'));
     }
 
     public function rebook($id)
@@ -316,63 +304,27 @@ class ReservationController extends Controller
         ]);
     }
 
+    // Past reservations show
+    public function pastShow()
+    {
+        $reservations = Reservation::with('space.photos')
+            ->where('user_id', Auth::id())
+            ->where('start_time', '<', Carbon::now())
+            ->orderByDesc('end_time')
+            ->get();
+
+        return view('reservations.past-show', compact('reservations'));
+    }
+
     public function downloadInvoice($id)
     {
-        $reservation = Reservation::where('user_id', Auth::id())->findOrFail($id);
-        return view('reservations.invoice', compact('reservation'));
-    }
-
-    /**
-     * Pricing quote API (AJAX).
-     */
-    public function quote(Request $request)
-    {
-        $data = $request->validate([
-            'space_id'          => 'required|integer',
-            'date'              => 'required|date',
-            'time_from'         => 'required',
-            'time_to'           => 'required',
-            'type'              => 'nullable|string',
-            'facilities'        => 'nullable|array',
-            'country_code'      => 'nullable|string|max:5',
-            'currency_override' => 'nullable|string|max:3',
-        ]);
-
-        $startHHmm = $this->normalizeTime($data['time_from']);
-        $endHHmm   = $this->normalizeTime($data['time_to']);
-
-        $quote = Pricing::calc([
-            'space_id'          => (int) $data['space_id'],
-            'date'              => $data['date'],
-            'time_from'         => $startHHmm,
-            'time_to'           => $endHHmm,
-            'type'              => $data['type'] ?? 'Standard', // raw, normalized inside
-            'facilities'        => $data['facilities'] ?? [],
-            'country_code'      => $data['country_code'] ?? null,
-            'currency_override' => $data['currency_override'] ?? null,
-        ]);
-
-        return response()->json($quote);
-    }
-
-    private function buildTimeOptions(string $start, string $end, int $stepMinutes = 30): array
-    {
-        $base = Carbon::today();
-        $cur  = Carbon::parse($base->toDateString().' '.$start);
-        $last = Carbon::parse($base->toDateString().' '.$end);
-
-        $times = [];
-        while ($cur <= $last) {
-            $times[] = $cur->format('H:i'); // HH:mm
-            $cur->addMinutes($stepMinutes);
-        }
+        $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
 
         if ($reservation->user_id !== Auth::id()) {
             abort(403, 'Unauthorized access.');
         }
 
-        if (empty($from)) $from = ['09:00'];
-        if (empty($to))   $to   = ['10:00'];
+        $user = Auth::user();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
             'reservation' => $reservation,
@@ -390,9 +342,4 @@ class ReservationController extends Controller
         return "Invoice feature coming soon for reservation ID: {$id}";
     }
 
-    private function normalizeTime(?string $v): string
-    {
-        if (!$v) return '00:00';
-        return substr($v, 0, 5); // "HH:mm"
-    }
 }
