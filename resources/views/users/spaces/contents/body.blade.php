@@ -19,7 +19,7 @@
             @endphp
             <p class="mb-1">Fee / h: ¥{{ number_format($min_price) }}〜</p>
             <p class="mb-1">Capacity: {{ $space->min_capacity }} ~ {{ $space->max_capacity }}</p>
-            <p class="mb-1">Rating: ★{{ $space->reviews_avg_rating ? number_format($space->reviews_avg_rating, 1) : '-' }}</p>
+            <p class="mb-1">Rating: ★{{ $space->rating ? number_format($space->rating, 1) : '-' }}</p>
         </div>
     </div>
 
