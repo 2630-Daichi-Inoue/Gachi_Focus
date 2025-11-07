@@ -63,7 +63,7 @@
                                 <!-- ADMIN LINKS -->
                                 <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
-                                <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
                                 <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
@@ -108,11 +108,6 @@
 
                             <!-- Contact -->
                             <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
-
-                            @endif
-                            <!-- notification -->
-                            <li class="nav-item dropdown">
-                                <a id="notificationDropdown" href="" class="nav-link position-relative me-3" data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
                             
                                 <!-- notification -->
                                 <li class="nav-item dropdown">

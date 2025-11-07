@@ -1,4 +1,12 @@
-<div class="card-body border-start border-end">
+@php
+     $editUrl = route('admin.space.edit', ['id' => $space->id]);
+@endphp
+
+<div class="card-body border-start border-end" 
+    @if(auth()->check() && auth()->user()->role_id === 1)
+     onclick="window.location.href='{{ $editUrl }}'" style="cursor: pointer;"
+    @endif
+>
     {{-- the picture of the space --}}
     <div class="row mb-2">
         <div class="col-6">
