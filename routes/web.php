@@ -216,22 +216,24 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('/home', [AdminHomeController::class, 'index'])->name('home');
 
     // Users
-    Route::get('/users', [UsersController::class, 'index'])->name('users');
+    Route::get('/users', [UsersController::class, 'index'])->name('users.index');
     Route::delete('/users/{id}/deactivate', [UsersController::class, 'deactivate'])->name('users.deactivate');
     Route::patch('/users/{id}/activate', [UsersController::class, 'activate'])->name('users.activate');
 
     // Reservations
-    Route::resource('reservations', AdminReservationController::class);
+    // Route::resource('reservations', AdminReservationController::class);
+    Route::get('/reservations', [ReservationsController::class, 'index'])->name('reservations.index');
     // Custom admin action (keep path/name if teammates use it)
+
     Route::patch('/reservations/{id}/action', [ReservationsController::class, 'action'])->name('reservations.action');
 
     // Spaces
-    Route::resource('spaces', SpaceController::class);
-    Route::get('/space/register', [SpacesController::class, 'register'])->name('space.register');
-    Route::post('/space/store', [SpacesController::class, 'store'])->name('space.store');
-    Route::get('/space/{id}/edit', [SpacesController::class, 'edit'])->name('space.edit');
-    Route::patch('/space/{id}/update', [SpacesController::class, 'update'])->name('space.update');
-    Route::delete('/space/{id}/destroy', [SpacesController::class, 'destroy'])->name('space.destroy');
+    Route::get('/spaces', [SpacesController::class, 'index'])->name('spaces.index');
+    Route::get('/spaces/register', [SpacesController::class, 'register'])->name('spaces.register');
+    Route::post('/spaces/store', [SpacesController::class, 'store'])->name('spaces.store');
+    Route::get('/spaces/{id}/edit', [SpacesController::class, 'edit'])->name('spaces.edit');
+    Route::patch('/spaces/{id}/update', [SpacesController::class, 'update'])->name('spaces.update');
+    Route::delete('/spaces/{id}/destroy', [SpacesController::class, 'destroy'])->name('spaces.destroy');
 
     // Notifications
     Route::resource('notifications', AdminNotificationController::class);

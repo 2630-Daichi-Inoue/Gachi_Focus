@@ -3,7 +3,7 @@
 @section('title', 'Edit Space')
 
 @section('content')
-    <form action="{{ route('admin.space.update', $space->id) }}" method="post" enctype="multipart/form-data">
+    <form action="{{ route('admin.spaces.update', $space->id) }}" method="post" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -165,7 +165,7 @@
     </form>
 
     <form id="delete-space-form"
-            action="{{ route('admin.space.destroy', $space->id) }}"
+            action="{{ route('admin.spaces.destroy', $space->id) }}"
             method="POST"
             class="d-none">
         @csrf
