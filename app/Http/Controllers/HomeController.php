@@ -4,8 +4,9 @@
 namespace App\Http\Controllers;
 
 
-use Illuminate\Http\Request;
 use App\Models\Space;
+use App\Models\Review;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
@@ -35,6 +36,17 @@ class HomeController extends Controller
 
 
         $home_spaces = $q->paginate(6);
+
+        foreach ($home_spaces as $space) {
+            $reviews = Review::where('space_id', $space->id)->get();
+
+            $averageRating = round($reviews->avg(function ($r) {
+                return ($r->cleanliness + $r->conditions + $r->facilities) / 3;
+            }) ?? 0, 1);
+
+            $space->rating = $averageRating;
+        }
+
         return view('users.home', compact('home_spaces'));
     }
 
@@ -45,8 +57,8 @@ class HomeController extends Controller
         $request->validate([
             'name'     => 'nullable|string|max:50',
             'location' => 'nullable|string|max:50',
-            'max_fee'  => ['nullable','numeric','min:0'],
-            'capacity' => ['nullable','integer','min:1'],
+            'max_fee'  => ['nullable', 'numeric', 'min:0'],
+            'capacity' => ['nullable', 'integer', 'min:1'],
             'sort'     => 'nullable|in:rating_high_to_low,price_high_to_low,price_low_to_high,capacity_high_to_low,capacity_low_to_high,newest',
         ]);
 
@@ -73,7 +85,7 @@ class HomeController extends Controller
         if ($loc = trim($request->location ?? '')) {
             $q->where(function ($qq) use ($loc) {
                 $qq->where('location_for_overview', 'like', "%{$loc}%")
-                ->orWhere('location_for_details', 'like', "%{$loc}%");
+                    ->orWhere('location_for_details', 'like', "%{$loc}%");
             });
         }
 
@@ -83,13 +95,24 @@ class HomeController extends Controller
         }
 
         if ($cap !== null) {
-            $q->where('min_capacity','<=',$cap)
-            ->where('max_capacity','>=',$cap);
+            $q->where('min_capacity', '<=', $cap)
+                ->where('max_capacity', '>=', $cap);
         }
 
         $this->applySort($q, $request->sort);
 
         $home_spaces = $q->paginate(6)->appends($request->query());
+
+        foreach ($home_spaces as $space) {
+            $reviews = \App\Models\Review::where('space_id', $space->id)->get();
+
+            $averageRating = round($reviews->avg(function ($r) {
+                return ($r->cleanliness + $r->conditions + $r->facilities) / 3;
+            }) ?? 0, 1);
+
+            $space->rating = $averageRating;
+        }
+
         return view('users.home', compact('home_spaces'));
     }
 
@@ -98,37 +121,37 @@ class HomeController extends Controller
         switch ($sort ?? 'rating_high_to_low') {
             case 'rating_high_to_low':
                 $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
                 break;
 
             // 最安の安い順 / 高い順
             case 'price_low_to_high':
-                $q->orderBy('price_min','asc')
-                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                $q->orderBy('price_min', 'asc')
+                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
                 break;
 
             case 'price_high_to_low':
-                $q->orderBy('price_min','desc')   // ← ここポイント：minを降順に
-                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                $q->orderBy('price_min', 'desc')   // ← ここポイント：minを降順に
+                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
                 break;
 
             case 'capacity_high_to_low':
-                $q->orderBy('max_capacity','desc')
-                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                $q->orderBy('max_capacity', 'desc')
+                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
                 break;
 
             case 'capacity_low_to_high':
-                $q->orderBy('max_capacity','asc')
-                ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                $q->orderBy('max_capacity', 'asc')
+                    ->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
                 break;
 
             case 'newest':
@@ -137,8 +160,8 @@ class HomeController extends Controller
 
             default:
                 $q->orderByRaw('COALESCE(reviews_avg_rating,0) DESC')
-                ->orderBy('reviews_count','desc')
-                ->latest('id');
+                    ->orderBy('reviews_count', 'desc')
+                    ->latest('id');
         }
     }
 }
