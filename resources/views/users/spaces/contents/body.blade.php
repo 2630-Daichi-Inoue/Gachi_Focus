@@ -11,7 +11,7 @@
             @endphp
             <p class="mb-1">Fee / h: ¥{{ number_format($min_price) }}〜</p>
             <p class="mb-1">Capacity: {{ $space->min_capacity }} ~ {{ $space->max_capacity }}</p>
-            <p class="mb-1">Rating: ★{{ $space->reviews_avg_rating ? number_format($space->reviews_avg_rating, 1) : '-' }}</p>
+            <p class="mb-1">Rating: ★{{ $space->rating ? number_format($space->rating, 1) : '-' }}</p>
         </div>
     </div>
 
@@ -28,11 +28,19 @@
         </div>
 
         <div class="col-6">
-            <a href="{{ route('rooms.reserve.form') }}"
-                class="w-100 fw-bold text-white border rounded d-flex align-items-center justify-content-center"
-                style="background-color: #757B9D; height: 100%; text-decoration: none;">
-                Book now!
-            </a>
+            @if(auth()->check() && auth()->user()->role_id === 1)
+                <a href="{{ route('admin.space.edit', ['id' => $space->id]) }}" 
+                    class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+                    style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+                    Edit Space
+                </a>
+            @else
+                <a href="{{ route('rooms.reserve.form', $space) }}" 
+                    class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+                    style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+                    Book now!
+                </a>
+            @endif
         </div>
     </div>
 

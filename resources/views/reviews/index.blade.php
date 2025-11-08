@@ -16,25 +16,23 @@
 
                 {{-- Avarage Rating --}}
                 @php
-                    $avg = $averageRating ?? 0;
+                    $avg = round($averageRating ?? 0, 1);
                     $fullStars = floor($avg);
                     $halfStar = $avg - $fullStars >= 0.5 ? 1 : 0;
                     $emptyStars = 5 - $fullStars - $halfStar;
                 @endphp
 
-                <div class="mb-4">
-                    <p class="text-secondary small mt-1 mb-0">Average of all reviews</p>
-                    @for ($i = 0; $i < $fullStars; $i++)
-                        <i class="fa-solid fa-star text-warning"></i>
-                    @endfor
-                    @if ($halfStar)
-                        <i class="fa-solid fa-star-half-stroke text-warning"></i>
-                    @endif
-                    @for ($i = 0; $i < $emptyStars; $i++)
-                        <i class="fa-regular fa-star text-warning"></i>
-                    @endfor
-                    <span class="fs-4 ms-2 fw-bold">{{ number_format($avg, 1) }}</span>
-                </div>
+                <p class="text-secondary small mt-1 mb-0">Average of all reviews</p>
+                @for ($i = 0; $i < $fullStars; $i++)
+                    <i class="fa-solid fa-star text-warning"></i>
+                @endfor
+                @if ($halfStar)
+                    <i class="fa-solid fa-star-half-stroke text-warning"></i>
+                @endif
+                @for ($i = 0; $i < $emptyStars; $i++)
+                    <i class="fa-regular fa-star text-warning"></i>
+                @endfor
+                <span class="fs-4 ms-2 fw-bold">{{ number_format($avg, 1) }}</span>
 
                 {{-- Detail Ratings --}}
                 <div class="mb-2">
@@ -75,8 +73,7 @@
             {{-- Right Column --}}
             <div class="col-md-8">
 
-                <form method="GET" action="{{ route('reviews.index', $space->id) }}"
-                    class="d-flex gap-3 mb-4 w-100">
+                <form method="GET" action="{{ route('reviews.index', $space->id) }}" class="d-flex gap-3 mb-4 w-100">
 
                     {{-- Sort Select --}}
                     <select name="sort" class="form-select" style="flex: 0 0 30%;" onchange="this.form.submit()">

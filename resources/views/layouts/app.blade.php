@@ -154,8 +154,8 @@
                                 <!-- Current Reservation -->
                                 <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
 
-                                <!-- Past Reservation -->
-                                <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
+                            <!-- Past Reservation -->
+                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
 
                                 <!-- Contact -->
                                 <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
@@ -266,6 +266,17 @@
 
         <main class="py-4">
             <div class="container-xxl">
+                
+                @if (session('status'))
+                <div class="container p-3">
+                    <div class="alert alert-success text-center mb-0">
+                    {{-- flash message --}}
+                    {{ session('status') }}
+                    </div>
+                </div>
+
+                @endif
+                 {{-- page content --}}
                 @yield('content')
             </div>
         </main>

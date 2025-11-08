@@ -17,6 +17,7 @@ class ReviewController extends Controller
         $space = Space::findOrFail($spaceId);
         $query = Review::with('user')->where('space_id', $spaceId);
 
+        // --- Search ---
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -27,6 +28,7 @@ class ReviewController extends Controller
             });
         }
 
+        // --- Sort by filter ---
         if ($request->get('sort') === 'with') {
             $query->whereNotNull('photo');
         }
@@ -48,6 +50,7 @@ class ReviewController extends Controller
 
         $reviews = $query->get();
 
+        // --- Calculate averages ---
         $averageRating = round($reviews->avg(function ($r) {
             return ($r->cleanliness + $r->conditions + $r->facilities) / 3;
         }) ?? 0, 1);
@@ -64,12 +67,9 @@ class ReviewController extends Controller
             'conditions',
             'facilities'
         ));
-
-        $space = Space::with(['reviews.user'])->findOrFail($spaceId);
-        return view('reviews.index', compact('space'));
     }
 
-    // Post
+    // post
     public function store(Request $request, $spaceId)
     {
         $request->validate([
@@ -81,6 +81,7 @@ class ReviewController extends Controller
         ]);
 
         $space = Space::findOrFail($spaceId);
+        $photoPath = null;
 
         $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
 
@@ -96,8 +97,6 @@ class ReviewController extends Controller
             if (!Storage::disk('public')->exists($photoPath)) {
                 Log::error('File not saved correctly', ['path' => $photoPath]);
             }
-        } else {
-            Log::warning('No photo received in request');
         }
 
         Review::create([
@@ -111,11 +110,15 @@ class ReviewController extends Controller
             'photo'       => $photoPath,
         ]);
 
+        // --- Update average rating in spaces table ---
+        $average = Review::where('space_id', $space->id)->avg('rating');
+        $space->update(['rating' => round($average ?? 0, 1)]);
+
         return redirect()->route('reviews.index', ['space' => $space->id])
             ->with('success', 'Thank you for your review!');
     }
 
-    // Update
+    // update
     public function update(Request $request, Review $review)
     {
         $request->validate([
@@ -132,6 +135,7 @@ class ReviewController extends Controller
 
         $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
 
+        // --- Photo removal ---
         if ($request->filled('remove_photo') && $request->remove_photo == true) {
             if ($review->photo && Storage::disk('public')->exists($review->photo)) {
                 Storage::disk('public')->delete($review->photo);
@@ -139,26 +143,33 @@ class ReviewController extends Controller
             $review->photo = null;
         }
 
+        // --- New photo upload ---
         if ($request->hasFile('photo')) {
             if ($review->photo && Storage::disk('public')->exists($review->photo)) {
                 Storage::disk('public')->delete($review->photo);
             }
-
             $photoPath = $request->file('photo')->store('reviews', 'public');
             $review->photo = $photoPath;
         }
 
+        // --- Update review ---
         $review->update([
             'cleanliness' => $request->cleanliness,
             'conditions'  => $request->conditions,
             'facilities'  => $request->facilities,
+            'rating'      => $rating,
             'comment'     => $request->comment,
             'photo'       => $review->photo,
         ]);
 
+        // --- Update average rating in spaces table ---
+        $average = Review::where('space_id', $review->space_id)->avg('rating');
+        $review->space->update(['rating' => round($average ?? 0, 1)]);
+
         return back()->with('success', 'Your review has been updated!');
     }
 
+    // delete
     public function destroy(Review $review)
     {
         if ($review->user_id !== Auth::id()) {
@@ -169,7 +180,12 @@ class ReviewController extends Controller
             Storage::disk('public')->delete($review->photo);
         }
 
+        $spaceId = $review->space_id;
         $review->delete();
+
+        // --- Update average rating in spaces table ---
+        $average = Review::where('space_id', $spaceId)->avg('rating');
+        $review->space->update(['rating' => round($average ?? 0, 1)]);
 
         return back()->with('success', 'Your review has been deleted.');
     }
