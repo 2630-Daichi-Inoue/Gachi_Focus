@@ -2,87 +2,82 @@
 
 @section('content')
     <div class="container mt-5 px-0">
-        <h1 class="px-3">Admin Home Page</h1>
+        <h2 class="px-3 fw-bold mb-4">Dashboard</h2>
 
         <div class="row gx-3">
             <div class="col-md-4">
-                <div class="card mb-3">
-                    <div class="card-header">Status Overview</div>
+                <!-- Menu -->
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header fw-bold" style="font-weight: 800; letter-spacing: 0.8px; font-size: 1.1rem;">
+                        Menu
+                    </div>
                     <div class="list-group list-group-flush">
-                        <a href="{{ route('admin.reservations.index') }}" class="list-group-item">Reservations ></a>
-                        <a href="{{ route('admin.users.index') }}" class="list-group-item">Users ></a>
-                        <a href="{{ route('admin.spaces.index') }}" class="list-group-item">Coworking Spaces ></a>
-                        <a href="{{ route('admin.spaces.create') }}" class="list-group-item">Register Coworking Space ></a>
+                        <a href="{{ route('admin.reservations.index') }}" class="list-group-item fw-bold">Manage Reservations
+                            ></a>
+                        <a href="{{ route('admin.users.index') }}" class="list-group-item fw-bold">Manage Users ></a>
+                        <a href="{{ route('admin.spaces.index') }}" class="list-group-item fw-bold">Edit Coworking Spaces
+                            ></a>
+                        <a href="{{ route('admin.spaces.register') }}" class="list-group-item fw-bold">Register
+                            Coworking
+                            Space ></a>
+                    </div>
+                </div>
+
+                <!--  Summary -->
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:20px;">
+                    <div
+                        style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);
+                    border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);
+                    background:rgba(252,252,252,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">Today</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">${{ $summary['today'] ?? 0 }}</p>
+                    </div>
+                    <div
+                        style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);
+                    border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);
+                    background:rgba(223,249,251,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Week</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">${{ $summary['week'] ?? 0 }}</p>
+                    </div>
+                    <div
+                        style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);
+                    border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);
+                    background:rgba(232,246,243,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Month</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">${{ $summary['month'] ?? 0 }}</p>
+                    </div>
+                    <div
+                        style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);
+                    border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);
+                    background:rgba(252,243,207,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Year</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">${{ $summary['year'] ?? 0 }}</p>
                     </div>
                 </div>
             </div>
 
+            <!-- chart -->
             <div class="col-md-8">
-                <div class="card mb-3">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="chart-tab" data-bs-toggle="tab" href="#chart"
-                                    role="tab">Chart</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="summary-tab" data-bs-toggle="tab" href="#summary"
-                                    role="tab">Summary</a>
-                            </li>
-                        </ul>
-                    </div>
+                <div class="card shadow-sm" style="background:linear-gradient(180deg,#fdfdfd,#f3f4fa);">
+                    <div class="card-header fw-bold"  style="font-weight: 800; letter-spacing: 0.8px; font-size: 1.1rem;">Sales Chart</div>
+                    <div class="card-body">
+                        <span id="chartMode" class="text-muted">Year</span>
+                        <div style="height:400px;position:relative;">
+                            <canvas id="salesChart"></canvas>
 
-                    <div class="card-body tab-content">
-                        <div class="tab-pane fade show active" id="chart" role="tabpanel">
-                            <span id="chartMode" class="text-muted">Year</span>
-                            <div style="height:400px; position:relative;">
-                                <canvas id="salesChart"></canvas>
-                                <div id="leftOverlay"
-                                    class="overlay d-flex align-items-center justify-content-center start-0">
-                                    <span class="arrow">&lt;</span>
-                                </div>
-                                <div id="rightOverlay"
-                                    class="overlay d-flex align-items-center justify-content-center end-0">
-                                    <span class="arrow">&gt;</span>
-                                </div>
+                            <!-- click bar -->
+                            <div id="leftBar"
+                                style="
+                            position:absolute;top:0;left:0;width:3px;height:100%;
+                            background:rgba(255,255,255,0);cursor:pointer;
+                            transition:background 0.2s ease;">
                             </div>
-                        </div>
 
-                        {{-- Summary --}}
-                        <div class="tab-pane fade" id="summary" role="tabpanel">
-                            <div class="row text-center">
-                                <div class="col-md-6 mb-3">
-                                    <div class="card" style="background-color: rgb(252, 252, 252);">
-                                        <div class="card-body">
-                                            <h6 class="card-title">Today</h6>
-                                            <p class="card-text">${{ $summary['today'] ?? 0 }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="card" style="background-color: rgba(223, 249, 251, 1);">
-                                        <div class="card-body">
-                                            <h6 class="card-title">This Week</h6>
-                                            <p class="card-text">${{ $summary['week'] ?? 0 }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="card" style="background-color: rgba(232, 246, 243, 1);">
-                                        <div class="card-body">
-                                            <h6 class="card-title">This Month</h6>
-                                            <p class="card-text">${{ $summary['month'] ?? 0 }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <div class="card" style="background-color:rgba(252, 243, 207, 1);">
-                                        <div class="card-body">
-                                            <h6 class="card-title">This Year</h6>
-                                            <p class="card-text">${{ $summary['year'] ?? 0 }}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div id="rightBar"
+                                style="
+                            position:absolute;top:0;right:0;width:3px;height:100%;
+                            background:rgba(255,255,255,0);cursor:pointer;
+                            transition:background 0.2s ease;">
                             </div>
                         </div>
                     </div>
@@ -92,16 +87,10 @@
     </div>
 @endsection
 
-@section('styles')
-    <link rel="stylesheet" href="{{ asset('css/admin-home.css') }}">
-@endsection
-
 @section('scripts')
-    <!-- Chart.js -->
-    <script>
-        const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script>
         const salesDataSets = {
             year: {
                 labels: {!! json_encode(array_keys($salesYear)) !!},
@@ -109,18 +98,19 @@
                 regions: {!! json_encode($salesByRegionYear) !!}
             },
             month: {
-                labels: monthLabels,
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 total: {!! json_encode(array_values($salesMonth)) !!},
                 regions: {!! json_encode($salesByRegionMonth) !!}
             },
             week: {
-                labels: weekLabels,
+                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
                 total: {!! json_encode(array_values($salesWeek)) !!},
                 regions: {!! json_encode($salesByRegionWeek) !!}
             }
         };
+
+        console.log(" salesDataSets:", salesDataSets);
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ asset('js/admin-home.js') }}"></script>
 @endsection

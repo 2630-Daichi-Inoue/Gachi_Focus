@@ -16,9 +16,19 @@ class SpacesController extends Controller
     private $space;
     private $category;
 
-    public function __construct(Space $space, Category $category){
+    public function __construct(Space $space, Category $category)
+    {
         $this->space = $space;
         $this->category = $category;
+    }
+
+    public function index()
+    {
+        $home_spaces = \App\Models\Space::whereNull('deleted_at')
+            ->orderBy('created_at', 'desc')
+            ->paginate(9);
+
+        return view('users.home', compact('home_spaces'));
     }
 
     public function register()
@@ -26,11 +36,12 @@ class SpacesController extends Controller
         $all_categories = $this->category->all();
 
         return view('admin.spaces.register')
-                ->with('all_categories', $all_categories);
+            ->with('all_categories', $all_categories);
     }
 
-    public function store(Request $request){
-       
+    public function store(Request $request)
+    {
+
         # 1. Validate all form data
         $validated = $request->validate([
             'name' => 'required|min:1|max:50',
@@ -63,7 +74,7 @@ class SpacesController extends Controller
             'weekend_price' => $validated['weekend_price'],
             'description' => $validated['description'],
             'image' => 'data:image/' . $request->file('image')->extension()
-                        . ';base64,' . base64_encode(file_get_contents($request->file('image')->getRealPath())),
+                . ';base64,' . base64_encode(file_get_contents($request->file('image')->getRealPath())),
         ]);
         $this->space->save();
 
@@ -82,8 +93,8 @@ class SpacesController extends Controller
     public function edit($id)
     {
         $space = $this->space
-                    ->withTrashed()
-                    ->findOrFail($id);
+            ->withTrashed()
+            ->findOrFail($id);
 
         $all_categories = $this->category->all();
 
@@ -91,14 +102,14 @@ class SpacesController extends Controller
         $selected_categories = [];
         // post 1 has category 4, 6
         // $post->categoryPost = [4,6]
-        foreach($space->categorySpace as $category_space){
+        foreach ($space->categorySpace as $category_space) {
             $selected_categories[] = $category_space->category_id;
         }
 
         return view('admin.spaces.edit')
-                ->with('space', $space)
-                ->with('all_categories', $all_categories)
-                ->with('selected_categories', $selected_categories);
+            ->with('space', $space)
+            ->with('all_categories', $all_categories)
+            ->with('selected_categories', $selected_categories);
     }
 
     public function update(Request $request, $id)
@@ -137,7 +148,7 @@ class SpacesController extends Controller
         $space->description = $request->description;
 
         // if the admin uploaded image
-        if($request->image){
+        if ($request->image) {
             $space->image = "data:image/" . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
         }
 
@@ -147,10 +158,10 @@ class SpacesController extends Controller
         $space->categorySpace()->delete();
 
         # 4. save the new categories to category_space table
-        foreach($request->input('category', []) as $categoryId){
+        foreach ($request->input('category', []) as $categoryId) {
             $newCategories[] = ['category_id' => (int)$categoryId];
         }
-        if(!empty($newCategories)) {
+        if (!empty($newCategories)) {
             $space->categorySpace()->createMany($newCategories);
         }
 
