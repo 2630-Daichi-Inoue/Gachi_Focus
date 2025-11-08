@@ -15,7 +15,7 @@
                     <input type="search"
                             name="name"
                             id="name"
-                            class="form-control form-control-sm border border-dark ps-4"
+                            class="form-control form-control-sm border ps-4"
                             placeholder="Search by name"
                             value="{{ request('name') }}">
                 </div>
@@ -29,7 +29,7 @@
                 @endphp
                 <select name="status"
                         id="status"
-                        class="form-select form-select-sm border border-dark text-dark">
+                        class="form-select form-select-sm border  text-dark">
                     <option value="all" {{ $status==='all' ? 'selected' : '' }}>All</option>
                     <option value="active" {{ $status==='active' ? 'selected' : '' }}>Active</option>
                     <option value="banned" {{ $status==='banned' ? 'selected' : '' }}>Banned</option>
@@ -39,13 +39,13 @@
             <div class="col-md-4 d-flex gap-2 justify-content-end">
                 <!-- Clear button -->
                 <a href="{{ route('admin.users') }}"
-                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25">
+                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border  w-25">
                     Clear filters
                 </a>
 
                 <!-- Submit button-->
                 <button type="submit"
-                        class="btn btn-sm border border-dark rounded px-3 py-1 text-white fw-bold w-25"
+                        class="btn btn-sm border  rounded px-3 py-1 text-white fw-bold w-25"
                         style="background-color: #757B9D; letter-spacing: 0.15em;">
                     Search
                 </button>
@@ -140,7 +140,7 @@
                     <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
                     <select name="rows_per_page" id="rows_per_page"
-                            class="form-select form-select-sm border-dark text-dark w-auto">
+                            class="form-select form-select-sm  text-dark w-auto">
                         <option value="20" {{ $per===20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ $per===50 ? 'selected' : '' }}>50</option>
                         <option value="100" {{ $per===100 ? 'selected' : '' }}>100</option>

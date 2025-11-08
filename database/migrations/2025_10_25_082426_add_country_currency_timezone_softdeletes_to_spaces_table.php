@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('spaces', function (Blueprint $table) {
             $table->string('country_code', 2)
             ->default('JP')
-            ->after('address');
+            ->after('location_for_details');
 
             $table->string('currency_code', 3)
             ->default('USD')
@@ -24,7 +24,6 @@ return new class extends Migration
             ->default('Asia/Tokyo')
             ->after('currency_code');
 
-            $table->softDeletes();
         });
     }
 
@@ -35,7 +34,6 @@ return new class extends Migration
     {
         Schema::table('spaces', function (Blueprint $table) {
             $table->dropColumn(['country_code', 'currency_code', 'timezone']);
-            $table->dropSoftDeletes();
         });
     }
 };

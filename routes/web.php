@@ -221,6 +221,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 
     // Reservations
     Route::resource('reservations', AdminReservationController::class);
+    
     // Custom admin action (keep path/name if teammates use it)
     Route::patch('/reservations/{id}/action', [ReservationsController::class, 'action'])->name('reservations.action');
 

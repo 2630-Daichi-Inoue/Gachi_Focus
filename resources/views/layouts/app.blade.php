@@ -63,7 +63,7 @@
                                 <!-- ADMIN LINKS -->
                                 <a href="{{ route('admin.space.register') }}" class="nav-link me-3">Register Coworking Space</a>
                                 <a href="" class="nav-link me-3">Coworking Spaces</a>
-                                <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a>
+                                {{-- <a href="{{ route('admin.reservations') }}" class="nav-link me-3">Reservations</a> --}}
                                 <a href="{{ route('admin.users') }}" class="nav-link me-3">Users</a>
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
@@ -195,7 +195,7 @@
                                         </form>
                                     </div>
                                 </li>
-                            {{-- @endif  --}}
+                            @endif 
                         @endguest
                     </ul>
                 </div>
