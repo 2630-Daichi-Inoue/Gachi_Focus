@@ -65,7 +65,7 @@
                 <div class="col-md-2 text-md-end mt-3 mt-md-0" style="padding-right:25px;">
 
                     @if (in_array($reservation->status, ['confirmed', 'pending']))
-                        <!-- Changeボタン -->
+                        <!-- Change button -->
                         <a href="{{ route('reservations.edit', $reservation->id) }}"
                             style="display:block; width:100%; min-width:130px; padding:6px 0; border-radius:6px;
                         background-color:rgba(84,127,161,1); color:white; border:none; font-size:0.85rem;
@@ -111,7 +111,7 @@
                     @endif
 
                     @if ($reservation->status === 'canceled')
-                        <!-- Rebookボタン -->
+                        <!-- Rebook button -->
                         <form action="{{ route('reservations.rebook', ['id' => $reservation->id]) }}" method="GET">
                             <button type="submit"
                                 style="display:block; width:100%; min-width:130px; padding:6px 0; border-radius:6px;
