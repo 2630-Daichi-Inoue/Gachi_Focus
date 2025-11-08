@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\SpaceController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 
 // Payments
 use App\Http\Controllers\PaymentController;
