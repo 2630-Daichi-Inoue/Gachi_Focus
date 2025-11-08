@@ -11,12 +11,13 @@ class Reservation extends Model
 
     /**
      * Mass-assignable attributes.
-     * NOTE: Use space_id (FK) instead of legacy "room" string.
+     * (Merged: your status + main’s payment fields + space_id)
      */
     protected $fillable = [
         // Core reservation info
         'user_id',
-        'space_id',        // FK to spaces.id (replaces legacy "room")
+        'space_id',        // replaces legacy "room"
+        'room',            // keep temporarily for backward compatibility
         'type',
         'date',
         'start_time',
@@ -24,14 +25,15 @@ class Reservation extends Model
         'adults',
         'facilities',
         'total_price',
+        'status',          
 
         // Payment-related
         'payment_status',      // unpaid|paid|canceled|refunded
-        'payment_intent_id',   // Stripe pi_xxx (or provider-specific)
-        'amount_paid',         // integer in smallest unit (JPY: yen)
+        'payment_intent_id',   // Stripe pi_xxx
+        'amount_paid',         // integer (JPY: yen)
         'paid_at',             // timestamp
-        'currency',            // ISO 4217 (e.g., JPY, USD)
-        'payment_region',      // market/region (e.g., JP, US, EU, AU)
+        'currency',            // ISO 4217
+        'payment_region',      // JP, US, EU, etc.
     ];
 
     /**
@@ -40,16 +42,17 @@ class Reservation extends Model
     protected $casts = [
         'facilities' => 'array',
         'date'       => 'date',
+        'start_time' => 'datetime', 
+        'end_time'   => 'datetime',  
         'paid_at'    => 'datetime',
     ];
 
     /**
-     * UI mapping for payment badges/icons (kept as-is).
-     * Keys are display labels; not necessarily equal to DB values.
+     * Payment status UI map.
      */
     public const PAYMENT_MAP = [
         'Paid' => [
-            'icon'  => 'fa-solid fa-circle-check ',
+            'icon'  => 'fa-solid fa-circle-check',
             'class' => 'text-success fw-light',
         ],
         'Unpaid' => [
@@ -69,45 +72,41 @@ class Reservation extends Model
     /**
      * Relationships
      */
-    // A reservation belongs to one user (allow showing soft-deleted users)
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class)->withTrashed();
     }
 
-    // A reservation belongs to one space (allow showing soft-deleted spaces)
-    public function space() {
+    public function space()
+    {
         return $this->belongsTo(Space::class)->withTrashed();
     }
 
-    // A reservation has one payment (allow showing soft-deleted payments)
-    public function payment() {
+    public function payment()
+    {
         return $this->hasOne(Payment::class)->withTrashed();
     }
 
     /**
      * Helpers
      */
-    // True if the payment is fully settled
     public function isPaid(): bool
     {
         return $this->payment_status === 'paid';
     }
 
-    // Display amount with sensible fallback (amount_paid > total_price > 0)
     public function displayAmount(): int
     {
         return (int) ($this->amount_paid ?? round($this->total_price ?? 0));
     }
 
-    // Optional: normalize DB status (e.g., to map into PAYMENT_MAP labels)
     public function displayStatusLabel(): string
     {
-        // Map DB statuses to display labels used in PAYMENT_MAP
         return match ($this->payment_status) {
             'paid'      => 'Paid',
             'refunded'  => 'Refunded',
             'unpaid'    => 'Unpaid',
-            'canceled'  => 'Unpaid',          // or another label if you prefer
+            'canceled'  => 'Unpaid',
             default     => 'Unpaid',
         };
     }
