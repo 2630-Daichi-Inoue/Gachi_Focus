@@ -58,5 +58,10 @@ class LoginController extends Controller
 
         return redirect('/');
     }
+
+    protected function loggedOut(Request $request)
+    {
+        return redirect()->route('login');
+    }
      
 }
