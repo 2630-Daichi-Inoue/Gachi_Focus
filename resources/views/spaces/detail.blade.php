@@ -11,11 +11,15 @@
         @forelse ($space->photos as $photo)
             <img src="{{ asset('storage/' . $photo->path) }}" alt="Coworking photo"
                 style="width: 100%; height: 260px; object-fit: cover;
-                border-radius: 0.3rem;
-                transition: transform 0.3s ease; cursor: pointer;"
+        border-radius: 0.3rem;
+        transition: transform 0.3s ease; cursor: pointer;"
                 onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
         @empty
-            <p>No photos available.</p>
+            <div style="display:flex; align-items:center; justify-content:center; height:100vh; text-align:center;">
+                <p style="color:#999; font-style:italic; font-size:1rem;">
+                    No photos available for this coworking space.
+                </p>
+            </div>
         @endforelse
     </div>
 
@@ -44,7 +48,7 @@
             {{-- middle --}}
             <div class="col-md-4"
                 style="padding-left: 8px; display: flex; flex-direction: column; justify-content: flex-start;">
-                <div style="margin-left: 0; margin-right: 12px;"> 
+                <div style="margin-left: 0; margin-right: 12px;">
                     <div
                         style="
                             background: #ffffff; 
@@ -91,7 +95,8 @@
 
                     <div style="margin-left: 20px; margin-right: 10px;">
                         <h4 class="fw-bold" style="margin-top: 30px;">Capacity</h4>
-                        <p><i class="fa-solid fa-people-group"></i> {{ $space->capacity_min }} - {{ $space->capacity_max }}</p>
+                        <p><i class="fa-solid fa-people-group"></i> {{ $space->capacity_min }} - {{ $space->capacity_max }}
+                        </p>
                     </div>
 
                     <div style="padding: 12px; margin-top: -10px; overflow-y: auto; margin-right: 8px;">
