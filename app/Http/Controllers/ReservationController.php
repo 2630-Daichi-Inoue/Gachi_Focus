@@ -329,6 +329,7 @@ class ReservationController extends Controller
         return view('reservations.past-show', compact('reservations'));
     }
 
+    // invoice 
     public function downloadInvoice($id)
     {
         $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
@@ -338,20 +339,75 @@ class ReservationController extends Controller
         }
 
         $user = Auth::user();
+        $space = $reservation->space;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
-            'reservation' => $reservation,
-            'user' => $user,
-            'issuedDate' => now()->format('Y/m/d'),
-            'company' => [
-                'name' => 'Gachi Focus Co-working',
-                'address' => '2-1-1 Nishi-Shinjuku, Shinjuku-ku, Tokyo',
-                'email' => 'dummy123@gachifocus.com',
-                'signature' => 'Representative: Gachi Manager',
+        // VAT 
+        if ($space->country_code === 'US') {
+            $vatRate = match ($space->state) {
+                'CA' => 9.5,
+                'NY' => 8.9,
+                'TX' => 8.25,
+                'FL' => 7.0,
+                'WA' => 10.1,
+                default => 7.0,
+            };
+            $taxMethod = 'external';
+        } else {
+            $vatRate = match ($space->country_code) {
+                'JP' => 10,
+                'PH' => 12,
+                'AU' => 10,
+                default => 0,
+            };
+            $taxMethod = match ($space->country_code) {
+                'JP', 'AU' => 'internal',
+                default => 'external',
+            };
+        }
+
+        $exchangeRate = match ($space->country_code) {
+            'JP' => 150.0,
+            'PH' => 58.0,
+            'AU' => 1.55,
+            'US' => 1.0,
+            default => 1.0,
+        };
+        $localCurrency = match ($space->country_code) {
+            'JP' => 'JPY',
+            'PH' => 'PHP',
+            'AU' => 'AUD',
+            'US' => 'USD',
+            default => 'USD',
+        };
+
+        $subtotalUSD = $reservation->total_price ?? 0;
+        $taxUSD = $taxMethod === 'internal'
+            ? $subtotalUSD * ($vatRate / (100 + $vatRate))
+            : $subtotalUSD * ($vatRate / 100);
+        $totalUSD = $taxMethod === 'internal'
+            ? $subtotalUSD
+            : $subtotalUSD + $taxUSD;
+
+        $pdf = Pdf::loadView('reservations.invoice-pdf', [
+            'reservation'   => $reservation,
+            'user'          => $user,
+            'space'         => $space,
+            'vatRate'       => $vatRate,
+            'taxMethod'     => $taxMethod,
+            'subtotalUSD'   => $subtotalUSD,
+            'taxUSD'        => $taxUSD,
+            'totalUSD'      => $totalUSD,
+            'exchangeRate'  => $exchangeRate,
+            'localCurrency' => $localCurrency,
+            'issuedDate'    => now()->format('F d, Y'),
+            'company'       => [
+                'name'      => 'Gachi Focus Inc.',
+                'address'   => 'Shibuya-ku, Tokyo, Japan',
+                'email'     => 'support@gachifocus.com',
+                'signature' => 'Thank you for using Gachi Focus.',
             ],
         ]);
 
-        $fileName = 'invoice_' . $reservation->id . '.pdf';
-        return "Invoice feature coming soon for reservation ID: {$id}";
+        return $pdf->download("invoice_{$reservation->id}.pdf");
     }
 }
