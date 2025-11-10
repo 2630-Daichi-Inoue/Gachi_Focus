@@ -54,7 +54,7 @@ class Pricing
 
         // Normalize type BEFORE using it
         $rawType    = $data['type'] ?? 'Standard';
-        $type       = self::normalizeType($rawType, array_keys($cfg['types'])); // <- key fix
+        $type       = self::normalizeType($rawType, array_keys($cfg['types'])); // <- canonical key
 
         $date       = $data['date'] ?? now()->toDateString();
         $from       = $data['time_from'] ?? '09:00';
@@ -67,9 +67,13 @@ class Pricing
         $taxOverrideDecimal = $data['tax_override_decimal'] ?? null;
         $taxOverridePercent = $data['tax_override_percent'] ?? null;
 
-        // ---------- Duration ----------
-        $start = Carbon::parse($date.' '.$from);
-        $end   = Carbon::parse($date.' '.$to);
+        // ---------- Duration (robust time normalization) ----------
+        // Ensure time strings are "HH:MM" even if full datetime is provided.
+        $fromTime = self::onlyTime((string)$from);
+        $toTime   = self::onlyTime((string)$to);
+
+        $start = Carbon::parse($date.' '.$fromTime);
+        $end   = Carbon::parse($date.' '.$toTime);
         if ($end->lessThanOrEqualTo($start)) {
             $end = (clone $start)->addMinutes($cfg['min_slot_minutes']);
         }
@@ -146,7 +150,7 @@ class Pricing
             ],
             'unit' => [
                 'basePerHour' => $basePerHour,
-                'type'        => $type,     // <- canonicalized label for DB/UI
+                'type'        => $type,     // canonicalized label for DB/UI
                 'typeCoef'    => $typeCoef,
                 'facPerHour'  => $facPerHour,
                 'baseSource'  => $space ? 'space-table' : 'none',
@@ -195,7 +199,7 @@ class Pricing
         if (isset($aliases[$sq]))  return $aliases[$sq];
 
         // 3) safe fallback
-        return 'Standard'; // <- never store unknown labels
+        return 'Standard'; // never store unknown labels
     }
 
     private static function detectCountry(?string $location): string
@@ -227,5 +231,30 @@ class Pricing
         return self::isZeroDecimalCurrency($c)
             ? number_format($amount, 0) . ' ' . $c
             : number_format($amount, 2) . ' ' . $c;
+    }
+
+    // ---- helper -------------------------------------------------------------
+
+    // Extract only "HH:MM" from an input that might be "YYYY-MM-DD HH:MM" or other forms.
+    private static function onlyTime(string $value): string
+    {
+        $v = trim($value);
+
+        // Common "YYYY-MM-DD HH:MM" -> return "HH:MM"
+        if (preg_match('/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/', $v)) {
+            return Carbon::parse($v)->format('H:i');
+        }
+
+        // Already "HH:MM"
+        if (preg_match('/^\d{2}:\d{2}$/', $v)) {
+            return $v;
+        }
+
+        // Try loose parse; fallback to 09:00 on failure
+        try {
+            return Carbon::parse($v)->format('H:i');
+        } catch (\Throwable $e) {
+            return '09:00';
+        }
     }
 }

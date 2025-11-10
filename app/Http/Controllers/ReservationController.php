@@ -160,8 +160,18 @@ class ReservationController extends Controller
         $space = $reservation->space ?? Space::find($reservation->space_id);
 
         return view('rooms.edit', compact(
-            'reservation','space','types','facilityOptions','fromTimes','toTimes',
-            'defaultType','defaultDate','defaultStart','defaultEnd','defaultAdults','defaultFacilities'
+            'reservation',
+            'space',
+            'types',
+            'facilityOptions',
+            'fromTimes',
+            'toTimes',
+            'defaultType',
+            'defaultDate',
+            'defaultStart',
+            'defaultEnd',
+            'defaultAdults',
+            'defaultFacilities'
         ));
     }
 
@@ -277,8 +287,83 @@ class ReservationController extends Controller
 
     public function downloadInvoice($id)
     {
-        $reservation = Reservation::where('user_id', Auth::id())->findOrFail($id);
-        return view('reservations.invoice-pdf', compact('reservation'));
+        $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
+
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $user = Auth::user();
+        $space = $reservation->space;
+
+        // VAT
+        if ($space->country_code === 'US') {
+            $vatRate = match ($space->state) {
+                'CA' => 9.5,
+                'NY' => 8.9,
+                'TX' => 8.25,
+                'FL' => 7.0,
+                'WA' => 10.1,
+                default => 7.0,
+            };
+            $taxMethod = 'external';
+        } else {
+            $vatRate = match ($space->country_code) {
+                'JP' => 10,
+                'PH' => 12,
+                'AU' => 10,
+                default => 0,
+            };
+            $taxMethod = match ($space->country_code) {
+                'JP', 'AU' => 'internal',
+                default => 'external',
+            };
+        }
+
+        $exchangeRate = match ($space->country_code) {
+            'JP' => 150.0,
+            'PH' => 58.0,
+            'AU' => 1.55,
+            'US' => 1.0,
+            default => 1.0,
+        };
+        $localCurrency = match ($space->country_code) {
+            'JP' => 'JPY',
+            'PH' => 'PHP',
+            'AU' => 'AUD',
+            'US' => 'USD',
+            default => 'USD',
+        };
+
+        $subtotalUSD = $reservation->total_price ?? 0;
+        $taxUSD = $taxMethod === 'internal'
+            ? $subtotalUSD * ($vatRate / (100 + $vatRate))
+            : $subtotalUSD * ($vatRate / 100);
+        $totalUSD = $taxMethod === 'internal'
+            ? $subtotalUSD
+            : $subtotalUSD + $taxUSD;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
+            'reservation'   => $reservation,
+            'user'          => $user,
+            'space'         => $space,
+            'vatRate'       => $vatRate,
+            'taxMethod'     => $taxMethod,
+            'subtotalUSD'   => $subtotalUSD,
+            'taxUSD'        => $taxUSD,
+            'totalUSD'      => $totalUSD,
+            'exchangeRate'  => $exchangeRate,
+            'localCurrency' => $localCurrency,
+            'issuedDate'    => now()->format('F d, Y'),
+            'company'       => [
+                'name'      => 'Gachi Focus Inc.',
+                'address'   => 'Shibuya-ku, Tokyo, Japan',
+                'email'     => 'support@gachifocus.com',
+                'signature' => 'Thank you for using Gachi Focus.',
+            ],
+        ]);
+
+        return $pdf->download("invoice_{$reservation->id}.pdf");
     }
 
     /**
@@ -317,8 +402,8 @@ class ReservationController extends Controller
     private function buildTimeOptions(string $start, string $end, int $stepMinutes = 30): array
     {
         $base = Carbon::today();
-        $cur  = Carbon::parse($base->toDateString().' '.$start);
-        $last = Carbon::parse($base->toDateString().' '.$end);
+        $cur  = Carbon::parse($base->toDateString() . ' ' . $start);
+        $last = Carbon::parse($base->toDateString() . ' ' . $end);
 
         $times = [];
         while ($cur <= $last) {
@@ -345,4 +430,3 @@ class ReservationController extends Controller
         return substr($v, 0, 5); // "HH:mm"
     }
 }
-
