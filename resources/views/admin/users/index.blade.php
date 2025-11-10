@@ -4,7 +4,7 @@
 
 @section('content')
     <h2>User list</h2>
-    <form method="GET" action="{{ route('admin.users') }}" id="searchForm">
+    <form method="GET" action="{{ route('admin.users.index') }}" id="searchForm">
         <div class="row align-items-end g-2 mb-2">
 
             <!-- Name -->
@@ -38,8 +38,13 @@
 
             <div class="col-md-4 d-flex gap-2 justify-content-end">
                 <!-- Clear button -->
+<<<<<<< HEAD
                 <a href="{{ route('admin.users') }}"
                 class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border  w-25">
+=======
+                <a href="{{ route('admin.users.index') }}"
+                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25">
+>>>>>>> main
                     Clear filters
                 </a>
 
@@ -135,7 +140,7 @@
             </div>
 
             <div class="col-md-4">
-                <form id="rowsPerPageForm" method="GET" action="{{ route('admin.users') }}"
+                <form id="rowsPerPageForm" method="GET" action="{{ route('admin.users.index') }}"
                       class="d-flex align-items-center gap-2 justify-content-end">
                     <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp

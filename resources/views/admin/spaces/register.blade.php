@@ -3,7 +3,7 @@
 @section('title', 'Register space')
 
 @section('content')
-    <form action="{{ route('admin.space.store') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ route('admin.spaces.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <div class="row mb-3">
             <div class="col-md-2">

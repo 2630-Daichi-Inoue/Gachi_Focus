@@ -10,6 +10,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use App\Support\Pricing;
+use App\Models\Utility;
+use App\Models\Space;
+
 
 /**
  * Reservation flow (public):
@@ -37,23 +40,14 @@ class ReservationController extends Controller
      * In-memory room definition for the demo.
      * In real apps, fetch this from DB (e.g., Room model).
      */
-    private function room(): object
-    {
-        // NOTE: keep labels aligned with Pricing::$cfg['types']
-        $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
-        $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
-
     /**
      * Map display label -> key (used if you prefer storing keys in DB).
      */
-    private function typeLabelToKey(): array
+    private function room(): object
     {
-        return [
-            'Focus Booth' => 'focus_booth',
-            'Meeting'     => 'meeting',
-            'Phone Call'  => 'phone_call',
-        ];
-    }
+        $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
+        $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
+        [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
 
         // prefill
         $prefillDate = request('date', Carbon::today()->toDateString());
@@ -62,12 +56,12 @@ class ReservationController extends Controller
         $prefillTo   = $toTimes[($nextIdx === false ? 0 : $nextIdx)] ?? '10:00';
 
         return view('rooms.reserve', [
-            'space'           => $space,
+            'space'           => $space ?? null,
             'types'           => $types,
             'facilityOptions' => $facilityOptions,
             'fromTimes'       => $fromTimes,
             'toTimes'         => $toTimes,
-            'displayName'     => $space->name,
+            'displayName'     => $space->name ?? '',
             'prefill'         => [
                 'date'       => $prefillDate,
                 'start_time' => $prefillFrom,
@@ -75,6 +69,15 @@ class ReservationController extends Controller
                 'type'       => $types[0] ?? 'Standard',
             ],
         ]);
+    }
+
+    private function typeLabelToKey(): array
+    {
+        return [
+            'Focus Booth' => 'focus_booth',
+            'Meeting'     => 'meeting',
+            'Phone Call'  => 'phone_call',
+        ];
     }
 
     /**
@@ -142,13 +145,13 @@ class ReservationController extends Controller
         $room = $this->room();
 
         $validated = $req->validate([
-            'type'        => ['required','string'],
-            'date'        => ['required','date'],
-            'time_from'   => ['required','date_format:H:i'],
-            'time_to'     => ['required','date_format:H:i','after:time_from'],
-            'adults'      => ['required','integer','min:1'],
+            'type'        => ['required', 'string'],
+            'date'        => ['required', 'date'],
+            'time_from'   => ['required', 'date_format:H:i'],
+            'time_to'     => ['required', 'date_format:H:i', 'after:time_from'],
+            'adults'      => ['required', 'integer', 'min:1'],
             'facilities'  => ['array'],
-            'facilities.*'=> ['string'],
+            'facilities.*' => ['string'],
         ]);
 
         if ($rid) {
@@ -201,8 +204,18 @@ class ReservationController extends Controller
         $space = $reservation->space ?? Space::find($reservation->space_id);
 
         return view('rooms.edit', compact(
-            'reservation','space','types','facilityOptions','fromTimes','toTimes',
-            'defaultType','defaultDate','defaultStart','defaultEnd','defaultAdults','defaultFacilities'
+            'reservation',
+            'space',
+            'types',
+            'facilityOptions',
+            'fromTimes',
+            'toTimes',
+            'defaultType',
+            'defaultDate',
+            'defaultStart',
+            'defaultEnd',
+            'defaultAdults',
+            'defaultFacilities'
         ));
     }
 
@@ -341,5 +354,4 @@ class ReservationController extends Controller
         $fileName = 'invoice_' . $reservation->id . '.pdf';
         return "Invoice feature coming soon for reservation ID: {$id}";
     }
-
 }
