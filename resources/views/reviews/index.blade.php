@@ -143,11 +143,11 @@
                                     data-rating="{{ $review->rating }}" data-cleanliness="{{ $review->cleanliness }}"
                                     data-conditions="{{ $review->conditions }}"
                                     data-facilities="{{ $review->facilities }}" data-comment="{{ $review->comment }}"
-                                    data-photo="{{ $review->photo }}">
+                                    data-photo="{{ $review->photo }}" style="background-color:rgba(77,124,101,1);">
                                     Edit
                                 </button>
                                 <button class="btn btn-outline-danger btn-sm w-100" data-bs-toggle="modal"
-                                    data-bs-target="#deleteReviewModal{{ $review->id }}">
+                                    data-bs-target="#deleteReviewModal{{ $review->id }}" style="color:rgba(166,75,75,1); border-color:rgba(166,75,75,1);" >
                                     Delete
                                 </button>
 
