@@ -149,13 +149,8 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::patch('/users/{id}/activate', [UsersController::class, 'activate'])->name('users.activate');
 
     // Reservations
-<<<<<<< HEAD
-    Route::resource('reservations', AdminReservationController::class);
-    
-=======
     // Route::resource('reservations', AdminReservationController::class);
     Route::get('/reservations', [ReservationsController::class, 'index'])->name('reservations.index');
->>>>>>> main
     // Custom admin action (keep path/name if teammates use it)
     Route::patch('/reservations/{id}/action', [ReservationsController::class, 'action'])->name('reservations.action');
 
