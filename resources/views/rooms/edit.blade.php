@@ -39,7 +39,7 @@
     end_time: @js($defaultEnd),
     adults: @js($defaultAdults),
     facilities: @js($defaultFacilities),
-    country: '{{ $defaultCountry }}', // hint for tax/currency selection
+    country: '{{ $defaultCountry }}',
   })"
   x-init="recalc()"
   class="container-xxl py-5">
@@ -160,8 +160,10 @@
             <dt class="col-3 text-muted">Date</dt>
             <dd class="col-9">
               <span x-text="formatDate(date)"></span>
-              <template x-if="start_time && end_time">
-                <span class="ms-2"><span x-text="start_time"></span> - <span x-text="end_time"></span></span>
+              <template x-if="displayStart() && displayEnd()">
+                <span class="ms-2">
+                  <span x-text="displayStart()"></span> - <span x-text="displayEnd()"></span>
+                </span>
               </template>
             </dd>
             <dt class="col-3 text-muted">Adults</dt>
@@ -211,16 +213,16 @@
       end_time: init.end_time || '',
       adults: init.adults || 1,
       facilities: Array.isArray(init.facilities) ? init.facilities : [],
-      country: init.country || 'JP', // send as hint for currency/tax
+      country: init.country || 'JP',
 
       // ---- totals from quote API ----
       total: 0,   // tax-included
       tax: 0,     // tax amount
-      currency: 'JPY', // temporary till first quote (will be replaced by API)
+      currency: 'JPY',
 
       busy: false,
 
-      // ---- currency config (shared idea: symbol map + zero-decimals) ----
+      // ---- currency config ----
       curSymbols: {
         JPY:'¥', USD:'$', EUR:'€', GBP:'£',
         AUD:'A$', NZD:'NZ$', CAD:'C$', CHF:'CHF',
@@ -229,17 +231,29 @@
         INR:'₹', IDR:'Rp', MYR:'RM', MXN:'MX$',
         BRL:'R$', SEK:'kr', NOK:'kr', DKK:'kr',
         PLN:'zł', CZK:'Kč', HUF:'Ft', ZAR:'R',
-        TRY:'₺', AED:'AED', SAR:'SAR', RUB:'₽',
-        ILS:'₪'
+        TRY:'₺', AED:'AED', SAR:'SAR', RUB:'₽', ILS:'₪'
       },
       zeroDecimals: ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'],
 
       // ---- utils ----
+      // Normalize any input to "HH:MM" (never returns null: fallback '09:00')
       normalizeTime(v) {
-        if (!v) return null;
-        const [h, m] = v.split(':');
-        return h && m ? `${h.padStart(2,'0')}:${m.padStart(2,'0')}` : null;
+        if (!v) return '09:00';
+        const s = String(v).trim();
+        const m = s.match(/(\d{2}):(\d{2})/); // first HH:MM anywhere
+        if (m) return `${m[1]}:${m[2]}`;
+        const d = new Date(s);
+        if (!isNaN(d)) {
+          const hh = String(d.getHours()).padStart(2, '0');
+          const mm = String(d.getMinutes()).padStart(2, '0');
+          return `${hh}:${mm}`;
+        }
+        return '09:00';
       },
+
+      // For summary display (always HH:MM)
+      displayStart() { return this.normalizeTime(this.start_time); },
+      displayEnd()   { return this.normalizeTime(this.end_time); },
 
       // ---- recalc via quote API ----
       async recalc() {
@@ -254,8 +268,7 @@
             time_to: this.normalizeTime(this.end_time),
             facilities: this.facilities,
             adults: this.adults,
-            country_code: this.country, // let server select currency by country
-            // DO NOT send currency_override unless user explicitly picks a currency
+            country_code: this.country,
           };
           const res = await fetch(this.quoteUrl, {
             method: 'POST',
@@ -285,7 +298,7 @@
         const c = String(curr || 'JPY').toUpperCase();
         const n = Number(v || 0);
         const isZero = this.zeroDecimals.includes(c);
-        const symbol = this.curSymbols[c] ?? c; // fallback to code if unknown
+        const symbol = this.curSymbols[c] ?? c;
         if (isZero) {
           return symbol + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
         } else {
