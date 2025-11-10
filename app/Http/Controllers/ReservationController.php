@@ -2,51 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Reservation;
-use App\Services\TaxService;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Auth;
-use App\Support\Pricing;
-use App\Models\Utility;
+use App\Models\Reservation;
 use App\Models\Space;
+use App\Models\Utility;
+use App\Support\Pricing;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
-
-/**
- * Reservation flow (public):
- * - GET  /room-b        -> create()  : show reservation form for "Room B"
- * - POST /room-b        -> store()   : validate + compute price (server-side) + save + redirect to show
- * - POST /rooms/reserve/preview -> preview() : validate + compute price (server-side) + show confirmation page
- * - GET  /reservations/{id}          -> show()   : show saved reservation
- * - GET  /reservations/{reservation}/edit -> edit()   : show edit form
- * - PUT  /reservations/{reservation} -> update() : validate + recompute + save
- * - DELETE /reservations/{reservation} -> destroy(): soft delete and redirect to home
- *
- * Optional (for live pricing on the form):
- * - POST /pricing/quote -> quote(): returns JSON pricing using Pricing::calc()
- */
 class ReservationController extends Controller
 {
-    private Reservation $reservation;
-
-    public function __construct(Reservation $reservation)
-    {
-        $this->reservation = $reservation;
-    }
-
     /**
-     * In-memory room definition for the demo.
-     * In real apps, fetch this from DB (e.g., Room model).
+     * Show reservation form for a specific space.
      */
-    /**
-     * Map display label -> key (used if you prefer storing keys in DB).
-     */
-    private function room(): object
+    public function create(Space $space)
     {
+        // NOTE: keep labels aligned with Pricing::$cfg['types']
         $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
         $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
+
+        // time options
         [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
 
         // prefill
@@ -56,12 +31,12 @@ class ReservationController extends Controller
         $prefillTo   = $toTimes[($nextIdx === false ? 0 : $nextIdx)] ?? '10:00';
 
         return view('rooms.reserve', [
-            'space'           => $space ?? null,
+            'space'           => $space,
             'types'           => $types,
             'facilityOptions' => $facilityOptions,
             'fromTimes'       => $fromTimes,
             'toTimes'         => $toTimes,
-            'displayName'     => $space->name ?? '',
+            'displayName'     => $space->name,
             'prefill'         => [
                 'date'       => $prefillDate,
                 'start_time' => $prefillFrom,
@@ -69,15 +44,6 @@ class ReservationController extends Controller
                 'type'       => $types[0] ?? 'Standard',
             ],
         ]);
-    }
-
-    private function typeLabelToKey(): array
-    {
-        return [
-            'Focus Booth' => 'focus_booth',
-            'Meeting'     => 'meeting',
-            'Phone Call'  => 'phone_call',
-        ];
     }
 
     /**
@@ -140,19 +106,10 @@ class ReservationController extends Controller
      * Render the show page with latest reservation (from session/query).
      * No recalculation: show the saved amounts to avoid drift.
      */
-    public function preview(Request $req)
+    public function showRoom(Space $space, Request $request)
     {
-        $room = $this->room();
-
-        $validated = $req->validate([
-            'type'        => ['required', 'string'],
-            'date'        => ['required', 'date'],
-            'time_from'   => ['required', 'date_format:H:i'],
-            'time_to'     => ['required', 'date_format:H:i', 'after:time_from'],
-            'adults'      => ['required', 'integer', 'min:1'],
-            'facilities'  => ['array'],
-            'facilities.*' => ['string'],
-        ]);
+        $rid = $request->session()->get('reservation_id', $request->query('reservation_id'));
+        $reservation = null;
 
         if ($rid) {
             // IMPORTANT: don't call ->find($rid) on a constrained builder; it ignores previous where()
@@ -162,10 +119,9 @@ class ReservationController extends Controller
                 ->first();
         }
 
-        return view('checkout.preview', [
-            'room'     => (object)['name' => $room->name],
-            'input'    => $validated,
-            'pricing'  => $pricing,
+        return view('rooms.show', [
+            'space'       => $space,
+            'reservation' => $reservation,
         ]);
     }
 
@@ -300,11 +256,23 @@ class ReservationController extends Controller
     public function currentShow()
     {
         $reservations = Reservation::where('user_id', Auth::id())
-            ->whereDate('start_time', '>=', Carbon::today())
+            ->whereDate('date', '>=', Carbon::today())
+            ->orderBy('date')
             ->orderBy('start_time')
             ->get();
 
         return view('reservations.current-show', compact('reservations'));
+    }
+
+    public function pastShow()
+    {
+        $reservations = Reservation::where('user_id', Auth::id())
+            ->whereDate('date', '<', Carbon::today())
+            ->orderByDesc('date')
+            ->orderByDesc('start_time')
+            ->get();
+
+        return view('reservations.past-show', compact('reservations'));
     }
 
     public function rebook($id)
@@ -317,19 +285,6 @@ class ReservationController extends Controller
         ]);
     }
 
-    // Past reservations show
-    public function pastShow()
-    {
-        $reservations = Reservation::with('space.photos')
-            ->where('user_id', Auth::id())
-            ->where('start_time', '<', Carbon::now())
-            ->orderByDesc('end_time')
-            ->get();
-
-        return view('reservations.past-show', compact('reservations'));
-    }
-
-    // invoice 
     public function downloadInvoice($id)
     {
         $reservation = Reservation::with(['space', 'user'])->findOrFail($id);
@@ -341,7 +296,7 @@ class ReservationController extends Controller
         $user = Auth::user();
         $space = $reservation->space;
 
-        // VAT 
+        // VAT
         if ($space->country_code === 'US') {
             $vatRate = match ($space->state) {
                 'CA' => 9.5,
@@ -388,7 +343,7 @@ class ReservationController extends Controller
             ? $subtotalUSD
             : $subtotalUSD + $taxUSD;
 
-        $pdf = Pdf::loadView('reservations.invoice-pdf', [
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
             'reservation'   => $reservation,
             'user'          => $user,
             'space'         => $space,
@@ -409,5 +364,69 @@ class ReservationController extends Controller
         ]);
 
         return $pdf->download("invoice_{$reservation->id}.pdf");
+    }
+
+    /**
+     * Pricing quote API (AJAX).
+     */
+    public function quote(Request $request)
+    {
+        $data = $request->validate([
+            'space_id'          => 'required|integer',
+            'date'              => 'required|date',
+            'time_from'         => 'required',
+            'time_to'           => 'required',
+            'type'              => 'nullable|string',
+            'facilities'        => 'nullable|array',
+            'country_code'      => 'nullable|string|max:5',
+            'currency_override' => 'nullable|string|max:3',
+        ]);
+
+        $startHHmm = $this->normalizeTime($data['time_from']);
+        $endHHmm   = $this->normalizeTime($data['time_to']);
+
+        $quote = Pricing::calc([
+            'space_id'          => (int) $data['space_id'],
+            'date'              => $data['date'],
+            'time_from'         => $startHHmm,
+            'time_to'           => $endHHmm,
+            'type'              => $data['type'] ?? 'Standard', // raw, normalized inside
+            'facilities'        => $data['facilities'] ?? [],
+            'country_code'      => $data['country_code'] ?? null,
+            'currency_override' => $data['currency_override'] ?? null,
+        ]);
+
+        return response()->json($quote);
+    }
+
+    private function buildTimeOptions(string $start, string $end, int $stepMinutes = 30): array
+    {
+        $base = Carbon::today();
+        $cur  = Carbon::parse($base->toDateString() . ' ' . $start);
+        $last = Carbon::parse($base->toDateString() . ' ' . $end);
+
+        $times = [];
+        while ($cur <= $last) {
+            $times[] = $cur->format('H:i'); // HH:mm
+            $cur->addMinutes($stepMinutes);
+        }
+
+        $from = $times;
+        $to   = $times;
+        if (count($times) >= 2) {
+            array_pop($from);
+            array_shift($to);
+        }
+
+        if (empty($from)) $from = ['09:00'];
+        if (empty($to))   $to   = ['10:00'];
+
+        return [$from, $to];
+    }
+
+    private function normalizeTime(?string $v): string
+    {
+        if (!$v) return '00:00';
+        return substr($v, 0, 5); // "HH:mm"
     }
 }
