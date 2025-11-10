@@ -54,7 +54,7 @@
                 <!-- Price -->
                 <div class="col-md-2 text-center d-flex flex-column align-items-center justify-content-center">
                     <p class="fw-semibold mb-1" style="font-size:1rem;">
-                        ${{ number_format($reservation->price ?? ($reservation->space->price ?? 0), 2) }}
+                        ${{ number_format($reservation->total_price ?? ($reservation->space->price ?? 0), 2) }}
                     </p>
 
                     @if (!empty($reservation->tax_rate))
