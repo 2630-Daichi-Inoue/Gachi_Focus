@@ -78,9 +78,6 @@ Route::middleware('auth')->group(function () {
     //  Pricing quote API
     Route::post('/pricing/quote', [ReservationController::class, 'quote'])->name('pricing.quote');
 
-    //  Legacy compatibility (for older links)
-    Route::get('/room-b', [ReservationController::class, 'create'])->name('rooms.reserve.form');
-    Route::post('/room-b', [ReservationController::class, 'store'])->name('rooms.reserve.submit');
 
     /*
     |--------------------------------------------------------------------------
