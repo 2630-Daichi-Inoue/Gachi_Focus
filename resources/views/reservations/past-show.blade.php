@@ -37,7 +37,7 @@
 
                 <!-- Date / Time -->
                 <div class="col-md-2">
-                    <p class="fw-semibold mb-1">{{ \Carbon\Carbon::parse($reservation->start_time)->format('M d, Y') }}</p>
+                    <p class="fw-semibold mb-1">{{ \Carbon\Carbon::parse($reservation->date)->format('M d, Y') }}</p>
                     <p class="mb-0 small text-muted">
                         {{ \Carbon\Carbon::parse($reservation->start_time)->format('g:i A') }} -
                         {{ \Carbon\Carbon::parse($reservation->end_time)->format('g:i A') }}

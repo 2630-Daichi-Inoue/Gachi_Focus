@@ -46,7 +46,7 @@
                 <!-- Date / Time -->
                 <div class="col-md-2 mt-3 mt-md-0 text-md-start" style="margin-left:-15px;">
                     <p class="fw-semibold mb-1" style="font-size:0.95rem;">
-                        {{ $reservation->start_time->format('M d, Y') }}
+                        {{ $reservation->date->format('M d, Y') }}
                     </p>
                     <p class="mb-0 small" style="color:#555;">
                         {{ $reservation->start_time->format('g:i A') }} -
