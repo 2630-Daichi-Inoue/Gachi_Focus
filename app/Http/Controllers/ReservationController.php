@@ -293,12 +293,17 @@ class ReservationController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $user = Auth::user();
+        $user  = Auth::user();
         $space = $reservation->space;
 
-        // VAT
-        if ($space->country_code === 'US') {
-            $vatRate = match ($space->state) {
+        // 1.priority
+        $country = strtoupper(trim($reservation->payment_region ?? $space->country_code ?? 'JP'));
+        $currency = strtoupper(trim($reservation->currency ?? $space->currency_code ?? 'USD'));
+        $state = strtoupper(trim($space->state ?? ''));
+
+        // 2. tax rate
+        if ($country === 'US') {
+            $vatRate = match ($state) {
                 'CA' => 9.5,
                 'NY' => 8.9,
                 'TX' => 8.25,
@@ -308,33 +313,25 @@ class ReservationController extends Controller
             };
             $taxMethod = 'external';
         } else {
-            $vatRate = match ($space->country_code) {
+            $vatRate = match ($country) {
                 'JP' => 10,
                 'PH' => 12,
                 'AU' => 10,
                 default => 0,
             };
-            $taxMethod = match ($space->country_code) {
-                'JP', 'AU' => 'internal',
-                default => 'external',
-            };
+            $taxMethod = in_array($country, ['JP', 'AU']) ? 'internal' : 'external';
         }
 
-        $exchangeRate = match ($space->country_code) {
-            'JP' => 150.0,
-            'PH' => 58.0,
-            'AU' => 1.55,
-            'US' => 1.0,
+        // 3. exchange rate
+        $exchangeRate = match ($currency) {
+            'JPY' => 150.0,
+            'PHP' => 58.0,
+            'AUD' => 1.55,
+            'USD' => 1.0,
             default => 1.0,
         };
-        $localCurrency = match ($space->country_code) {
-            'JP' => 'JPY',
-            'PH' => 'PHP',
-            'AU' => 'AUD',
-            'US' => 'USD',
-            default => 'USD',
-        };
 
+        // 4. calculation
         $subtotalUSD = $reservation->total_price ?? 0;
         $taxUSD = $taxMethod === 'internal'
             ? $subtotalUSD * ($vatRate / (100 + $vatRate))
@@ -343,6 +340,14 @@ class ReservationController extends Controller
             ? $subtotalUSD
             : $subtotalUSD + $taxUSD;
 
+        // calculated in the currency of payment
+        $subtotalLocal = $subtotalUSD * $exchangeRate;
+        $taxLocal = $taxUSD * $exchangeRate;
+        $totalLocal = $totalUSD * $exchangeRate;
+
+        $showUSD = true; // display $ on sub
+
+        // 5. genarate PDF
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reservations.invoice-pdf', [
             'reservation'   => $reservation,
             'user'          => $user,
@@ -353,7 +358,12 @@ class ReservationController extends Controller
             'taxUSD'        => $taxUSD,
             'totalUSD'      => $totalUSD,
             'exchangeRate'  => $exchangeRate,
-            'localCurrency' => $localCurrency,
+            'localCurrency' => $currency,
+            'localSubtotal' => $subtotalLocal,
+            'localTax'      => $taxLocal,
+            'localTotal'    => $totalLocal,
+            'showUSD'       => $showUSD,
+            'country'       => $country,
             'issuedDate'    => now()->format('F d, Y'),
             'company'       => [
                 'name'      => 'Gachi Focus Inc.',
