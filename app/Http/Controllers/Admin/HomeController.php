@@ -14,7 +14,7 @@ class HomeController extends Controller
         $today       = now();
         $startOfWeek = $today->copy()->startOfWeek();
         $endOfWeek   = $today->copy()->endOfWeek();
-        $startOfMonth= $today->copy()->startOfMonth();
+        $startOfMonth = $today->copy()->startOfMonth();
         $endOfMonth  = $today->copy()->endOfMonth();
         $startOfYear = $today->copy()->startOfYear();
         $endOfYear   = $today->copy()->endOfYear();
@@ -24,7 +24,7 @@ class HomeController extends Controller
         $salesYearRaw = DB::table('reservations')
             ->selectRaw("YEAR(start_time) as year, SUM(total_price) as total")
             ->whereNull('deleted_at')
-            ->where('status', 'completed')
+            ->where('payment_status', 'paid')
             ->groupBy('year')
             ->pluck('total', 'year')
             ->toArray();
@@ -38,7 +38,7 @@ class HomeController extends Controller
         $salesMonthRaw = DB::table('reservations')
             ->selectRaw("MONTH(start_time) as month, SUM(total_price) as total")
             ->whereNull('deleted_at')
-            ->where('status', 'completed')
+            ->where('payment_status', 'paid')
             ->whereYear('start_time', $today->year)
             ->groupBy('month')
             ->pluck('total', 'month')
@@ -58,9 +58,9 @@ class HomeController extends Controller
         $salesWeekRaw = DB::table('reservations')
             ->selectRaw("DATE(start_time) as date, SUM(total_price) as total")
             ->whereNull('deleted_at')
-            ->where('status', 'completed')
+            ->where('payment_status', 'paid')
             ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
-            ->groupBy('date')
+            ->groupByRaw("DATE(start_time)")
             ->pluck('total', 'date')
             ->toArray();
 
@@ -72,9 +72,9 @@ class HomeController extends Controller
 
         $salesByCountryYear = Reservation::join('spaces', 'reservations.space_id', '=', 'spaces.id')
             ->whereNull('reservations.deleted_at')
-            ->where('reservations.status', 'completed')
+            ->where('reservations.payment_status', 'paid')
             ->selectRaw('YEAR(reservations.start_time) as year, spaces.country_code, SUM(reservations.total_price) as total')
-            ->groupBy('year', 'spaces.country_code')
+            ->groupByRaw('YEAR(reservations.start_time), spaces.country_code')
             ->orderBy('year')
             ->get()
             ->groupBy('country_code')
@@ -82,10 +82,10 @@ class HomeController extends Controller
 
         $salesByCountryMonth = Reservation::join('spaces', 'reservations.space_id', '=', 'spaces.id')
             ->whereNull('reservations.deleted_at')
-            ->where('reservations.status', 'completed')
+            ->where('reservations.payment_status', 'paid')
             ->whereYear('reservations.start_time', $today->year)
             ->selectRaw('MONTH(reservations.start_time) as month, spaces.country_code, SUM(reservations.total_price) as total')
-            ->groupBy('month', 'spaces.country_code')
+            ->groupByRaw('MONTH(reservations.start_time), spaces.country_code')
             ->orderBy('month')
             ->get()
             ->groupBy('country_code')
@@ -93,10 +93,10 @@ class HomeController extends Controller
 
         $salesByCountryWeek = Reservation::join('spaces', 'reservations.space_id', '=', 'spaces.id')
             ->whereNull('reservations.deleted_at')
-            ->where('reservations.status', 'completed')
+            ->where('reservations.payment_status', 'paid')
             ->whereBetween('reservations.start_time', [$startOfWeek, $endOfWeek])
             ->selectRaw('DATE(reservations.start_time) as date, spaces.country_code, SUM(reservations.total_price) as total')
-            ->groupBy('date', 'spaces.country_code')
+            ->groupByRaw('DATE(reservations.start_time), spaces.country_code')
             ->orderBy('date')
             ->get()
             ->groupBy('country_code')
@@ -105,26 +105,26 @@ class HomeController extends Controller
         $summary = [
             'today' => DB::table('reservations')
                 ->whereNull('deleted_at')
-                ->where('status', 'completed')
+                ->where('payment_status', 'paid')
                 ->whereDate('start_time', $today->toDateString())
                 ->sum('total_price'),
 
             'week' => DB::table('reservations')
                 ->whereNull('deleted_at')
-                ->where('status', 'completed')
+                ->where('payment_status', 'paid')
                 ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
                 ->sum('total_price'),
 
             'month' => DB::table('reservations')
                 ->whereNull('deleted_at')
-                ->where('status', 'completed')
+                ->where('payment_status', 'paid')
                 ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
                 ->sum('total_price'),
 
             'year' => DB::table('reservations')
                 ->whereNull('deleted_at')
-                ->where('status', 'completed')
-                ->whereBetween('start_time', [$startOfYear, $endOfYear]) 
+                ->where('payment_status', 'paid')
+                ->whereBetween('start_time', [$startOfYear, $endOfYear])
                 ->sum('total_price'),
         ];
 

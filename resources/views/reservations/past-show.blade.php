@@ -37,7 +37,7 @@
 
                 <!-- Date / Time -->
                 <div class="col-md-2">
-                    <p class="fw-semibold mb-1">{{ \Carbon\Carbon::parse($reservation->start_time)->format('M d, Y') }}</p>
+                    <p class="fw-semibold mb-1">{{ \Carbon\Carbon::parse($reservation->date)->format('M d, Y') }}</p>
                     <p class="mb-0 small text-muted">
                         {{ \Carbon\Carbon::parse($reservation->start_time)->format('g:i A') }} -
                         {{ \Carbon\Carbon::parse($reservation->end_time)->format('g:i A') }}
@@ -47,7 +47,7 @@
                 <!-- Status -->
                 <div class="col-md-1" style="margin-left:-10px;">
                     <p class="fw-semibold mb-0 text-capitalize">
-                        {{ $reservation->status ?? 'Pending' }}
+                        {{ $reservation->payment_status ?? 'unpaid' }}
                     </p>
                 </div>
 
@@ -90,7 +90,7 @@
                     </form>
 
                     <!-- Write a review -->
-                    @if (strtolower($reservation->status) === 'completed')
+                    @if (strtolower($reservation->payment_status) === 'completed')
                         <a href="{{ route('reviews.index', $reservation->space_id) }}"
                             class="d-flex align-items-center justify-content-center fw-semibold"
                             style="color:#2f3640; border:1.4px solid #2f3640; border-radius:6px;

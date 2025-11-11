@@ -46,7 +46,7 @@
                 <!-- Date / Time -->
                 <div class="col-md-2 mt-3 mt-md-0 text-md-start" style="margin-left:-15px;">
                     <p class="fw-semibold mb-1" style="font-size:0.95rem;">
-                        {{ $reservation->start_time->format('M d, Y') }}
+                        {{ $reservation->date->format('M d, Y') }}
                     </p>
                     <p class="mb-0 small" style="color:#555;">
                         {{ $reservation->start_time->format('g:i A') }} -
@@ -57,14 +57,14 @@
                 <!-- Status -->
                 <div class="col-md-1 mt-3 mt-md-0 text-md-start" style="margin-left:-10px;">
                     <p class="fw-semibold mb-0" style="color:#000;">
-                        {{ ucfirst($reservation->status ?? 'pending') }}
+                        {{ ucfirst($reservation->payment_status ?? 'unpaid') }}
                     </p>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="col-md-2 text-md-end mt-3 mt-md-0" style="padding-right:25px;">
 
-                    @if (in_array($reservation->status, ['confirmed', 'pending']))
+                    @if (in_array($reservation->payment_status, ['confirmed', 'unpaid']))
                         <!-- Change button -->
                         <a href="{{ route('reservations.edit', $reservation->id) }}"
                             style="display:block; width:100%; min-width:130px; padding:6px 0; border-radius:6px;
@@ -110,7 +110,7 @@
                         </div>
                     @endif
 
-                    @if ($reservation->status === 'canceled')
+                    @if ($reservation->payment_status === 'canceled')
                         <!-- Rebook button -->
                         <form action="{{ route('reservations.rebook', ['id' => $reservation->id]) }}" method="GET">
                             <button type="submit"
