@@ -79,7 +79,7 @@
 
         <div class="col-6">
             @if(auth()->check() && auth()->user()->role_id === 1)
-                <a href="{{ route('admin.space.edit', ['id' => $space->id]) }}" 
+                <a href="{{ route('admin.spaces.edit', ['id' => $space->id]) }}" 
                     class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
                     style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
                     Edit Space
