@@ -151,16 +151,12 @@ class HomeController extends Controller
             'salesYear'          => $salesYear,
             'salesMonth'         => $salesMonth,
             'salesWeek'          => $salesWeek,
-
-            // region => [label=>sum]
             'salesByRegionYear'  => $salesByRegionYear,
             'salesByRegionMonth' => $salesByRegionMonth,
             'salesByRegionWeek'  => $salesByRegionWeek,
-
-            'countriesYear'  => $countriesYear,
-            'countriesMonth' => $countriesMonth,
-            'countriesWeek'  => $countriesWeek,
-
+            'countriesYear'      => $countriesYear,
+            'countriesMonth'     => $countriesMonth,
+            'countriesWeek'      => $countriesWeek,
             'summary'            => $summary,
         ]);
     }
