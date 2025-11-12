@@ -189,7 +189,7 @@
                             contact us >
                         </a>
 
-                        <a href="{{ route('rooms.reserve.form', ['space_id' => $space->id]) }}" class="btn mt-3"
+                        <a href="{{ route('rooms.reserve.form', $space) }}" class="btn mt-3"
                             style="
                                 background-color: rgba(84,127,161,1);
                                 border: none;

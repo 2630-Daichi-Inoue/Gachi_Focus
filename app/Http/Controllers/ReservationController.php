@@ -279,10 +279,7 @@ class ReservationController extends Controller
     {
         $old = Reservation::where('user_id', Auth::id())->findOrFail($id);
 
-        return redirect()->route('rooms.reserve.form', [
-            'space' => $old->space_id,
-            'date'  => optional($old->date)->toDateString(),
-        ]);
+        return redirect()->route('rooms.reserve.form', ['space' => $old->space_id]);
     }
 
     public function downloadInvoice($id)
