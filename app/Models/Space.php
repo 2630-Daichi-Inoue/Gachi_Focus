@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Str;
 
 class Space extends Model
 {
-    use SoftDeletes;
-    use HasFactory;
+    use SoftDeletes, HasFactory;
 
+    /**
+     * Mass assignable attributes
+     */
     protected $fillable = [
         'name',
         'location_for_overview',
@@ -22,43 +24,92 @@ class Space extends Model
         'weekday_price',
         'weekend_price',
         'description',
-        'image',
+        'image', // fallback image path or URL
+        // 'address', // add here only if the column exists
     ];
 
-    # space - categoryspace
-    # a space has many categories
-    # retrieve all the categories of a space
-    public function categorySpace() {
+    /**
+     * Type casting
+     */
+    protected $casts = [
+        'min_capacity'  => 'integer',
+        'max_capacity'  => 'integer',
+        'weekday_price' => 'decimal:2',
+        'weekend_price' => 'decimal:2',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    // space - category_space (a space has many categories)
+    public function categorySpace()
+    {
         return $this->hasMany(CategorySpace::class);
     }
 
-    # space - review
-    # a space has many reviews
-    # get all the reviews of a space
-    public function reviews() {
+    // space - review
+    public function reviews()
+    {
         return $this->hasMany(Review::class);
     }
 
-    # space - reservation
-    # a space has many reservations
-    # get all the reservations of a space
-    public function reservations() {
+    // space - reservation
+    public function reservations()
+    {
         return $this->hasMany(Reservation::class);
     }
 
-    # space - photo
-    # a space has many photos
-    # get all the photos of a space
-    public function photos() {
+    // space - photo
+    public function photos()
+    {
         return $this->hasMany(Photo::class);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors / Domain Helpers
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Detect country code from location text (for Pricing/TaxService)
+     * ✅ Display image with fallback.
+     * Priority: 1) first photo -> 2) image column -> 3) no-image.png
+     * Works with URLs, data:image, public/images, or storage paths.
+     */
+    public function getDisplayImageUrlAttribute(): string
+    {
+        // Get the first photo path (avoid N+1 with subquery)
+        $path = $this->photos()->value('path') ?: $this->image;
+
+        // No image at all → default
+        if (!$path) {
+            return asset('images/no-image.png');
+        }
+
+        // Already a full URL or data:image
+        if (Str::startsWith($path, ['http://', 'https://', 'data:image'])) {
+            return $path;
+        }
+
+        // public/images or storage/... inside /public
+        if (Str::startsWith($path, ['images/', 'storage/'])) {
+            return asset($path);
+        }
+
+        // Otherwise treat as storage/app/public relative path
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
+     * 🌍 Detect country code (used by Pricing/Tax logic)
      */
     public function getCountryCodeAttribute(): string
     {
         $loc = strtolower($this->location_for_details ?? '');
+
         return match (true) {
             str_contains($loc, 'japan'),
             str_contains($loc, 'tokyo'),
