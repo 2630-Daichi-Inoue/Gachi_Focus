@@ -78,11 +78,19 @@
         </div>
 
         <div class="col-6">
-            <a href="{{ route('rooms.reserve.form', $space) }}"
-               class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
-               style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
-                Book now!
-            </a>
+            @if(auth()->check() && auth()->user()->role_id === 1)
+                <a href="{{ route('admin.spaces.edit', ['id' => $space->id]) }}" 
+                    class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+                    style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+                    Edit Space
+                </a>
+            @else
+                <a href="{{ route('rooms.reserve.form', $space) }}"
+                class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+                style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+                    Book now!
+                </a>
+            @endif
         </div>
     </div>
 </div>
