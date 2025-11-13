@@ -9,6 +9,8 @@ use App\Models\Utility;
 use App\Support\Pricing;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\CustomNotification;
+use App\Models\User;
 
 class ReservationController extends Controller
 {
@@ -95,6 +97,18 @@ class ReservationController extends Controller
             'tax_rate'       => $quote['tax_rate'] ?? null, // decimal
             'payment_status' => 'unpaid',
         ]);
+
+        // Create notification to admin
+        $admin = User::where('role_id', 1)->first();
+        if($admin) {
+            CustomNotification::create([
+                'sender_id' => Auth::id(),
+                'receiver_id' => $admin->id,
+                'type' => 'New Reservation',
+                'message' => Auth::user()->name . ' has made a new reservation for space ' . $space->name . '.',
+                'reservation_id' => $reservation->id,
+            ]);
+        }
 
         return redirect()->route('rooms.show', [
             'space'          => $space->id,
@@ -238,6 +252,18 @@ class ReservationController extends Controller
             ->firstOrFail();
 
         $reservation->update(['payment_status' => 'canceled']);
+
+        // Notify admin
+        $admin = User::where('role_id', 1)->first(); // role_id 1 = admin
+        if ($admin) {
+            CustomNotification::create([
+                'sender_id'      => Auth::id(),
+                'receiver_id'    => $admin->id,
+                'type'           => 'Reservation Canceled',
+                'message'        => Auth::user()->name . ' has canceled the reservation for space "' . ($reservation->space->name ?? 'Unknown') . '".',
+                'reservation_id' => $reservation->id,
+             ]);
+        }
 
         return redirect()->route('index')->with('status', 'Reservation canceled.');
     }
