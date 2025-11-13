@@ -61,7 +61,8 @@
             <!-- chart -->
             <div class="col-md-8">
                 <div class="card shadow-sm" style="background:linear-gradient(180deg,#fdfdfd,#f3f4fa);">
-                    <div class="card-header fw-bold"  style="font-weight: 800; letter-spacing: 0.8px; font-size: 1.1rem;">Sales Chart</div>
+                    <div class="card-header fw-bold" style="font-weight: 800; letter-spacing: 0.8px; font-size: 1.1rem;">
+                        Sales Chart</div>
                     <div class="card-body">
                         <span id="chartMode" class="text-muted">Year</span>
                         <div style="height:400px;position:relative;">
@@ -97,21 +98,24 @@
             year: {
                 labels: {!! json_encode(array_keys($salesYear)) !!},
                 total: {!! json_encode(array_values($salesYear)) !!},
-                regions: {!! json_encode($salesByRegionYear) !!}
+                regions: {!! json_encode($salesByRegionYear) !!},
+                countries: {!! json_encode($countriesYear) !!}
             },
             month: {
                 labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 total: {!! json_encode(array_values($salesMonth)) !!},
-                regions: {!! json_encode($salesByRegionMonth) !!}
+                regions: {!! json_encode($salesByRegionMonth) !!},
+                countries: {!! json_encode($countriesMonth) !!}
             },
             week: {
                 labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
                 total: {!! json_encode(array_values($salesWeek)) !!},
-                regions: {!! json_encode($salesByRegionWeek) !!}
+                regions: {!! json_encode($salesByRegionWeek) !!},
+                countries: {!! json_encode($countriesWeek) !!}
             }
         };
 
-        console.log(" salesDataSets:", salesDataSets);
+        console.log('salesDataSets:', salesDataSets);
     </script>
 
     <script src="{{ asset('js/admin-home.js') }}"></script>

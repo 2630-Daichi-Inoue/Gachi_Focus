@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
+use App\Models\Reservation;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
@@ -10,142 +11,152 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // --- Date anchors (use DATE column, not TIME) ---
-        $today        = now()->startOfDay();
-        $startOfWeek  = $today->copy()->startOfWeek();
-        $endOfWeek    = $today->copy()->endOfWeek();
+        $today        = now();
+        $startOfWeek  = $today->copy()->startOfWeek(Carbon::MONDAY);
+        $endOfWeek    = $today->copy()->endOfWeek(Carbon::SUNDAY);
         $startOfMonth = $today->copy()->startOfMonth();
         $endOfMonth   = $today->copy()->endOfMonth();
         $startOfYear  = $today->copy()->startOfYear();
         $endOfYear    = $today->copy()->endOfYear();
 
-        // Last 10 years
+        // ---- Region Mapping ----
+        $regionMap = [
+            'JP' => 'Asia',
+            'PH' => 'Asia',
+            'US' => 'North America',
+            'AU' => 'Oceania',
+        ];
+        $regions = array_unique(array_values($regionMap));
+
+        // ---- Paid Reservations JOIN spaces ----
+        $paidData = Reservation::join('spaces', 'reservations.space_id', '=', 'spaces.id')
+            ->whereNull('reservations.deleted_at')
+            ->where('reservations.payment_status', 'paid')
+            ->whereNotNull('reservations.date')
+            ->where('reservations.date', '!=', '0000-00-00')
+            ->select('reservations.date', 'reservations.total_price', 'spaces.country_code')
+            ->get();
+
+        // ---- Initialize structures ----
         $years = range($today->year - 9, $today->year);
+        $months = range(1, 12);
+        $weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        // ===== Yearly sales (by reservation DATE) =====
-        $salesYearRaw = DB::table('reservations')
-            ->selectRaw('YEAR(`date`) as year, SUM(total_price) as total')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->groupBy('year')
-            ->pluck('total', 'year')
-            ->toArray();
+        $initYear  = array_fill_keys($years, 0.0);
+        $initMonth = array_fill_keys($months, 0.0);
+        $initWeek  = array_fill_keys($weekDays, 0.0);
 
-        $salesYear = [];
-        foreach ($years as $y) {
-            $salesYear[$y] = (float) ($salesYearRaw[$y] ?? 0);
+        $salesByRegionYear  = [];
+        $salesByRegionMonth = [];
+        $salesByRegionWeek  = [];
+
+        $countriesYear  = [];
+        $countriesMonth = [];
+        $countriesWeek  = [];
+
+        foreach ($regions as $r) {
+            $salesByRegionYear[$r]  = $initYear;
+            $salesByRegionMonth[$r] = $initMonth;
+            $salesByRegionWeek[$r]  = $initWeek;
+
+            $countriesYear[$r]  = [];
+            $countriesMonth[$r] = [];
+            $countriesWeek[$r]  = [];
         }
 
-        // ===== Monthly sales (current year) =====
-        $months = range(1, 12);
-        $salesMonthRaw = DB::table('reservations')
-            ->selectRaw('MONTH(`date`) as month, SUM(total_price) as total')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->whereYear('date', $today->year)
-            ->groupBy('month')
-            ->pluck('total', 'month')
-            ->toArray();
+        // ---- Aggregate Loop ----
+        foreach ($paidData as $row) {
+            $region  = $regionMap[$row->country_code] ?? null;
+            if (!$region) continue;
+
+            $country = $row->country_code;
+            $date    = Carbon::parse($row->date);
+
+            $y = (int) $date->year;
+            $m = (int) $date->month;
+            $d = $date->format('D'); // 'Mon'..'Sun'
+
+            $amount = (float) $row->total_price;
+
+            // Year
+            if (isset($salesByRegionYear[$region][$y])) {
+                $salesByRegionYear[$region][$y] += $amount;
+            }
+
+            $countriesYear[$region][$country] = $countriesYear[$region][$country] ?? array_fill_keys($years, 0.0);
+            if (isset($countriesYear[$region][$country][$y])) {
+                $countriesYear[$region][$country][$y] += $amount;
+            }
+
+            // Month
+            if (isset($salesByRegionMonth[$region][$m])) {
+                $salesByRegionMonth[$region][$m] += $amount;
+            }
+
+            $countriesMonth[$region][$country] = $countriesMonth[$region][$country] ?? array_fill_keys($months, 0.0);
+            if (isset($countriesMonth[$region][$country][$m])) {
+                $countriesMonth[$region][$country][$m] += $amount;
+            }
+
+            // Week
+            if ($date->betweenIncluded($startOfWeek, $endOfWeek)) {
+                if (isset($salesByRegionWeek[$region][$d])) {
+                    $salesByRegionWeek[$region][$d] += $amount;
+                }
+                $countriesWeek[$region][$country] = $countriesWeek[$region][$country] ?? array_fill_keys($weekDays, 0.0);
+                if (isset($countriesWeek[$region][$country][$d])) {
+                    $countriesWeek[$region][$country][$d] += $amount;
+                }
+            }
+        }
+
+        // ---- Total per year/month/week ----
+        $salesYear = [];
+        foreach ($years as $y) {
+            $salesYear[$y] = collect($salesByRegionYear)->sum(fn($region) => $region[$y] ?? 0);
+        }
 
         $salesMonth = [];
         foreach ($months as $m) {
-            $salesMonth[$m] = (float) ($salesMonthRaw[$m] ?? 0);
+            $salesMonth[$m] = collect($salesByRegionMonth)->sum(fn($region) => $region[$m] ?? 0);
         }
 
-        // ===== Weekly sales (Mon..Sun) =====
-        $weekDays = [];
-        for ($d = 0; $d < 7; $d++) {
-            $date = $startOfWeek->copy()->addDays($d);
-            $weekDays[$date->format('D')] = 0; // Mon, Tue, ...
+        $salesWeek = [];
+        foreach ($weekDays as $d) {
+            $salesWeek[$d] = collect($salesByRegionWeek)->sum(fn($region) => $region[$d] ?? 0);
         }
 
-        $salesWeekRaw = DB::table('reservations')
-            ->selectRaw('`date` as d, SUM(total_price) as total')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
-            ->groupBy('d')
-            ->pluck('total', 'd')
-            ->toArray();
-
-        foreach ($salesWeekRaw as $d => $total) {
-            $weekDays[\Carbon\Carbon::parse($d)->format('D')] = (float) $total;
-        }
-        $salesWeek = $weekDays;
-
-        // ===== Region key: prefer payment_region; fallback to currency =====
-        // No join to spaces; spaces.country_code does not exist.
-        $regionExpr = "COALESCE(NULLIF(payment_region, ''), currency)";
-
-        // ----- By Region (Year) -----
-        $salesByCountryYear = DB::table('reservations')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->selectRaw("YEAR(`date`) as year, {$regionExpr} as region, SUM(total_price) as total")
-            ->groupBy('year', 'region')
-            ->orderBy('year')
-            ->get()
-            ->groupBy('region')
-            ->map(fn($rows) => $rows->pluck('total', 'year'));
-
-        // ----- By Region (Month of current year) -----
-        $salesByCountryMonth = DB::table('reservations')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->whereYear('date', $today->year)
-            ->selectRaw("MONTH(`date`) as month, {$regionExpr} as region, SUM(total_price) as total")
-            ->groupBy('month', 'region')
-            ->orderBy('month')
-            ->get()
-            ->groupBy('region')
-            ->map(fn($rows) => $rows->pluck('total', 'month'));
-
-        // ----- By Region (Week; per DATE) -----
-        $salesByCountryWeek = DB::table('reservations')
-            ->whereNull('deleted_at')
-            ->where('payment_status', 'paid')
-            ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
-            ->selectRaw("`date` as d, {$regionExpr} as region, SUM(total_price) as total")
-            ->groupBy('d', 'region')
-            ->orderBy('d')
-            ->get()
-            ->groupBy('region')
-            ->map(fn($rows) => $rows->pluck('total', 'd'));
-
-        // ===== Summary cards =====
+        // ---- Summary ----
         $summary = [
-            'today' => DB::table('reservations')
-                ->whereNull('deleted_at')
-                ->where('payment_status', 'paid')
-                ->whereDate('date', $today->toDateString())
-                ->sum('total_price'),
-
-            'week' => DB::table('reservations')
-                ->whereNull('deleted_at')
-                ->where('payment_status', 'paid')
-                ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
-                ->sum('total_price'),
-
-            'month' => DB::table('reservations')
-                ->whereNull('deleted_at')
-                ->where('payment_status', 'paid')
-                ->whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
-                ->sum('total_price'),
-
-            'year' => DB::table('reservations')
-                ->whereNull('deleted_at')
-                ->where('payment_status', 'paid')
-                ->whereBetween('date', [$startOfYear->toDateString(), $endOfYear->toDateString()])
-                ->sum('total_price'),
+            'today' => round(
+                $paidData->filter(fn($r) => Carbon::parse($r->date)->isSameDay($today))->sum('total_price'),
+                2
+            ),
+            'week'  => round(
+                $paidData->filter(fn($r) => Carbon::parse($r->date)->betweenIncluded($startOfWeek, $endOfWeek))->sum('total_price'),
+                2
+            ),
+            'month' => round(
+                $paidData->filter(fn($r) => Carbon::parse($r->date)->isSameMonth($today))->sum('total_price'),
+                2
+            ),
+            'year'  => round(
+                $paidData->filter(fn($r) => Carbon::parse($r->date)->isSameYear($today))->sum('total_price'),
+                2
+            ),
         ];
 
+        // ---- Pass to View ----
         return view('admin.home', [
             'salesYear'          => $salesYear,
             'salesMonth'         => $salesMonth,
             'salesWeek'          => $salesWeek,
-            'salesByRegionYear'  => $salesByCountryYear,
-            'salesByRegionMonth' => $salesByCountryMonth,
-            'salesByRegionWeek'  => $salesByCountryWeek,
+            'salesByRegionYear'  => $salesByRegionYear,
+            'salesByRegionMonth' => $salesByRegionMonth,
+            'salesByRegionWeek'  => $salesByRegionWeek,
+            'countriesYear'      => $countriesYear,
+            'countriesMonth'     => $countriesMonth,
+            'countriesWeek'      => $countriesWeek,
             'summary'            => $summary,
         ]);
     }
