@@ -88,6 +88,7 @@
                         </button>
                     </form>
 
+                    
                     <!-- View reviews (example condition) -->
                     @if (strtolower($reservation->payment_status ?? '') === 'paid')
                         <a href="{{ route('reviews.index', $reservation->space_id) }}"
