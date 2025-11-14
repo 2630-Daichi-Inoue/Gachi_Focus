@@ -89,7 +89,7 @@
                     </form>
 
                     <!-- View reviews (example condition) -->
-                    @if (strtolower($reservation->payment_status ?? '') === 'completed')
+                    @if (strtolower($reservation->payment_status ?? '') === 'paid')
                         <a href="{{ route('reviews.index', $reservation->space_id) }}"
                            class="d-flex align-items-center justify-content-center fw-semibold"
                            style="color:#2f3640; border:1.4px solid #2f3640; border-radius:6px;
