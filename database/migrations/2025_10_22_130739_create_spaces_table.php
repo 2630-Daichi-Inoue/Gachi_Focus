@@ -29,7 +29,6 @@ return new class extends Migration
             $table->longText('image');
             $table->text('map_embed')->nullable();
             
-            // ⑦ここでratingを持つ理由は？reviewsから持ってきて計算するのでいいのでは？
             $table->float('rating', 2, 1)->default(0);
 
             $table->timestamps();
