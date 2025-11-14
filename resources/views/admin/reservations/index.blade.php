@@ -39,13 +39,13 @@
             <div class="col-md-6 d-flex gap-5 justify-content-end">
                 <!-- Clear button -->
                 <a href="{{ route('admin.reservations.index') }}"
-                   class="btn btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25 h-100 d-flex align-items-center justify-content-center">
+                   class="btn btn-outline-secondary bg-secondary-subtle text-dark border  w-25 h-100 d-flex align-items-center justify-content-center">
                     Clear filters
                 </a>
 
                 <!-- Submit button-->
                 <button type="submit"
-                        class="border border-dark rounded px-3 py-1 text-white fw-bold w-25 h-100 d-flex align-items-center justify-content-center"
+                        class="border  rounded px-3 py-1 text-white fw-bold w-25 h-100 d-flex align-items-center justify-content-center"
                         style="background-color: #757B9D; letter-spacing: 0.15em;">
                     Search
                 </button>
@@ -59,7 +59,7 @@
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
                     <input type="search" name="user_name" id="user_name"
-                           class="form-control form-control-sm border border-dark ps-4"
+                           class="form-control form-control-sm border  ps-4"
                            placeholder="Search by user name."
                            value="{{ request('user_name') }}">
                 </div>
@@ -71,7 +71,7 @@
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
                     <input type="search" name="space_name" id="space_name"
-                           class="form-control form-control-sm border border-dark ps-4"
+                           class="form-control form-control-sm border  ps-4"
                            placeholder="Search by space name."
                            value="{{ request('space_name') }}">
                 </div>
@@ -81,7 +81,7 @@
             <div class="col-md-2">
                 <label for="date_from" class="form-label small text-muted mb-1">Date(from)</label>
                 <input type="date" name="date_from" id="date_from"
-                       class="form-control form-control-sm border border-dark"
+                       class="form-control form-control-sm border "
                        value="{{ request('date_from') }}">
             </div>
 
@@ -89,7 +89,7 @@
             <div class="col-md-2">
                 <label for="date_to" class="form-label small text-muted mb-1">Date(to)</label>
                 <input type="date" name="date_to" id="date_to"
-                       class="form-control form-control-sm border border-dark"
+                       class="form-control form-control-sm border "
                        value="{{ request('date_to') }}">
             </div>
 
@@ -97,7 +97,7 @@
             <div class="col-md-2">
                 <label for="status" class="form-label mb-1 small text-muted">Status</label>
                 @php $status = request('status', 'all'); @endphp
-                <select name="status" id="status" class="form-select form-select-sm border border-dark text-dark">
+                <select name="status" id="status" class="form-select form-select-sm border  text-dark">
                     <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All</option>
                     <option value="Active" {{ $status === 'Active' ? 'selected' : '' }}>Active</option>
                     <option value="Cancelled" {{ $status === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
@@ -109,7 +109,7 @@
             <div class="col-md-2">
                 <label for="payment" class="form-label mb-1 small text-muted">Payment</label>
                 @php $payment = request('payment', 'all'); @endphp
-                <select name="payment" id="payment" class="form-select form-select-sm border border-dark text-dark">
+                <select name="payment" id="payment" class="form-select form-select-sm border  text-dark">
                     <option value="all" {{ $payment === 'all' ? 'selected' : '' }}>All</option>
                     <option value="Paid" {{ $payment === 'Paid' ? 'selected' : '' }}>Paid</option>
                     <option value="Unpaid" {{ $payment === 'Unpaid' ? 'selected' : '' }}>Unpaid</option>
@@ -264,7 +264,7 @@
                     <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
                     <select name="rows_per_page" id="rows_per_page"
-                            class="form-select form-select-sm border-dark text-dark w-auto">
+                            class="form-select form-select-sm  text-dark w-auto">
                         <option value="20" {{ $per === 20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ $per === 50 ? 'selected' : '' }}>50</option>
                         <option value="100" {{ $per === 100 ? 'selected' : '' }}>100</option>

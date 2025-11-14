@@ -72,7 +72,7 @@
             </div>
 
             <div class="col-md-2">
-                <label for="weekend_price" class="form-label fw-bold">Weekend Price($ / h) <span class="text-danger">※</span></label>
+                <label for="weekend_price" class="form-label fw-bold">Weekend Price(¥ / h) <span class="text-danger">※</span></label>
                 <input type="number" name="weekend_price" id="weekend_price" class="form-control" value="{{ old('weekend_price') }}" min="1" max="999999" step="1">
                 {{-- Error --}}
                 @error('weekend_price')

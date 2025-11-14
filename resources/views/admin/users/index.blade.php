@@ -38,19 +38,14 @@
 
             <div class="col-md-4 d-flex gap-2 justify-content-end">
                 <!-- Clear button -->
-<<<<<<< HEAD
-                <a href="{{ route('admin.users') }}"
-                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border  w-25">
-=======
                 <a href="{{ route('admin.users.index') }}"
-                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border border-dark w-25">
->>>>>>> main
+                class="btn btn-sm btn-outline-secondary bg-secondary-subtle text-dark border w-25">
                     Clear filters
                 </a>
 
                 <!-- Submit button-->
                 <button type="submit"
-                        class="btn btn-sm border  rounded px-3 py-1 text-white fw-bold w-25"
+                        class="btn btn-sm border rounded px-3 py-1 text-white fw-bold w-25"
                         style="background-color: #757B9D; letter-spacing: 0.15em;">
                     Search
                 </button>
