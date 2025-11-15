@@ -8,13 +8,11 @@
     <div id="photo-column"
         style="position: fixed; top: 150px; left: 0; bottom: 0; width: 31.5%; overflow-y: auto; background: #fff;
         display: flex; flex-direction: column; gap: 14px; padding-left: 1rem; box-sizing: border-box; z-index: 1;">
-       @if ($space->image)
-            <img src="{{ $space->image }}" 
-                alt="Coworking photo"
+        @if ($space->image)
+            <img src="{{ $space->image }}" alt="Coworking photo"
                 style="width: 100%; height: 260px; object-fit: cover;
                         border-radius: 0.3rem; transition: transform 0.3s ease; cursor: pointer;"
-                onmouseover="this.style.transform='scale(1.03)'"
-                onmouseout="this.style.transform='scale(1)'">
+                onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
         @else
             <div style="display:flex; align-items:center; justify-content:center; height:100vh; text-align:center;">
                 <p style="color:#999; font-style:italic; font-size:1rem;">

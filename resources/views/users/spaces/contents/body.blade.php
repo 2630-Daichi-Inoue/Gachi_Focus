@@ -1,9 +1,36 @@
 <div class="card-body border-start border-end border-dark">
     {{-- Image + quick facts --}}
     <div class="row mb-2">
-        <div class="col-6">
+        {{-- <div class="col-6">
             <img src="{{ $space->image }}" alt="space {{ $space->id }}"
                  class="w-100" style="height:100px; object-fit:cover;">
+        </div> --}}
+        <div class="col-6">
+            @php
+                $imageUrl = null;
+
+                if (!empty($space->image) && $space->image != '0') {
+                    if (preg_match('/^https?:\/\//', $space->image)) {
+                        // external URL 
+                        $imageUrl = $space->image;
+                    } elseif (file_exists(public_path('storage/' . $space->image))) {
+                        // storage fail
+                        $imageUrl = asset('storage/' . $space->image);
+                    }
+                }
+
+                if (empty($imageUrl) && isset($space->photos) && $space->photos->count() > 0) {
+                    // pick up the first photo in photos table
+                    $imageUrl = asset('storage/' . $space->photos->first()->path);
+                }
+
+                if (empty($imageUrl)) {
+                    $imageUrl = asset('images/no-image.png');
+                }
+            @endphp
+
+            <img src="{{ $imageUrl }}" alt="space {{ $space->id }}" class="w-100"
+                style="height:100px; object-fit:cover; border-radius:6px;">
         </div>
 
         <div class="col-6">
@@ -11,19 +38,65 @@
 
             @php
                 // --- Currency resolution ---
-                $country  = strtoupper($space->country_code ?? '');
+                $country = strtoupper($space->country_code ?? '');
                 $currency = strtoupper($space->currency ?? '');
 
                 // Country -> Currency map (extend as needed)
                 $countryToCurrency = [
                     // Asia
-                    'JP'=>'JPY','CN'=>'CNY','HK'=>'HKD','TW'=>'TWD','KR'=>'KRW','TH'=>'THB','PH'=>'PHP','VN'=>'VND','MY'=>'MYR','SG'=>'SGD','ID'=>'IDR','IN'=>'INR',
+                    'JP' => 'JPY',
+                    'CN' => 'CNY',
+                    'HK' => 'HKD',
+                    'TW' => 'TWD',
+                    'KR' => 'KRW',
+                    'TH' => 'THB',
+                    'PH' => 'PHP',
+                    'VN' => 'VND',
+                    'MY' => 'MYR',
+                    'SG' => 'SGD',
+                    'ID' => 'IDR',
+                    'IN' => 'INR',
                     // Europe (EUR block)
-                    'FR'=>'EUR','DE'=>'EUR','ES'=>'EUR','IT'=>'EUR','NL'=>'EUR','BE'=>'EUR','IE'=>'EUR','PT'=>'EUR','FI'=>'EUR','AT'=>'EUR','GR'=>'EUR','EE'=>'EUR','LV'=>'EUR','LT'=>'EUR','SK'=>'EUR','SI'=>'EUR','LU'=>'EUR','MT'=>'EUR','CY'=>'EUR',
+                    'FR' => 'EUR',
+                    'DE' => 'EUR',
+                    'ES' => 'EUR',
+                    'IT' => 'EUR',
+                    'NL' => 'EUR',
+                    'BE' => 'EUR',
+                    'IE' => 'EUR',
+                    'PT' => 'EUR',
+                    'FI' => 'EUR',
+                    'AT' => 'EUR',
+                    'GR' => 'EUR',
+                    'EE' => 'EUR',
+                    'LV' => 'EUR',
+                    'LT' => 'EUR',
+                    'SK' => 'EUR',
+                    'SI' => 'EUR',
+                    'LU' => 'EUR',
+                    'MT' => 'EUR',
+                    'CY' => 'EUR',
                     // Non-EUR Europe
-                    'GB'=>'GBP','CH'=>'CHF','SE'=>'SEK','NO'=>'NOK','DK'=>'DKK','PL'=>'PLN','CZ'=>'CZK','HU'=>'HUF',
+                    'GB' => 'GBP',
+                    'CH' => 'CHF',
+                    'SE' => 'SEK',
+                    'NO' => 'NOK',
+                    'DK' => 'DKK',
+                    'PL' => 'PLN',
+                    'CZ' => 'CZK',
+                    'HU' => 'HUF',
                     // Americas / Oceania / MEA
-                    'US'=>'USD','CA'=>'CAD','MX'=>'MXN','BR'=>'BRL','AU'=>'AUD','NZ'=>'NZD','AE'=>'AED','SA'=>'SAR','ZA'=>'ZAR','TR'=>'TRY','IL'=>'ILS'
+                    'US' => 'USD',
+                    'CA' => 'CAD',
+                    'MX' => 'MXN',
+                    'BR' => 'BRL',
+                    'AU' => 'AUD',
+                    'NZ' => 'NZD',
+                    'AE' => 'AED',
+                    'SA' => 'SAR',
+                    'ZA' => 'ZAR',
+                    'TR' => 'TRY',
+                    'IL' => 'ILS',
                 ];
 
                 if ($currency === '' && $country !== '' && isset($countryToCurrency[$country])) {
@@ -35,22 +108,71 @@
 
                 // Symbol map
                 $symbols = [
-                    'JPY'=>'¥','USD'=>'$','EUR'=>'€','GBP'=>'£','CHF'=>'CHF','CNY'=>'¥','HKD'=>'HK$','TWD'=>'NT$','KRW'=>'₩',
-                    'THB'=>'฿','PHP'=>'₱','VND'=>'₫','MYR'=>'RM','SGD'=>'S$','IDR'=>'Rp','INR'=>'₹',
-                    'SEK'=>'kr','NOK'=>'kr','DKK'=>'kr','PLN'=>'zł','CZK'=>'Kč','HUF'=>'Ft',
-                    'CAD'=>'C$','AUD'=>'A$','NZD'=>'NZ$','MXN'=>'MX$','BRL'=>'R$','ZAR'=>'R','AED'=>'AED','SAR'=>'SAR','TRY'=>'₺','ILS'=>'₪'
+                    'JPY' => '¥',
+                    'USD' => '$',
+                    'EUR' => '€',
+                    'GBP' => '£',
+                    'CHF' => 'CHF',
+                    'CNY' => '¥',
+                    'HKD' => 'HK$',
+                    'TWD' => 'NT$',
+                    'KRW' => '₩',
+                    'THB' => '฿',
+                    'PHP' => '₱',
+                    'VND' => '₫',
+                    'MYR' => 'RM',
+                    'SGD' => 'S$',
+                    'IDR' => 'Rp',
+                    'INR' => '₹',
+                    'SEK' => 'kr',
+                    'NOK' => 'kr',
+                    'DKK' => 'kr',
+                    'PLN' => 'zł',
+                    'CZK' => 'Kč',
+                    'HUF' => 'Ft',
+                    'CAD' => 'C$',
+                    'AUD' => 'A$',
+                    'NZD' => 'NZ$',
+                    'MXN' => 'MX$',
+                    'BRL' => 'R$',
+                    'ZAR' => 'R',
+                    'AED' => 'AED',
+                    'SAR' => 'SAR',
+                    'TRY' => '₺',
+                    'ILS' => '₪',
                 ];
-                $symbol = $symbols[$currency] ?? ($currency . ' ');
+                $symbol = $symbols[$currency] ?? $currency . ' ';
 
                 // Zero-decimal currencies (Stripe reference)
-                $zeroDecimals = ['BIF','CLP','DJF','GNF','JPY','KMF','KRW','MGA','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'];
+                $zeroDecimals = [
+                    'BIF',
+                    'CLP',
+                    'DJF',
+                    'GNF',
+                    'JPY',
+                    'KMF',
+                    'KRW',
+                    'MGA',
+                    'PYG',
+                    'RWF',
+                    'UGX',
+                    'VND',
+                    'VUV',
+                    'XAF',
+                    'XOF',
+                    'XPF',
+                ];
                 $decimals = in_array($currency, $zeroDecimals, true) ? 0 : 2;
 
                 // Price source: min of weekday/weekend (fallback safe)
                 $wday = is_numeric($space->weekday_price ?? null) ? $space->weekday_price : null;
                 $wend = is_numeric($space->weekend_price ?? null) ? $space->weekend_price : null;
                 $candidates = array_filter([$wday, $wend], fn($v) => $v !== null);
-                $min_price = count($candidates) ? min($candidates) : (is_numeric($space->price_per_hour ?? null) ? $space->price_per_hour : 0);
+                $min_price = count($candidates)
+                    ? min($candidates)
+                    : (is_numeric($space->price_per_hour ?? null)
+                        ? $space->price_per_hour
+                        : 0);
             @endphp
 
             <p class="mb-1">
@@ -71,23 +193,23 @@
     <div class="row">
         <div class="col-6">
             <a href="{{ route('space.detail', ['id' => $space->id]) }}"
-               class="w-100 fw-bold text-dark border border-dark rounded d-flex align-items-center justify-content-center"
-               style="background-color:#ffffff; text-decoration:none; height:100%;">
+                class="w-100 fw-bold text-dark border border-dark rounded d-flex align-items-center justify-content-center"
+                style="background-color:#ffffff; text-decoration:none; height:100%;">
                 Check details
             </a>
         </div>
 
         <div class="col-6">
-            @if(auth()->check() && auth()->user()->role_id === 1)
-                <a href="{{ route('admin.spaces.edit', ['id' => $space->id]) }}" 
+            @if (auth()->check() && auth()->user()->role_id === 1)
+                <a href="{{ route('admin.spaces.edit', ['id' => $space->id]) }}"
                     class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
                     style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
                     Edit Space
                 </a>
             @else
                 <a href="{{ route('rooms.reserve.form', $space) }}"
-                class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
-                style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
+                    class="w-100 fw-bold text-white border border-dark rounded d-inline-block text-center"
+                    style="background-color:#757B9D; height:100%; line-height:45px; text-decoration:none;">
                     Book now!
                 </a>
             @endif
