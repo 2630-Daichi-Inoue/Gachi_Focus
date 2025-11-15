@@ -4,20 +4,30 @@
 
 @section('content')
 @php
-  // Build display name & image URL
-  $displayName = $space->name ?? 'Room';
-  $rawImage = $space->image ?? null;
-  $imgSrc = asset('images/room-b.jpg');
+    // --- Display name ---
+    $displayName = $space->name ?? 'Room';
 
-  if ($rawImage) {
-      if (str_starts_with($rawImage, 'http://') || str_starts_with($rawImage, 'https://') || str_starts_with($rawImage, 'data:image')) {
-          $imgSrc = $rawImage;
-      } elseif (str_starts_with($rawImage, 'storage/') || str_starts_with($rawImage, 'images/')) {
-          $imgSrc = asset($rawImage);
-      } else {
-          $imgSrc = asset('storage/'.$rawImage);
-      }
-  }
+    // --- 画像取得ロジック統一 ---
+    $imgSrc = null;
+
+    // ① spaces.image がある場合（URL or storage対応）
+    if (!empty($space->image) && $space->image !== '0') {
+        if (preg_match('/^https?:\/\//', $space->image)) {
+            $imgSrc = $space->image;
+        } elseif (file_exists(public_path('storage/' . $space->image))) {
+            $imgSrc = asset('storage/' . $space->image);
+        }
+    }
+
+    // ② photosテーブルに登録がある場合（最初の1枚を取得）
+    if (empty($imgSrc) && isset($space->photos) && $space->photos->count() > 0) {
+        $imgSrc = asset('storage/' . $space->photos->first()->path);
+    }
+
+    // ③ fallback（画像が何もない場合）
+    if (empty($imgSrc)) {
+        $imgSrc = asset('images/no-image.png');
+    }
 @endphp
 
 <div class="container-xxl py-5">
@@ -189,10 +199,10 @@
       @endisset
 
       {{-- Map embed --}}
-      @if(!empty($space->map_embed))
+      @if(!empty($spaces->map_embed))
         <div class="mt-3">
           <div class="ratio ratio-16x9 rounded overflow-hidden border">
-            {!! $space->map_embed !!}
+            {!! $spaces->map_embed !!}
           </div>
         </div>
       @endif

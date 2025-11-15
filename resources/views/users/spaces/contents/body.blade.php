@@ -11,7 +11,7 @@
 
                 if (!empty($space->image) && $space->image != '0') {
                     if (preg_match('/^https?:\/\//', $space->image)) {
-                        // external URL 
+                        // external URL
                         $imageUrl = $space->image;
                     } elseif (file_exists(public_path('storage/' . $space->image))) {
                         // storage fail
@@ -175,9 +175,13 @@
                         : 0);
             @endphp
 
-            <p class="mb-1">
+            {{-- <p class="mb-1">
                 Fee / h:
                 {{ $symbol }}{{ number_format($min_price, $decimals) }}〜
+            </p> --}}
+            <p class="mb-1">
+                Fee / h:
+                ${{ number_format($min_price, 2) }}〜
             </p>
 
             <p class="mb-1">
