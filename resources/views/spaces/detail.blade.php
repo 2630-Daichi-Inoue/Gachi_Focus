@@ -4,35 +4,75 @@
 
 @section('content')
 
-    {{-- left --}}
+    {{-- LEFT COLUMN --}}
     <div id="photo-column"
-        style="position: fixed; top: 150px; left: 0; bottom: 0; width: 31.5%; overflow-y: auto; background: #fff;
-        display: flex; flex-direction: column; gap: 14px; padding-left: 1rem; box-sizing: border-box; z-index: 1;">
-       @if ($space->image)
-            <img src="{{ $space->image }}" 
-                alt="Coworking photo"
-                style="width: 100%; height: 260px; object-fit: cover;
-                        border-radius: 0.3rem; transition: transform 0.3s ease; cursor: pointer;"
-                onmouseover="this.style.transform='scale(1.03)'"
-                onmouseout="this.style.transform='scale(1)'">
-        @else
-            <div style="display:flex; align-items:center; justify-content:center; height:100vh; text-align:center;">
-                <p style="color:#999; font-style:italic; font-size:1rem;">
-                    No photo available for this coworking space.
-                </p>
-            </div>
-        @endif
+        style="position: fixed; top: 100px; left: 0; bottom: 10px; width: 32.8%;
+            overflow-y: scroll; background: #fff;
+            display: flex; flex-direction: column; gap: 16px;
+            padding: 0.8rem 1rem 1.2rem 1rem; 
+            box-sizing: border-box; z-index: 1;
+            solid rgba(0,0,0,0.05); 
+            scrollbar-width: none; -ms-overflow-style: none;">
+        <style>
+            #photo-column::-webkit-scrollbar {
+                display: none;
+            }
+        </style>
 
+        @php
+            $photos = $space->photos ?? collect();
+            $imageUrl = null;
+
+            // ① priority spaces.image 
+            if (!empty($space->image) && $space->image !== '0') {
+                if (preg_match('/^https?:\/\//', $space->image)) {
+                    $imageUrl = $space->image; // 外部URL (例: Unsplash)
+                } elseif (file_exists(public_path('storage/' . $space->image))) {
+                    $imageUrl = asset('storage/' . $space->image); // storage/
+                }
+            }
+
+            // ② photosテーブルから最初の画像を取得
+            if (empty($imageUrl) && $photos->count() > 0) {
+                $imageUrl = asset('storage/' . $photos->first()->path);
+            }
+
+            // ③ fallback（no-image）
+            if (empty($imageUrl)) {
+                $imageUrl = asset('images/no-image.png');
+            }
+        @endphp
+
+        {{-- not single picture → auto scroll --}}
+        @if ($photos->count() > 1)
+            @foreach ($photos as $photo)
+                <img src="{{ asset('storage/' . $photo->path) }}" alt="Coworking photo"
+                    style="width: 100%; height: 260px; object-fit: cover;
+                        border-radius: 0.4rem; transition: transform 0.3s ease; cursor: pointer;
+                        box-shadow: 0 3px 6px rgba(0,0,0,0.08);"
+                    onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+            @endforeach
+
+            {{-- one picture or fallback image --}}
+        @else
+            <img src="{{ $imageUrl }}" alt="Coworking photo"
+                style="width: 100%; height: 260px; object-fit: cover;
+                    border-radius: 0.4rem; transition: transform 0.3s ease; cursor: pointer;
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.08);"
+                onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+        @endif
     </div>
 
-    {{-- auto scroll --}}
+    {{-- auto-scroll script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('photo-column');
             const photos = Array.from(container.querySelectorAll('img'));
+
             if (photos.length > 2) {
                 const clone = photos.map(img => img.cloneNode(true));
                 clone.forEach(c => container.appendChild(c));
+
                 container.addEventListener('scroll', () => {
                     if (container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
                         container.scrollTop = 0;

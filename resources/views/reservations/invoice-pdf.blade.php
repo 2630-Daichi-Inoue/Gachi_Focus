@@ -63,51 +63,54 @@
                         {{ $reservation->start_time }} - {{ $reservation->end_time }}
                     </td>
                     <td style="padding:10px; border:1px solid #ddd; text-align:right;">
-                        {{ number_format($localTotal, 0) }} {{ $localCurrency }}
+                        ${{ number_format($reservation->price, 2) }}
                     </td>
                 </tr>
             </tbody>
         </table>
 
         {{-- Totals --}}
+        @php
+            $localSubtotal = $subtotalUSD * $exchangeRate;
+            $localTax = $taxUSD * $exchangeRate;
+            $localTotal = $totalUSD * $exchangeRate;
+        @endphp
+
         <div style="margin-top:25px; width:300px; margin-left:auto;">
             <table style="width:100%; border:none; font-size:13px;">
-                {{-- Subtotal --}}
                 <tr>
                     <td style="text-align:left; color:#666; padding:6px 0;">Subtotal:</td>
                     <td style="text-align:right; font-weight:600; padding:6px 0;">
-                        {{ number_format($localSubtotal, 0) }} {{ $localCurrency }}
+                        ${{ number_format($subtotalUSD, 2) }}
                         <span style="color:#777; font-size:11px;">
-                            (USD {{ number_format($subtotalUSD, 2) }})
+                            ({{ number_format($localSubtotal, 0) }} {{ $localCurrency }})
                         </span>
                     </td>
                 </tr>
 
-                {{-- Tax --}}
                 <tr>
                     <td style="text-align:left; color:#666; padding:6px 0;">
                         Tax ({{ $vatRate }}%)
-                        @if ($taxMethod === 'internal')
+                        @if(isset($taxMethod) && $taxMethod === 'internal')
                             <span style="color:#999;">(included)</span>
                         @else
                             <span style="color:#999;">(added)</span>
                         @endif
                     </td>
                     <td style="text-align:right; font-weight:600; padding:6px 0;">
-                        {{ number_format($localTax, 0) }} {{ $localCurrency }}
+                        ${{ number_format($taxUSD, 2) }}
                         <span style="color:#777; font-size:11px;">
-                            (USD {{ number_format($taxUSD, 2) }})
+                            ({{ number_format($localTax, 0) }} {{ $localCurrency }})
                         </span>
                     </td>
                 </tr>
 
-                {{-- Total --}}
                 <tr>
                     <td style="text-align:left; color:#111; font-weight:bold; padding:6px 0;">Total:</td>
                     <td style="text-align:right; font-weight:bold; padding:6px 0;">
-                        {{ number_format($localTotal, 0) }} {{ $localCurrency }}
+                        ${{ number_format($totalUSD, 2) }}
                         <span style="color:#666; font-size:11px;">
-                            (USD {{ number_format($totalUSD, 2) }})
+                            ({{ number_format($localTotal, 0) }} {{ $localCurrency }})
                         </span>
                     </td>
                 </tr>
@@ -116,7 +119,12 @@
 
         {{-- Tax location info --}}
         <p style="margin-top:20px; font-size:12px; color:#666; text-align:right;">
-            Tax applied based on: {{ $country }}
+            Tax applied based on:
+            {{ $space->city ?? '' }}
+            @if(!empty($space->state))
+                 {{ $space->state }}
+            @endif
+             {{ $space->country_code }}
         </p>
     </div>
 
