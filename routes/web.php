@@ -94,9 +94,9 @@ Route::middleware('auth')->group(function () {
 | Stripe Webhook (no CSRF)
 |--------------------------------------------------------------------------
 */
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
-    ->name('stripe.webhook')
-    ->withoutMiddleware([VerifyCsrfToken::class]);
+// Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle'])
+//     ->name('stripe.webhook')
+//     ->withoutMiddleware([VerifyCsrfToken::class]);
 
 /*
 |--------------------------------------------------------------------------
