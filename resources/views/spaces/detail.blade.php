@@ -101,22 +101,24 @@
                         </p>
                     </div>
 
+                    {{-- Amenities --}}
                     <div style="padding: 12px; margin-top: -10px; overflow-y: auto; margin-right: 8px;">
                         <h4 class="fw-bold pt-2 mb-3">Amenities</h4>
-                        <ul class="list-unstyled mb-0">
-                            <li><strong>Facilities:</strong></li>
-                            <ul style="margin-left: 16px;">
-                                @forelse ($space->facilities ?? [] as $facility)
-                                    <li>{{ $facility }}</li>
-                                @empty
-                                    <li>No facilities registered</li>
-                                @endforelse
-                            </ul>
 
-                            <li class="mt-3"><strong>Description:</strong></li>
-                            <ul style="margin-left: 16px;">
-                                <li>{!! nl2br(e($space->description)) !!}</li>
-                            </ul>
+                        <ul class="list-unstyled mb-0" style="margin-left: 16px;">
+                            {{-- Utilities --}}
+                            @forelse ($utilities as $utility)
+                                <li>{{ $utility->name }}</li>
+                            @empty
+                                <li>No facilities registered</li>
+                            @endforelse
+
+                            {{-- Description --}}
+                            @if (!empty($space->description))
+                                <li class="mt-2" style="list-style-type: none;">
+                                    <p class="mb-0">{!! nl2br(e($space->description)) !!}</p>
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </div>
