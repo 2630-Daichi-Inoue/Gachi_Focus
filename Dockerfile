@@ -15,4 +15,4 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # 👇 ここ追加
 RUN php artisan config:clear
 
-CMD php artisan serve --host 0.0.0.0 --port $PORT
+CMD sh -c "php artisan serve --host 0.0.0.0 --port ${PORT:-8080}"
