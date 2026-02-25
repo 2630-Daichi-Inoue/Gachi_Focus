@@ -44,8 +44,21 @@ Auth::routes();
 // 2/26修正
 // Route::get('/', [HomeController::class, 'index'])->name('index');
 // Route::redirect('/', '/login')->name('index');
+// Route::get('/', function () {
+//     return view('auth.login'); // Laravel UIならだいたいこれ
+// })->name('index');
 Route::get('/', function () {
-    return view('auth.login'); // Laravel UIならだいたいこれ
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $user = Auth::user();
+
+    if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+        return redirect()->route('admin.home');
+    }
+
+    return app(\App\Http\Controllers\HomeController::class)->index();
 })->name('index');
 
 Route::get('/search', [HomeController::class, 'search'])->name('search');
