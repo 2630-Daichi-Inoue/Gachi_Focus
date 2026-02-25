@@ -41,7 +41,10 @@ Auth::routes();
 | Public routes
 |--------------------------------------------------------------------------
 */
-Route::get('/', [HomeController::class, 'index'])->name('index');
+// 2/26修正
+// Route::get('/', [HomeController::class, 'index'])->name('index');
+Route::redirect('/', '/login')->name('index');
+
 Route::get('/search', [HomeController::class, 'search'])->name('search');
 
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
