@@ -29,7 +29,7 @@
       {{-- add form --}}
       <div class="card mb-4 border-0 shadow-sm rounded-4">
         <div class="card-body">
-          <form class="row gy-2 gx-2 align-items-center" method="POST" action="{{ route('utilities.store') }}">
+          <form class="row gy-2 gx-2 align-items-center" method="POST" action="{{ route('categories.store') }}">
             @csrf
             <div class="col-12 col-md">
               <input
@@ -37,7 +37,7 @@
                 name="name"
                 value="{{ old('name') }}"
                 class="form-control"
-                placeholder="Add Utility"
+                placeholder="Add new category"
                 required
               >
             </div>
@@ -63,9 +63,9 @@
                 </tr>
               </thead>
               <tbody>
-                @forelse ($utilities as $u)
+                @forelse ($categories as $category)
                   <tr>
-                    <td class="fs-5">{{ $u->name }}</td>
+                    <td class="fs-5">{{ $category->name }}</td>
                     <td>
                         <div class="d-flex justify-content-center gap-2">
                             {{-- Edit button: deeper blue --}}
@@ -73,12 +73,12 @@
                             type="button"
                             class="btn text-white px-3 py-2"
                             style="background-color:#858788; border:none; width:90px; transition:0.2s;"
-                            onmouseover="this.style.backgroundColor='#428bca';"  
-                            onmouseout="this.style.backgroundColor='#858788';"   
+                            onmouseover="this.style.backgroundColor='#428bca';"
+                            onmouseout="this.style.backgroundColor='#858788';"
                             data-bs-toggle="modal"
                             data-bs-target="#editModal"
-                            data-id="{{ $u->id }}"
-                            data-name="{{ e($u->name) }}"
+                            data-id="{{ $category->id }}"
+                            data-name="{{ e($category->name) }}"
                             >
                             Edit
                             </button>
@@ -93,8 +93,8 @@
                             onmouseout="this.style.backgroundColor='transparent';"
                             data-bs-toggle="modal"
                             data-bs-target="#deleteModal"
-                            data-id="{{ $u->id }}"
-                            data-name="{{ e($u->name) }}"
+                            data-id="{{ $category->id }}"
+                            data-name="{{ e($category->name) }}"
                             >
                             Delete
                             </button>
@@ -103,7 +103,7 @@
                   </tr>
                 @empty
                   <tr>
-                    <td colspan="2" class="text-muted py-4">No tags yet.</td>
+                    <td colspan="2" class="text-muted py-4">No categories yet.</td>
                   </tr>
                 @endforelse
               </tbody>
@@ -114,7 +114,7 @@
 
       {{-- pagination --}}
       <div class="mt-3">
-        {{ $utilities->links() }}
+        {{ $categories->links() }}
       </div>
     </div>
   </div>
@@ -170,8 +170,8 @@
 <script>
   // Util: build RESTful resource URL
   function utilityUrl(id) {
-    // Ensure same as your route('utilities.update', id) / route('utilities.destroy', id)
-    return "{{ url('/utilities') }}/" + id;
+    // Ensure same as your route('categories.update', id) / route('categories.destroy', id)
+    return "{{ url('/categories') }}/" + id;
   }
 
   // Edit modal handler

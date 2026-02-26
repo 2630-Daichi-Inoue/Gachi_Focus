@@ -20,7 +20,7 @@
                         <a href="{{ route('admin.spaces.register') }}" class="list-group-item fw-bold">Register
                             Coworking
                             Space ></a>
-                        <a href="{{ route('utilities.index') }}" class="list-group-item fw-bold">Edit Utilities
+                        <a href="{{ route('categories.index') }}" class="list-group-item fw-bold">Edit Categories
                             ></a>
                     </div>
                 </div>

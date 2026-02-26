@@ -9,6 +9,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UtilityController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserSpaceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReservationController;
@@ -41,7 +42,26 @@ Auth::routes();
 | Public routes
 |--------------------------------------------------------------------------
 */
-Route::get('/', [HomeController::class, 'index'])->name('index');
+// 2/26修正
+// Route::get('/', [HomeController::class, 'index'])->name('index');
+// Route::redirect('/', '/login')->name('index');
+// Route::get('/', function () {
+//     return view('auth.login'); // Laravel UIならだいたいこれ
+// })->name('index');
+Route::get('/', function () {
+    if (!Auth::check()) {
+        return redirect()->route('login');
+    }
+
+    $user = Auth::user();
+
+    if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+        return redirect()->route('admin.home');
+    }
+
+    return app(\App\Http\Controllers\HomeController::class)->index();
+})->name('index');
+
 Route::get('/search', [HomeController::class, 'search'])->name('search');
 
 Route::get('/contact', [ContactController::class, 'create'])->name('contact.create');
@@ -126,10 +146,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
     // Utilities
-    Route::get('/utilities', [UtilityController::class, 'index'])->name('utilities.index');
-    Route::post('/utilities', [UtilityController::class, 'store'])->name('utilities.store');
-    Route::put('/utilities/{utility}', [UtilityController::class, 'update'])->name('utilities.update');
-    Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
+    // Route::get('/utilities', [UtilityController::class, 'index'])->name('utilities.index');
+    // Route::post('/utilities', [UtilityController::class, 'store'])->name('utilities.store');
+    // Route::put('/utilities/{utility}', [UtilityController::class, 'update'])->name('utilities.update');
+    // Route::delete('/utilities/{utility}', [UtilityController::class, 'destroy'])->name('utilities.destroy');
+
+    // Categories
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 });
 
 /*

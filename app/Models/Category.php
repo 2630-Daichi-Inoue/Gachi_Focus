@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    # CATEGORY - CATEGORYPOST
-    # count the number of post in a category
-    public function categoryPost()
+    protected $fillable = ['name'];
+
+    # category - category_space (a category has many spaces through category_space)
+    public function categorySpace()
     {
-        return $this->hasMany(CategoryPost::class);   
+        return $this->hasMany(CategorySpace::class);
     }
 }
