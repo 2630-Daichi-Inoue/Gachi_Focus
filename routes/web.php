@@ -41,12 +41,6 @@ Auth::routes();
 | Public routes
 |--------------------------------------------------------------------------
 */
-// 2/26修正
-// Route::get('/', [HomeController::class, 'index'])->name('index');
-// Route::redirect('/', '/login')->name('index');
-// Route::get('/', function () {
-//     return view('auth.login'); // Laravel UIならだいたいこれ
-// })->name('index');
 Route::get('/', function () {
     if (!Auth::check()) {
         return redirect()->route('login');
