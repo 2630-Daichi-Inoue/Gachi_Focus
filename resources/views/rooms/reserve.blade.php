@@ -152,7 +152,7 @@
                     </div>
 
                     {{-- Facilities --}}
-                    <div class="mb-4">
+                    {{-- <div class="mb-4">
                         <label class="form-label small text-uppercase text-muted d-block mb-2">Facilities</label>
                         <div class="row">
                             @foreach ($facilityOptions ?? [] as $f)
@@ -167,7 +167,7 @@
                                 </div>
                             @endforeach
                         </div>
-                    </div>
+                    </div> --}}
 
                     {{-- Buttons --}}
                     <div class="d-grid gap-2">
@@ -197,7 +197,7 @@
                             <dt class="col-3 text-muted">Number of people</dt>
                             <dd class="col-9" x-text="adults || '-'"></dd>
 
-                            <dt class="col-3 text-muted">Facilities</dt>
+                            {{-- <dt class="col-3 text-muted">Facilities</dt>
                             <dd class="col-9">
                                 <template x-if="facilities.length">
                                     <div class="d-flex flex-wrap gap-2">
@@ -209,7 +209,7 @@
                                 <template x-if="!facilities.length">
                                     <span class="text-muted">None</span>
                                 </template>
-                            </dd>
+                            </dd> --}}
 
                             <dt class="col-3 text-muted">Total</dt>
                             <dd class="col-9 fw-semibold">
@@ -222,13 +222,14 @@
                         </dl>
 
                         {{-- Map embed --}}
-                        @if (!empty($spaces->map_embed))
+                        {{-- @if (!empty($spaces->map_embed))
                             <div class="mt-3">
                                 <div class="ratio ratio-16x9 rounded overflow-hidden border">
                                     {!! $spaces->map_embed !!}
                                 </div>
                             </div>
-                        @endif
+                        @endif --}}
+
                     </div>
                 </div>
             </div>

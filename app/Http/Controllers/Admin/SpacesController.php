@@ -8,8 +8,8 @@ use Illuminate\Http\Request;
 use App\Models\Space;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
-
 
 class SpacesController extends Controller
 {
@@ -54,13 +54,17 @@ class SpacesController extends Controller
             'weekend_price' => 'required|numeric|min:10|max:999999',
             'description' => 'required|min:1|max:1000',
             'category' => 'nullable|array',
-            'image' => 'required|mimes:jpeg,jpg,png,gif|max:1048'
+            'image' => 'required|image|mimes:jpeg,jpg,png,gif|max:1048'
         ], [
             'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
             'min_capacity.lte' => 'The Capacity(min) must be less than or equal to Capacity(max).',
             'max_capacity.required' => 'The capacity field is required.',
             'min_capacity.required' => 'The capacity field is required.'
         ]);
+        // 画像保存（storage/app/public/spaces）
+        $imagePath = $request->file('image')->store('spaces', 'public');
+        // => "spaces/xxxxx.jpg"
+
 
         // 2) Save space（例外が出ないように丁寧に）
         $this->space->fill([
@@ -73,8 +77,7 @@ class SpacesController extends Controller
             'weekday_price' => $validated['weekday_price'],
             'weekend_price' => $validated['weekend_price'],
             'description' => $validated['description'],
-            'image' => 'data:image/' . $request->file('image')->extension()
-                . ';base64,' . base64_encode(file_get_contents($request->file('image')->getRealPath())),
+            'image' => $imagePath,
         ]);
         $this->space->save();
 
@@ -98,10 +101,8 @@ class SpacesController extends Controller
 
         $all_categories = $this->category->all();
 
-        # get all category IDS of the post. save in an array
+        # get all category IDs of the space, and save in an array.
         $selected_categories = [];
-        // post 1 has category 4, 6
-        // $post->categoryPost = [4,6]
         foreach ($space->categorySpace as $category_space) {
             $selected_categories[] = $category_space->category_id;
         }
@@ -126,7 +127,7 @@ class SpacesController extends Controller
             'weekend_price' => 'required|numeric|min:10|max:999999',
             'description' => 'required|min:1|max:1000',
             'category' => 'nullable|array',
-            'image' => 'nullable|mimes:jpeg,jpg,png,gif|max:1048'
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:1048',
         ], [
             'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
             'min_capacity.lte' => 'The Capacity(min) must be less than or equal to Capacity(max).',
@@ -148,8 +149,13 @@ class SpacesController extends Controller
         $space->description = $request->description;
 
         // if the admin uploaded image
-        if ($request->image) {
-            $space->image = "data:image/" . $request->image->extension() . ';base64,' . base64_encode(file_get_contents($request->image));
+        if ($request->hasFile('image')) {
+            // （任意）古い画像を削除：DBが相対パス運用のときだけ
+            if (!empty($space->image) && $space->image !== '0' && !str_starts_with($space->image, 'http')) {
+                Storage::disk('public')->delete($space->image);
+            }
+
+            $space->image = $request->file('image')->store('spaces', 'public');
         }
 
         $space->save();

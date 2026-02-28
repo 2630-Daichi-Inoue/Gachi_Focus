@@ -2,7 +2,7 @@
     {{-- Image + quick facts --}}
     <div class="row mb-2">
         <div class="col-6">
-            <img src="{{ $space->image }}" alt="space {{ $space->id }}"
+            <img src="{{ asset('storage/' . $space->image) }}" alt="space {{ $space->id }}"
                  class="w-100" style="height:100px; object-fit:cover;">
         </div>
         {{-- <div class="col-6">

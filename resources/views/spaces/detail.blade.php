@@ -55,8 +55,8 @@
 
             {{-- one picture or fallback image --}}
         @else
-            <img src="{{ $space->image }}" alt="space {{ $space->id }}"
-                 class="w-100" style="height:100px; object-fit:cover;">
+            <img src="{{ asset('storage/' . $space->image) }}" alt="space {{ $space->id }}"
+                 class="w-100" style="object-fit:cover;">
             {{-- <img src="{{ $imageUrl }}" alt="photo"
                 style="width: 100%; height: 260px; object-fit: cover;
                     border-radius: 0.4rem; transition: transform 0.3s ease; cursor: pointer;
@@ -106,6 +106,12 @@
                             {{ $space->name }}
                         </h1>
 
+                        <h5>
+                            <li class="mt-2" style="list-style-type: none;">
+                                <p class="mb-0">{!! nl2br(e($space->description)) !!}</p>
+                            </li>
+                        </h5>
+
                         @php
                             $rating = round($space->rating ?? 0, 1);
                             $fullStars = floor($rating);
@@ -133,7 +139,7 @@
                                 </a>
                             </div>
                         @else
-                            <p style="color:#888; font-style:italic; margin-bottom:10px;">No reviews yet</p>
+                            <p style="color:#888; font-style:italic; margin-bottom:10px;">No reviews yet.</p>
                         @endif
                     </div>
 
@@ -156,11 +162,11 @@
                             @endforelse
 
                             {{-- Description --}}
-                            @if (!empty($space->description))
+                            {{-- @if (!empty($space->description))
                                 <li class="mt-2" style="list-style-type: none;">
                                     <p class="mb-0">{!! nl2br(e($space->description)) !!}</p>
                                 </li>
-                            @endif
+                            @endif --}}
                         </ul>
                     </div>
                 </div>
@@ -187,7 +193,7 @@
                         </p>
                         @if (!empty($space->location_for_details))
                             <a href="https://maps.google.com/?q={{ urlencode($space->location_for_details) }}" target="_blank"
-                                style="text-decoration: none; color:#547fa1;">view in a map ></a>
+                                style="text-decoration: none; color:#547fa1;">View in Google map ></a>
                         @endif
                     </div>
                 </div>
