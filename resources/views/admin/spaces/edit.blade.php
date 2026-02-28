@@ -16,7 +16,7 @@
                         <p class="text-danger small">{{ $message }}</p>
                     @enderror
                 </div>
-                
+
                 <div class="col-md-3">
                     <label for="location_for_overview" class="form-label fw-bold">Location for overview <span class="text-danger">※</span></label>
                     <input type="text" name="location_for_overview" id="location_for_overview"  class="form-control" value="{{ old('location_for_overview', $space->location_for_overview) }}">
@@ -81,7 +81,7 @@
                         <p class="text-danger small">{{ $message }}</p>
                     @enderror
                 </div>
-                
+
             </div>
 
             <div class="mb-3">
@@ -128,16 +128,21 @@
                     The acceptable formats are jpeg, jpg, png, and gif only <br>
                     Max file size is 1048kb.
                 </div>
-                 @if ($space->image)
+
+                <div class="mt-2">
+                    <img src="{{ asset('storage/' . $space->image) }}" alt="current image" class="img-fluid border" style="max-height:120px; object-fit:cover;">
+                    <div class="text-muted small">Current image (kept if you don't upload a new one)</div>
+                </div>
+                {{-- @if ($space->image)
                 <div class="mt-2">
                     <img src="{{ $space->image }}" alt="current image" class="img-fluid border" style="max-height:120px; object-fit:cover;">
                     <div class="text-muted small">Current image (kept if you don't upload a new one)</div>
                 </div>
-                @endif
+                @endif --}}
                 {{-- Error --}}
-                @error('image')
+                {{-- @error('image')
                     <p class="text-danger small">{{ $message }}</p>
-                @enderror
+                @enderror --}}
             </div>
 
             <!-- update button -->
