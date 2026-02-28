@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Space;
 use App\Models\Review;
-use App\Models\Utility;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class UserSpaceController extends Controller
@@ -22,14 +22,14 @@ class UserSpaceController extends Controller
 
         $space->rating = $averageRating;
 
-        $utilities = Utility::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
 
         return view('spaces.detail', compact(
-            'space', 
+            'space',
             'reviews',
             'reviewCount',
             'averageRating',
-            'utilities'
+            'categories'
         ));
     }
 }

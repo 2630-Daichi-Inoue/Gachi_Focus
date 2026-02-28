@@ -12,10 +12,10 @@
 
     // ① spaces.image がある場合（URL or storage対応）
     if (!empty($space->image) && $space->image !== '0') {
-        if (preg_match('/^https?:\/\//', $space->image)) {
+        if (Str::startsWith($space->image, ['http://', 'https://'])) {
             $imgSrc = $space->image;
-        } elseif (file_exists(public_path('storage/' . $space->image))) {
-            $imgSrc = asset('storage/' . $space->image);
+        } elseif (file_exists(public_path('storage/app/public/' . $space->image))) {
+            $imgSrc = asset('storage/app/public/' . $space->image);
         }
     }
 

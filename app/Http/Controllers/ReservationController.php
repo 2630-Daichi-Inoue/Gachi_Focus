@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Space;
-use App\Models\Utility;
+use App\Models\Category;
 use App\Support\Pricing;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -21,7 +21,7 @@ class ReservationController extends Controller
     {
         // NOTE: keep labels aligned with Pricing::$cfg['types']
         $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
-        $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
+        $facilityOptions = Category::orderBy('name')->pluck('name')->toArray();
 
         // time options
         [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
@@ -160,7 +160,7 @@ class ReservationController extends Controller
         if ($reservation->user_id !== Auth::id()) abort(403);
 
         $types = config('booking.types', ['Standard', 'Meeting', 'Focus Booth', 'Phone Call']);
-        $facilityOptions = Utility::orderBy('name')->pluck('name')->toArray();
+        $facilityOptions = Category::orderBy('name')->pluck('name')->toArray();
         [$fromTimes, $toTimes] = $this->buildTimeOptions('09:00', '21:00', 30);
 
         // Alpine defaults (leave type as saved; Pricing will normalize again on update)

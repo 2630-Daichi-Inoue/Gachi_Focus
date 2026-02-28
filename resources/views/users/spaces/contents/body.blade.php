@@ -1,11 +1,11 @@
 <div class="card-body border-start border-end border-dark">
     {{-- Image + quick facts --}}
     <div class="row mb-2">
-        {{-- <div class="col-6">
+        <div class="col-6">
             <img src="{{ $space->image }}" alt="space {{ $space->id }}"
                  class="w-100" style="height:100px; object-fit:cover;">
-        </div> --}}
-        <div class="col-6">
+        </div>
+        {{-- <div class="col-6">
             @php
                 $imageUrl = null;
 
@@ -31,7 +31,7 @@
 
             <img src="{{ $imageUrl }}" alt="space {{ $space->id }}" class="w-100"
                 style="height:100px; object-fit:cover; border-radius:6px;">
-        </div>
+        </div> --}}
 
         <div class="col-6">
             <p class="mb-1">{{ $space->location_for_overview }}</p>
