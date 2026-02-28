@@ -9,9 +9,9 @@
         style="position: fixed; top: 100px; left: 0; bottom: 10px; width: 32.8%;
             overflow-y: scroll; background: #fff;
             display: flex; flex-direction: column; gap: 16px;
-            padding: 0.8rem 1rem 1.2rem 1rem; 
+            padding: 0.8rem 1rem 1.2rem 1rem;
             box-sizing: border-box; z-index: 1;
-            solid rgba(0,0,0,0.05); 
+            solid rgba(0,0,0,0.05);
             scrollbar-width: none; -ms-overflow-style: none;">
         <style>
             #photo-column::-webkit-scrollbar {
@@ -23,7 +23,7 @@
             $photos = $space->photos ?? collect();
             $imageUrl = null;
 
-            // ① priority spaces.image 
+            // ① priority spaces.image
             if (!empty($space->image) && $space->image !== '0') {
                 if (preg_match('/^https?:\/\//', $space->image)) {
                     $imageUrl = $space->image; // 外部URL (例: Unsplash)
@@ -46,7 +46,7 @@
         {{-- not single picture → auto scroll --}}
         @if ($photos->count() > 1)
             @foreach ($photos as $photo)
-                <img src="{{ asset('storage/' . $photo->path) }}" alt="Coworking photo"
+                <img src="{{ asset('storage/' . $photo->path) }}" alt="photo"
                     style="width: 100%; height: 260px; object-fit: cover;
                         border-radius: 0.4rem; transition: transform 0.3s ease; cursor: pointer;
                         box-shadow: 0 3px 6px rgba(0,0,0,0.08);"
@@ -55,11 +55,13 @@
 
             {{-- one picture or fallback image --}}
         @else
-            <img src="{{ $imageUrl }}" alt="Coworking photo"
+            <img src="{{ $space->image }}" alt="space {{ $space->id }}"
+                 class="w-100" style="height:100px; object-fit:cover;">
+            {{-- <img src="{{ $imageUrl }}" alt="photo"
                 style="width: 100%; height: 260px; object-fit: cover;
                     border-radius: 0.4rem; transition: transform 0.3s ease; cursor: pointer;
                     box-shadow: 0 3px 6px rgba(0,0,0,0.08);"
-                onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+                onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'"> --}}
         @endif
     </div>
 
@@ -93,10 +95,10 @@
                 <div style="margin-left: 0; margin-right: 12px;">
                     <div
                         style="
-                            background: #ffffff; 
+                            background: #ffffff;
                             border: 1px solid rgba(0,0,0,0.06);
                             border-radius: 12px;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+                            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
                             padding: 24px 26px;
                             margin-bottom: 32px;
                         ">
@@ -137,18 +139,18 @@
 
                     <div style="margin-left: 20px; margin-right: 10px;">
                         <h4 class="fw-bold" style="margin-top: 30px;">Capacity</h4>
-                        <p><i class="fa-solid fa-people-group"></i> {{ $space->capacity_min }} - {{ $space->capacity_max }}
+                        <p><i class="fa-solid fa-people-group"></i> {{ $space->min_capacity }} - {{ $space->max_capacity }}
                         </p>
                     </div>
 
                     {{-- Amenities --}}
                     <div style="padding: 12px; margin-top: -10px; overflow-y: auto; margin-right: 8px;">
-                        <h4 class="fw-bold pt-2 mb-3">Amenities</h4>
+                        <h4 class="fw-bold pt-2 mb-3">Facilities</h4>
 
                         <ul class="list-unstyled mb-0" style="margin-left: 16px;">
-                            {{-- Utilities --}}
-                            @forelse ($utilities as $utility)
-                                <li>{{ $utility->name }}</li>
+                            {{-- Categories --}}
+                            @forelse ($categories as $category)
+                                <li>{{ $category->name }}</li>
                             @empty
                                 <li>No facilities registered</li>
                             @endforelse
@@ -168,11 +170,11 @@
             <div class="col-md-4 pe-3 d-flex flex-column justify-content-between" style="height: 100%;">
                 {{-- Map Section --}}
                 <div style="margin-top: 0; margin-bottom: 20px;">
-                    @if (!empty($space->map_embed))
+                    @if (!empty($space->location_for_details))
                         <div
                             style="width: 95%; height: 300px; border-radius: 10px; overflow: hidden;
                                 margin: 0 auto; box-shadow: 0 3px 8px rgba(0,0,0,0.08);">
-                            <iframe src="https://www.google.com/maps/embed?pb={{ $space->map_embed }}" width="100%"
+                            <iframe src="https://www.google.com/maps?q={{ urlencode($space->location_for_details) }}&output=embed" width="100%"
                                 height="100%" style="border:0;" allowfullscreen="" loading="lazy">
                             </iframe>
                         </div>
@@ -181,10 +183,10 @@
                     <div style="width: 95%; margin: 8px auto 0;">
                         <p class="map-address small text-muted mb-1">
                             <i class="fa-solid fa-location-dot me-1 text-muted"></i>
-                            {{ $space->address ?? 'No address registered' }}
+                            {{ $space->location_for_details ?? 'No address registered' }}
                         </p>
-                        @if (!empty($space->address))
-                            <a href="https://maps.google.com/?q={{ urlencode($space->address) }}" target="_blank"
+                        @if (!empty($space->location_for_details))
+                            <a href="https://maps.google.com/?q={{ urlencode($space->location_for_details) }}" target="_blank"
                                 style="text-decoration: none; color:#547fa1;">view in a map ></a>
                         @endif
                     </div>
@@ -205,7 +207,7 @@
                                 padding: 14px 10px;
                                 text-align: center;
                             ">
-                            <p class="mb-1 text-secondary small fw-semibold">weekday</p>
+                            <p class="mb-1 text-secondary small fw-semibold">weekdays</p>
                             <p style="font-weight: 700; font-size: 1.3rem; color: #333; margin-bottom: 0;">
                                 ${{ number_format($space->weekday_price, 2) }}/h
                             </p>
@@ -230,7 +232,7 @@
 
                     <div class="d-flex flex-column align-items-start mt-4" style="margin-left: 6px;">
                         <a href="{{ route('contact.create') }}" class="text-decoration-none" style="color:#547fa1;">
-                            contact us >
+                            Need to contact us? >
                         </a>
 
                         <a href="{{ route('rooms.reserve.form', $space) }}" class="btn mt-3"
