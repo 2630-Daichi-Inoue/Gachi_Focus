@@ -5,129 +5,111 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Carbon\CarbonInterface;
 
 class Space extends Model
 {
-    use SoftDeletes, HasFactory;
+    use SoftDeletes, HasFactory, HasUlids;
 
     /**
      * Mass assignable attributes
      */
     protected $fillable = [
         'name',
-        'location_for_overview',
-        'location_for_details',
-        'min_capacity',
-        'max_capacity',
-        'area',
-        'weekday_price',
-        'weekend_price',
+        'prefecture',
+        'city',
+        'address_line',
+        'capacity',
+        'open_time',
+        'close_time',
+        'weekday_price_yen',
+        'weekend_price_yen',
         'description',
-        'image', // fallback image path or URL
-        // 'address', // add here only if the column exists
+        'image_path',
+        'is_public',
     ];
 
     /**
-     * Type casting
+     * Attribute casting.
      */
     protected $casts = [
-        'min_capacity'  => 'integer',
-        'max_capacity'  => 'integer',
-        'weekday_price' => 'decimal:2',
-        'weekend_price' => 'decimal:2',
+        'capacity' => 'integer',
+        'weekday_price_yen' => 'integer',
+        'weekend_price_yen' => 'integer',
+        'is_public' => 'boolean',
     ];
+
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | Relations
     |--------------------------------------------------------------------------
     */
-
-    // space - category_space (a space has many categories)
-    public function categorySpace()
+    public function amenities()
     {
-        return $this->hasMany(CategorySpace::class);
+        return $this->belongsToMany(
+            Amenity::class,
+            'amenity_space',
+            'amenity_id',
+            'space_id'
+        );
     }
 
-    // space - review
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
-    }
-
-    // space - reservation
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
     }
 
-    // space - photo
-    public function photos()
+    public function favoritedUsers()
     {
-        return $this->hasMany(Photo::class);
+        return $this->belongsToMany(
+            User::class,
+            'favorites',
+            'space_id',
+            'user_id'
+        );
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Accessors / Domain Helpers
+    | Scopes
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * ✅ Display image with fallback.
-     * Priority: 1) first photo -> 2) image column -> 3) no-image.png
-     * Works with URLs, data:image, public/images, or storage paths.
-     */
-    public function getDisplayImageUrlAttribute(): string
+    public function scopePublic($query)
     {
-        // Get the first photo path (avoid N+1 with subquery)
-        $path = $this->photos()->value('path') ?: $this->image;
-
-        // No image at all → default
-        if (!$path) {
-            return asset('images/no-image.png');
-        }
-
-        // Already a full URL or data:image
-        if (Str::startsWith($path, ['http://', 'https://', 'data:image'])) {
-            return $path;
-        }
-
-        // public/images or storage/... inside /public
-        if (Str::startsWith($path, ['images/', 'storage/'])) {
-            return asset($path);
-        }
-
-        // Otherwise treat as storage/app/public relative path
-        return asset('storage/' . ltrim($path, '/'));
+        return $query->where('is_public', true)
+                    ->whereNull('deleted_at');
     }
 
-    /**
-     * 🌍 Detect country code (used by Pricing/Tax logic)
-     */
-    public function getCountryCodeAttribute(): string
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public function isPublic(): bool
     {
-        $loc = strtolower($this->location_for_details ?? '');
+        return $this->is_public && is_null($this->deleted_at);
+    }
 
-        return match (true) {
-            str_contains($loc, 'japan'),
-            str_contains($loc, 'tokyo'),
-            str_contains($loc, 'osaka') => 'JP',
+    public function isWithinBusinessHours(CarbonInterface $startAt, CarbonInterface $endAt): bool
+    {
+        $startTime = $startAt->format('H:i:s');
+        $endTime = $endAt->format('H:i:s');
 
-            str_contains($loc, 'france'),
-            str_contains($loc, 'paris') => 'FR',
+        return $startTime >= $this->open_time
+            && $endTime <= $this->close_time;
+    }
 
-            str_contains($loc, 'united states'),
-            str_contains($loc, 'usa'),
-            str_contains($loc, 'new york') => 'US',
+    public function fullAddress(): string
+    {
+        return "{$this->prefecture}{$this->city}{$this->address_line}";
+    }
 
-            str_contains($loc, 'australia'),
-            str_contains($loc, 'sydney') => 'AU',
-
-            str_contains($loc, 'singapore') => 'SG',
-
-            default => 'JP',
-        };
+    public function unitPriceForDate(CarbonInterface $date): int
+    {
+        return $date->isWeekend()
+            ? $this->weekend_price_yen
+            : $this->weekday_price_yen;
     }
 }

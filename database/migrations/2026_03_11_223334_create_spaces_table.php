@@ -1,0 +1,49 @@
+<?php
+
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+
+
+        Schema::create('spaces', function (Blueprint $table) {
+            $table->ulid('id')->primary();
+            $table->string('name', 50);
+            $table->string('prefecture', 20);
+            $table->string('city', 50);
+            $table->string('address_line', 255);
+            $table->unsignedTinyInteger('capacity');
+            $table->time('open_time');
+            $table->time('close_time');
+            $table->unsignedInteger('weekday_price_yen');
+            $table->unsignedInteger('weekend_price_yen');
+            $table->text('description');
+            $table->string('image_path', 255);
+            $table->text('map_embed')->nullable();
+            $table->boolean('is_public')
+                    ->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+
+        });
+    }
+
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('spaces');
+    }
+
+};

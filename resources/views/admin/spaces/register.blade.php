@@ -63,19 +63,19 @@
             </div>
 
             <div class="col-md-2">
-                <label for="weekday_rice" class="form-label fw-bold">Weekday Price(¥ / h) <span class="text-danger">※</span></label>
-                <input type="number" name="weekday_price" id="weekday_price" class="form-control" value="{{ old('weekday_price') }}" min="1" max="999999" step="1">
+                <label for="weekday_price_yen" class="form-label fw-bold">Weekday Price(¥ / h) <span class="text-danger">※</span></label>
+                <input type="number" name="weekday_price_yen" id="weekday_price_yen" class="form-control" value="{{ old('weekday_price_yen') }}" min="1" max="999999" step="1">
                 {{-- Error --}}
-                @error('weekday_price')
+                @error('weekday_price_yen')
                     <p class="text-danger small">{{ $message }}</p>
                 @enderror
             </div>
 
             <div class="col-md-2">
-                <label for="weekend_price" class="form-label fw-bold">Weekend Price(¥ / h) <span class="text-danger">※</span></label>
-                <input type="number" name="weekend_price" id="weekend_price" class="form-control" value="{{ old('weekend_price') }}" min="1" max="999999" step="1">
+                <label for="weekend_price_yen" class="form-label fw-bold">Weekend Price(¥ / h) <span class="text-danger">※</span></label>
+                <input type="number" name="weekend_price_yen" id="weekend_price_yen" class="form-control" value="{{ old('weekend_price_yen') }}" min="1" max="999999" step="1">
                 {{-- Error --}}
-                @error('weekend_price')
+                @error('weekend_price_yen')
                     <p class="text-danger small">{{ $message }}</p>
                 @enderror
             </div>
@@ -92,18 +92,18 @@
         </div>
 
         <div class="mb-3">
-            <label for="category" class="form-label d-block fw-bold">
-                Category <span class="text-muted fw-normal"></span>
+            <label for="amenity" class="form-label d-block fw-bold">
+                Amenity <span class="text-muted fw-normal"></span>
             </label>
 
-            @foreach ($all_categories as $category)
+            @foreach ($all_amenities as $amenity)
                 <div class="form-check form-check-inline">
-                    <input type="checkbox" name="category[]" id="{{ $category->name }}" value="{{ $category->id }}" class="form-check-input">
-                    <label for="{{ $category->name }}" class="form-check-label">{{ $category->name }}</label>
+                    <input type="checkbox" name="amenity[]" id="{{ $amenity->name }}" value="{{ $amenity->id }}" class="form-check-input">
+                    <label for="{{ $amenity->name }}" class="form-check-label">{{ $amenity->name }}</label>
                 </div>
             @endforeach
             {{-- Error --}}
-            @error('category')
+            @error('amenity')
                 <p class="text-danger small">{{ $message }}</p>
             @enderror
         </div>

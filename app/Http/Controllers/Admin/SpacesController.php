@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\Space;
-use App\Models\Category;
+use App\Models\Amenity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
@@ -14,12 +14,12 @@ use App\Http\Controllers\Controller;
 class SpacesController extends Controller
 {
     private $space;
-    private $category;
+    private $amenity;
 
-    public function __construct(Space $space, Category $category)
+    public function __construct(Space $space, Amenity $amenities)
     {
         $this->space = $space;
-        $this->category = $category;
+        $this->amenity = $amenities;
     }
 
     public function index()
@@ -33,10 +33,10 @@ class SpacesController extends Controller
 
     public function register()
     {
-        $all_categories = $this->category->all();
+        $all_amenities = $this->amenity->all();
 
         return view('admin.spaces.register')
-            ->with('all_categories', $all_categories);
+            ->with('all_amenities', $all_amenities);
     }
 
     public function store(Request $request)
@@ -53,7 +53,7 @@ class SpacesController extends Controller
             'weekday_price' => 'required|numeric|min:10|max:999999',
             'weekend_price' => 'required|numeric|min:10|max:999999',
             'description' => 'required|min:1|max:1000',
-            'category' => 'nullable|array',
+            'amenity' => 'nullable|array',
             'image' => 'required|image|mimes:jpeg,jpg,png,gif|max:1048'
         ], [
             'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
@@ -81,12 +81,12 @@ class SpacesController extends Controller
         ]);
         $this->space->save();
 
-        # 3. save the categories to category_space table
-        // 3) categories（null安全 & 初期化）
-        $categoryIds = (array) $request->input('category', []);
-        if ($categoryIds) {
-            $category_space = array_map(fn($id) => ['category_id' => $id], $categoryIds);
-            $this->space->categorySpace()->createMany($category_space);
+        # 3. save the amenities to amenity_space table
+        // 3) amenities（null安全 & 初期化）
+        $amenityIds = (array) $request->input('amenity', []);
+        if ($amenityIds) {
+            $amenity_space = array_map(fn($id) => ['amenity_id' => $id], $amenityIds);
+            $this->space->amenitySpace()->createMany($amenity_space);
         }
 
         # 4. Go back to homepage
@@ -99,18 +99,18 @@ class SpacesController extends Controller
             ->withTrashed()
             ->findOrFail($id);
 
-        $all_categories = $this->category->all();
+        $all_amenities = $this->amenity->all();
 
-        # get all category IDs of the space, and save in an array.
-        $selected_categories = [];
-        foreach ($space->categorySpace as $category_space) {
-            $selected_categories[] = $category_space->category_id;
+        # get all amenity IDs of the space, and save in an array.
+        $selected_amenities = [];
+        foreach ($space->amenitySpace as $amenity_space) {
+            $selected_amenities[] = $amenity_space->amenity_id;
         }
 
         return view('admin.spaces.edit')
             ->with('space', $space)
-            ->with('all_categories', $all_categories)
-            ->with('selected_categories', $selected_categories);
+            ->with('all_amenities', $all_amenities)
+            ->with('selected_amenities', $selected_amenities);
     }
 
     public function update(Request $request, $id)
@@ -126,7 +126,7 @@ class SpacesController extends Controller
             'weekday_price' => 'required|numeric|min:10|max:999999',
             'weekend_price' => 'required|numeric|min:10|max:999999',
             'description' => 'required|min:1|max:1000',
-            'category' => 'nullable|array',
+            'amenity' => 'nullable|array',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:1048',
         ], [
             'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
@@ -160,15 +160,15 @@ class SpacesController extends Controller
 
         $space->save();
 
-        # 3. Delete all the recrods from category_space related to the space
-        $space->categorySpace()->delete();
+        # 3. Delete all the recrods from amenity_space related to the space
+        $space->amenitySpace()->delete();
 
-        # 4. save the new categories to category_space table
-        foreach ($request->input('category', []) as $categoryId) {
-            $newCategories[] = ['category_id' => (int)$categoryId];
+        # 4. save the new amenities to amenity_space table
+        foreach ($request->input('amenity', []) as $amenityId) {
+            $newamenities[] = ['amenity_id' => (int)$amenityId];
         }
-        if (!empty($newCategories)) {
-            $space->categorySpace()->createMany($newCategories);
+        if (!empty($newamenities)) {
+            $space->amenitySpace()->createMany($newamenities);
         }
 
         # 5, redirect to the index

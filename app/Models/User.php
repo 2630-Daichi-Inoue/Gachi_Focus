@@ -8,86 +8,123 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Auth;
-use App\Models\CustomNotification;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
-
-    const ADMIN_ROLE_ID = 1;
-    const USER_ROLE_ID = 2;
+    use HasFactory, Notifiable, SoftDeletes, HasUlids;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Mass assignable attributes
      */
     protected $fillable = [
-        'name',
+        'nickname',
+        'is_admin',
         'email',
         'password',
-        'country',
         'phone',
-        'role_id',
+        'avatar_path',
+        'user_status',
     ];
 
-    public function isAdmin(): bool
-    {
-        return $this->role_id === self::ADMIN_ROLE_ID;
-    }
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Attribute casting.
      */
     protected function casts(): array
     {
         return [
+            'is_admin'          => 'boolean',
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
 
-    # user - reservation
-    # a user can have many reservations
+    /*
+    |--------------------------------------------------------------------------
+    | Relations
+    |--------------------------------------------------------------------------
+    */
     public function reservations()
     {
-        return $this->hasMany(Reservation::class);    
+        return $this->hasMany(Reservation::class);
     }
 
-
-    # user - review
-    # a user can have many reviews
-    public function reviews()
+    public function favoriteSpaces()
     {
-        return $this->hasMany(Review::class);    
+        return $this->belongsToMany(
+            Space::class,
+            'favorites',
+            'user_id',
+            'space_id'
+        );
     }
 
-    /**
-     *  Override notifications relation
-     */ 
-
-    public function receivedNotifications()
+    public function notifications()
     {
-        return $this->hasMany(CustomNotification::class, 'receiver_id');
+        return $this->hasMany(Notification::class);
     }
 
-    public function sentNotifications()
+    public function contacts()
     {
-        return $this->hasMany(CustomNotification::class, 'sender_id');
+        return $this->hasMany(Contact::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+    public function scopeActive($query)
+    {
+        return $query->where('user_status', 'active')
+                    ->whereNull('deleted_at');
+    }
+
+    public function scopeRestricted($query)
+    {
+        return $query->where('user_status', 'restricted')
+                    ->whereNull('deleted_at');
+    }
+
+    public function scopeSuspended($query)
+    {
+        return $query->where('user_status', 'suspended')
+                    ->whereNull('deleted_at');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->user_status === 'active' && is_null($this->deleted_at);
+    }
+
+    public function isRestricted(): bool
+    {
+        return $this->user_status === 'restricted' && is_null($this->deleted_at);
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->user_status === 'suspended' && is_null($this->deleted_at);
+    }
+
+    public function isWithdrawn(): bool
+    {
+        return !is_null($this->deleted_at);
     }
 }
