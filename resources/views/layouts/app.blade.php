@@ -41,8 +41,8 @@
         <nav class="navbar navbar-expand-md navbar-custom shadow-sm fixed-top">
             <div class="container">
                 <a class="navbar-brand"
-                    href="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.home') : route('index') }}">
-                    <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="" height="60">
+                    href="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.spaces.index') : route('index') }}">
+                    {{-- <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="" height="60"> --}}
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -72,12 +72,12 @@
 
                                 <a href="{{ route('admin.spaces.register') }}" class="nav-link me-3">Register Coworking Space</a>
                                 <a href="{{ route('admin.spaces.index') }}" class="nav-link me-3">Coworking Spaces</a>
-                                <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
-                                <a href="{{ route('admin.users.index') }}" class="nav-link me-3">Users</a> 
+                                {{-- <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.users.index') }}" class="nav-link me-3">Users</a> --}}
 
-                                {{-- <a href="{{ route('admin.home') }}" class="nav-link me-4 fw-semibold text-dark">
+                                <a href="{{ route('admin.dashboard') }}" class="nav-link me-4 fw-semibold text-dark">
                                     <i class="fa-solid fa-chart-line me-1"></i>Dash board
-                                </a> --}}
+                                </a>
 
                                 {{-- If admin need to check the user side UI Vr. --}}
                                 {{-- <li class="nav-item dropdown">
@@ -107,7 +107,7 @@
                                     </ul>
                                 </li> --}}
 
-                                <!-- notification -->
+                                <!-- contacts -->
                                 <li class="nav-item dropdown">
                                     <a id="notificationDropdown" href="" class="nav-link position-relative me-3"
                                         data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
@@ -116,7 +116,7 @@
                                         @php
                                             $hasUnread = auth()
                                                 ->user()
-                                                ->receivedNotifications()
+                                                ->notifications()
                                                 ->whereNull('read_at')
                                                 ->exists();
                                         @endphp
@@ -131,7 +131,7 @@
                                     <div class="dropdown-menu dropdown-menu-end p-3 bg-white"
                                         aria-labelledby="notificationDropdown" style="width: 300px;">
                                         <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                            @forelse($notifications as $notification)
+                                            {{-- @forelse($notifications as $notification)
                                                 <div class="notification-item mb-2">
                                                     <small
                                                         class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
@@ -140,11 +140,11 @@
                                                 <hr class="my-2">
                                             @empty
                                                 <p>No notifications found.</p>
-                                            @endforelse
+                                            @endforelse --}}
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('admin.notifications.index') }}" class="text-primary">All
+                                            {{-- <a href="{{ route('admin.notifications.index') }}" class="text-primary">All --}}
                                                 Notifications &gt;</a>
                                         </div>
                                     </div>
@@ -152,13 +152,13 @@
                             @else
                                 <!-- USER LINKS -->
                                 <!-- Current Reservation -->
-                                <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
+                                {{-- <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a> --}}
 
-                            <!-- Past Reservation -->
-                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
+                                <!-- Past Reservation -->
+                                {{-- <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a> --}}
 
                                 <!-- Contact -->
-                                <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
+                                {{-- <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a> --}}
 
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
@@ -169,7 +169,7 @@
                                         @php
                                             $hasUnread = auth()
                                                 ->user()
-                                                ->receivedNotifications()
+                                                ->notifications()
                                                 ->whereNull('read_at')
                                                 ->exists();
                                         @endphp
@@ -192,7 +192,7 @@
                                                 </div>
                                                 <hr class="my-2">
                                             @empty
-                                                <p>No notifications found.</p>
+                                                <p>No new notifications.</p>
                                             @endforelse
 
                                         </div>
@@ -266,7 +266,7 @@
 
         <main class="py-4">
             <div class="container-xxl">
-                
+
                 @if (session('status'))
                 <div class="container p-3">
                     <div class="alert alert-success text-center mb-0">

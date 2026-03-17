@@ -7,6 +7,8 @@ use Inertia\Inertia;
 
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SpacesController;
+use App\Http\Requests\StoreSpaceRequest;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -25,8 +27,27 @@ Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
+
+        Route::get('/spaces', [SpacesController::class, 'index'])
+            ->name('spaces.index');
+
+        Route::get('/spaces/register', [SpacesController::class, 'register'])
+            ->name('spaces.register');
+
+        Route::post('/spaces', [SpacesController::class, 'store'])
+            ->name('spaces.store');
+
+        Route::get('/spaces/{space}/edit', [SpacesController::class, 'edit'])
+            ->name('spaces.edit');
+
+        Route::patch('/spaces/{space}', [SpacesController::class, 'update'])
+            ->name('spaces.update');
+
+        Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])
+            ->name('spaces.destroy');
     });
 
 Route::middleware('auth')->group(function () {

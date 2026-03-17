@@ -7,90 +7,87 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Models\Space;
 use App\Models\Amenity;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSpaceRequest;
+use App\Http\Requests\UpdateSpaceRequest;
 
 class SpacesController extends Controller
 {
-    private $space;
-    private $amenity;
 
-    public function __construct(Space $space, Amenity $amenities)
+    public function index(Request $request)
     {
-        $this->space = $space;
-        $this->amenity = $amenities;
-    }
+        $query = Space::withTrashed();
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+        // Filter by prefecture
+        if ($request->filled('prefecture')) {
+            $query->where('prefecture', $request->prefecture);
+        }
+        // Filter by city
+        if ($request->filled('city')) {
+            $query->where('city', 'LIKE', '%' . $request->city . '%');
+        }
+        // Filter by address_line
+        if ($request->filled('address_line')) {
+            $query->where('address_line', 'LIKE', '%' . $request->address_line . '%');
+        }
+        // Filter by is_public
+        if ($request->filled('is_public')) {
+            $query->where('is_public', $request->boolean('is_public'));
+        }
 
-    public function index()
-    {
-        $home_spaces = \App\Models\Space::whereNull('deleted_at')
-            ->orderBy('created_at', 'desc')
-            ->paginate(9);
+        $spaces = $query
+                    ->latest()
+                    ->paginate(10);
 
-        return view('users.home', compact('home_spaces'));
+        $prefectures = Space::select('prefecture')
+                        ->distinct()
+                        ->orderBy('prefecture')
+                        ->pluck('prefecture');
+
+        return view('admin.spaces.index', compact('spaces', 'prefectures'));
     }
 
     public function register()
     {
-        $all_amenities = $this->amenity->all();
+        $all_amenities = Amenity::orderBy('name')->select('id','name')->get();
 
-        return view('admin.spaces.register')
-            ->with('all_amenities', $all_amenities);
+        return view('admin.spaces.register', compact('all_amenities'));
     }
 
-    public function store(Request $request)
+
+    public function store(StoreSpaceRequest $request)
     {
 
         # 1. Validate all form data
-        $validated = $request->validate([
-            'name' => 'required|min:1|max:50',
-            'location_for_overview' => 'required|min:1|max:50',
-            'location_for_details' => 'required|min:1|max:100',
-            'min_capacity' => 'required|integer|min:1|max:99|lte:max_capacity',
-            'max_capacity' => 'required|integer|min:1|max:99|gte:min_capacity',
-            'area' => 'required|numeric|min:1|max:9999.99',
-            'weekday_price' => 'required|numeric|min:10|max:999999',
-            'weekend_price' => 'required|numeric|min:10|max:999999',
-            'description' => 'required|min:1|max:1000',
-            'amenity' => 'nullable|array',
-            'image' => 'required|image|mimes:jpeg,jpg,png,gif|max:1048'
-        ], [
-            'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
-            'min_capacity.lte' => 'The Capacity(min) must be less than or equal to Capacity(max).',
-            'max_capacity.required' => 'The capacity field is required.',
-            'min_capacity.required' => 'The capacity field is required.'
-        ]);
+        $data = $request->validated();
         // 画像保存（storage/app/public/spaces）
         $imagePath = $request->file('image')->store('spaces', 'public');
-        // => "spaces/xxxxx.jpg"
 
-
-        // 2) Save space（例外が出ないように丁寧に）
-        $this->space->fill([
-            'name' => $validated['name'],
-            'location_for_overview' => $validated['location_for_overview'],
-            'location_for_details'  => $validated['location_for_details'],
-            'min_capacity' => $validated['min_capacity'],
-            'max_capacity' => $validated['max_capacity'],
-            'area' => $validated['area'],
-            'weekday_price' => $validated['weekday_price'],
-            'weekend_price' => $validated['weekend_price'],
-            'description' => $validated['description'],
-            'image' => $imagePath,
+        # 2. Save space data to spaces table
+        $space= Space::create([
+            'name' => $data['name'],
+            'prefecture' => $data['prefecture'],
+            'city'  => $data['city'],
+            'address_line' => $data['address_line'],
+            'capacity' => $data['capacity'],
+            'open_time' => $data['open_time'],
+            'close_time' => $data['close_time'],
+            'weekend_price_yen' => $data['weekend_price_yen'],
+            'weekday_price_yen' => $data['weekday_price_yen'],
+            'description' => $data['description'],
+            'image_path' => $imagePath,
+            'is_public' => $data['is_public'] ?? true,
         ]);
-        $this->space->save();
 
-        # 3. save the amenities to amenity_space table
-        // 3) amenities（null安全 & 初期化）
-        $amenityIds = (array) $request->input('amenity', []);
-        if ($amenityIds) {
-            $amenity_space = array_map(fn($id) => ['amenity_id' => $id], $amenityIds);
-            $this->space->amenitySpace()->createMany($amenity_space);
-        }
+        # 3. Sync amenities to the pivot table
+        $space->amenities()->sync($data['amenities'] ?? []);
 
-        # 4. Go back to homepage
-        return redirect()->route('index');
+        # 4. Redirect back to the spaces list with a success message
+        return redirect()->route('admin.spaces.index')->with('status', 'Space registered.');
     }
 
     public function edit($id)
@@ -113,7 +110,7 @@ class SpacesController extends Controller
             ->with('selected_amenities', $selected_amenities);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateSpaceRequest $request, $id)
     {
         #1. Validate the data
         $request->validate([
