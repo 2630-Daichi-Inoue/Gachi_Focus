@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('content')
     <div class="container mt-5 px-0">
@@ -14,19 +14,19 @@
                     <div class="list-group list-group-flush">
                         {{-- <a href="{{ route('admin.reservations.index') }}" class="list-group-item fw-bold">Manage Reservations
                             ></a>
-                        <a href="{{ route('admin.users.index') }}" class="list-group-item fw-bold">Manage Users ></a>
+                        <a href="{{ route('admin.users.index') }}" class="list-group-item fw-bold">Manage Users ></a> --}}
                         <a href="{{ route('admin.spaces.index') }}" class="list-group-item fw-bold">Edit Coworking Spaces
                             ></a>
                         <a href="{{ route('admin.spaces.register') }}" class="list-group-item fw-bold">Register
                             Coworking
                             Space ></a>
-                        <a href="{{ route('categories.index') }}" class="list-group-item fw-bold">Edit Categories
+                        {{-- <a href="{{ route('categories.index') }}" class="list-group-item fw-bold">Edit Categories
                             ></a> --}}
                     </div>
                 </div>
 
                 <!--  Summary -->
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:20px;">
+                {{-- <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; margin-top:20px;">
                     <div
                         style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);
                     border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);
@@ -56,10 +56,10 @@
                         <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">${{ $summary['year'] ?? 0 }}</p>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- chart -->
-            <div class="col-md-8">
+            {{-- <div class="col-md-8">
                 <div class="card shadow-sm" style="background:linear-gradient(180deg,#fdfdfd,#f3f4fa);">
                     <div class="card-header fw-bold" style="font-weight: 800; letter-spacing: 0.8px; font-size: 1.1rem;">
                         Sales Chart</div>
@@ -84,7 +84,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> --}}
             </div>
         </div>
     </div>

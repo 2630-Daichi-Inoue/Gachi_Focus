@@ -39,21 +39,21 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
-    /** 
+    /**
      * The authenticated field is changed "email" into "name".
-     * 
+     *
     */
 
     public function username()
     {
         return 'name';
     }
-    
+
 
     protected function authenticated(Request $request, $user)
     {
         if ($user->isAdmin()) {
-            return redirect()->route('admin.home');
+            return redirect()->route('admin.dashboard');
         }
 
         return redirect('/');
@@ -63,5 +63,5 @@ class LoginController extends Controller
     {
         return redirect()->route('login');
     }
-     
+
 }

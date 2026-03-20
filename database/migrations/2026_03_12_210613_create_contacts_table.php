@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * Run the migrations.
      */
@@ -21,6 +24,9 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->timestamp('canceled_at')->nullable();
             $table->timestamps();
+
+            $table->index(['user_id', 'created_at']);
+            $table->index(['reservation_id', 'created_at']);
         });
     }
 

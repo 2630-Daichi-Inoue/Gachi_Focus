@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * Run the migrations.
      */

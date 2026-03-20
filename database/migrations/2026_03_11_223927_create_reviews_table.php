@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * Run the migrations.
      */
@@ -20,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->index(['reservation_id', 'created_at']);
         });
     }
 

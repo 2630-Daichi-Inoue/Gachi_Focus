@@ -15,6 +15,14 @@ class UpdateSpaceRequest extends FormRequest
         return $this->user()?->isAdmin() ?? false;
     }
 
+    private function timeValidation($datetime, $fail): void
+    {
+        $time_collection = explode(':', $datetime);
+        if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
+            $fail('The time must be in 30-minute increments.');
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -27,7 +35,7 @@ class UpdateSpaceRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('spaces', 'name')->ignore($this->route('space')),
+                Rule::unique('spaces', 'name')->ignore($this->space),
             ],
 
             'prefecture' => [
@@ -56,13 +64,19 @@ class UpdateSpaceRequest extends FormRequest
 
             'open_time' => [
                 'required',
-                'date_format:H:i'
+                'date_format:H:i',
+                function ($attribute, $value, $fail) {
+                    $this->timeValidation($value, $fail);
+                },
             ],
 
             'close_time' => [
                 'required',
                 'date_format:H:i',
-                'after:open_time'
+                'after:open_time',
+                function ($attribute, $value, $fail) {
+                    $this->timeValidation($value, $fail);
+                },
             ],
 
             'weekday_price_yen' => [
@@ -97,11 +111,6 @@ class UpdateSpaceRequest extends FormRequest
                 'image',
                 'mimes:jpeg,jpg,png,webp',
                 'max:1024'
-            ],
-
-            'is_public' => [
-                'nullable',
-                'boolean',
             ],
         ];
     }

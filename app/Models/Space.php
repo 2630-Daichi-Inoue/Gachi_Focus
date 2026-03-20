@@ -51,8 +51,8 @@ class Space extends Model
         return $this->belongsToMany(
             Amenity::class,
             'amenity_space',
-            'amenity_id',
-            'space_id'
+            'space_id',
+            'amenity_id'
         );
     }
 

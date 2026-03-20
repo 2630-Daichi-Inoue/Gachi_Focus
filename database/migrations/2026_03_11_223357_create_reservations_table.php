@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * Run the migrations.
      */
@@ -30,7 +33,6 @@ return new class extends Migration
             $table->index(['space_id', 'end_at']);
             $table->index(['user_id', 'start_at']);
         });
-
     }
 
     /**

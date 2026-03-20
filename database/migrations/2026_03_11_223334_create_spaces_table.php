@@ -8,13 +8,14 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-
-
         Schema::create('spaces', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('name', 50);
@@ -28,15 +29,14 @@ return new class extends Migration
             $table->unsignedInteger('weekend_price_yen');
             $table->text('description');
             $table->string('image_path', 255);
-            $table->text('map_embed')->nullable();
             $table->boolean('is_public')
                     ->default(true);
             $table->timestamps();
             $table->softDeletes();
 
+            $table->index(['prefecture', 'city']);
         });
     }
-
 
     /**
      * Reverse the migrations.

@@ -8,7 +8,6 @@ use Inertia\Inertia;
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Requests\StoreSpaceRequest;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
