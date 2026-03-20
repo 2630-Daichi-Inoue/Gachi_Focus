@@ -92,12 +92,11 @@ class SpacesController extends Controller
         return redirect()->route('admin.spaces.index')->with('status', 'Successfully registered.');
     }
 
-    // public function edit($id)
     public function edit(Space $space)
     {
         if ($space->trashed()) {
             return redirect()->route('admin.spaces.index')
-                ->with('error', 'This space has already been deleted.');
+                ->with('error', $space->name . ' has already been deleted.');
         }
 
         $space->load('amenities');
@@ -116,7 +115,7 @@ class SpacesController extends Controller
     {
         if ($space->trashed()) {
             return redirect()->route('admin.spaces.index')
-                ->with('error', 'This space has already been deleted.');
+                ->with('error', $space->name . ' has already been deleted.');
         }
 
         # 1. Validate all form data

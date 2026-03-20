@@ -40,9 +40,11 @@ Route::middleware(['auth', 'admin'])
             ->name('spaces.store');
 
         Route::get('/spaces/{space}/edit', [SpacesController::class, 'edit'])
+            ->withTrashed()
             ->name('spaces.edit');
 
         Route::patch('/spaces/{space}', [SpacesController::class, 'update'])
+            ->withTrashed()
             ->name('spaces.update');
 
         Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])

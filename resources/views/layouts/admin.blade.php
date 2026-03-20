@@ -269,9 +269,10 @@
 
                 @if (session('status'))
                 <div class="container p-3">
-                    <div class="alert alert-success text-center mb-0">
-                    {{-- flash message --}}
-                    {{ session('status') }}
+                    <div class="alert alert-success alert-dismissible fade show text-center mb-0">
+                        {{-- flash message --}}
+                        {{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 </div>
 
