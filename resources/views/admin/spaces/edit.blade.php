@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Edit Space')
 
@@ -82,7 +82,7 @@
                 <label for="open_time" class="form-label fw-bold">
                     Open Time <span class="text-danger">※</span>
                 </label>
-                <input type="time" name="open_time" id="open_time" class="form-control" value="{{ old('open_time', $space->open_time) }}">
+                <input type="time" name="open_time" id="open_time" class="form-control" value="{{ old('open_time', $space->open_time_for_form) }}">
                 {{-- Error --}}
                 @error('open_time')
                     <p class="text-danger small">{{ $message }}</p>
@@ -93,7 +93,7 @@
                 <label for="close_time" class="form-label fw-bold">
                     Close Time <span class="text-danger">※</span>
                 </label>
-                <input type="time" name="close_time" id="close_time" class="form-control" value="{{ old('close_time', $space->close_time) }}">
+                <input type="time" name="close_time" id="close_time" class="form-control" value="{{ old('close_time', $space->close_time_for_form) }}">
                 {{-- Error --}}
                 @error('close_time')
                     <p class="text-danger small">{{ $message }}</p>
@@ -167,7 +167,7 @@
                 </div>
             @endif
             <label for="image" class="form-label d-block fw-bold">
-                Image <span class="text-danger">※</span>
+                Image
             </label>
             <input type="file" name="image" id="image" class="form-control">
             <div class="form-text">
@@ -202,5 +202,11 @@
     </form>
 
     @include('admin.spaces.modals.delete')
+
+    @if ($errors->any())
+        @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    @endif
 
 @endsection

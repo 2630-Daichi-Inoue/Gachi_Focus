@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -111,5 +112,22 @@ class Space extends Model
         return $date->isWeekend()
             ? $this->weekend_price_yen
             : $this->weekday_price_yen;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+    public function getOpenTimeForFormAttribute()
+    {
+        $open_time = $this->attributes['open_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $open_time)->format('H:i');
+    }
+
+    public function getCloseTimeForFormAttribute()
+    {
+        $close_time = $this->attributes['close_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $close_time)->format('H:i');
     }
 }

@@ -102,7 +102,7 @@ class UpdateSpaceRequest extends FormRequest
             ],
 
             'amenities.*' => [
-                'integer',
+                'string',
                 'exists:amenities,id'
             ],
 

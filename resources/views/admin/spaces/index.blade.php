@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin: Spaces')
 
@@ -122,7 +122,7 @@
                 @php $is_public = request('is_public', 'all'); @endphp
                 <div class="position-relative">
                     <select name="is_public"
-                            id="is_public" 
+                            id="is_public"
                             class="form-select form-select-sm border text-dark input-unified">
                         <option value="">All</option>
                         <option value="1" {{ $is_public === '1' ? 'selected' : '' }}>Public</option>
