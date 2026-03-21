@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Inertia\Response;
 
 class AuthenticatedSessionController extends Controller
@@ -27,7 +28,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|SymfonyResponse
     {
         $request->authenticate();
 
@@ -48,7 +49,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
+            return Inertia::location(route('admin.dashboard'));
         }
 
         return redirect()->route('spaces.index');
