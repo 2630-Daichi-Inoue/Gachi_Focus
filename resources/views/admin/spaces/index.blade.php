@@ -2,13 +2,14 @@
 
 @section('title', 'Admin: Spaces')
 
+@section('content')
+
 <style>
     .input-unified {
         height: 36px;
     }
 </style>
 
-@section('content')
     {{-- Flash messages --}}
     @if (session('ok'))
         <div class="alert alert-success alert-dismissible fade show border border-success-subtle" role="alert">
@@ -154,9 +155,6 @@
             <tbody>
                 @foreach ($spaces as $space)
                     <tr>
-                        {{-- ID --}}
-                        {{-- <td>{{ $space->id }}</td> --}}
-
                         {{-- Name --}}
                         <td>{{ $space->name }}</td>
 
@@ -184,28 +182,47 @@
                                         <i class="fa-solid fa-eye"></i> View
                                     </button>
 
+
                                     {{-- Public -> Hidden --}}
                                     @if ($space->is_public === true)
-                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal"
-                                                data-bs-target="#space-action-{{ $space->id }}"
+                                        <button type="button"
+                                                class="dropdown-item text-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#confirmHideModal-{{ $space->id }}"
                                                 data-mode="hide">
                                             <i class="fa-solid fa-ban"></i> Hide
                                         </button>
+                                        <form id="hide-space-form-{{ $space->id }}"
+                                                action="{{ route('admin.spaces.hide', $space) }}"
+                                                method="POST"
+                                                class="d-none">
+                                            @csrf
+                                            @method('PATCH')
+                                        </form>
                                     @endif
 
                                     {{-- Hidden -> Public --}}
                                     @if ($space->is_public === false)
-                                        <button type="button" class="dropdown-item text-primary" data-bs-toggle="modal"
-                                                data-bs-target="#space-action-{{ $space->id }}"
+                                        <button type="button"
+                                                class="dropdown-item text-primary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#confirmShowModal-{{ $space->id }}"
                                                 data-mode="show">
                                             <i class="fa-solid fa-arrow-rotate-left"></i> Show
                                         </button>
+                                        <form id="show-space-form-{{ $space->id }}"
+                                            action="{{ route('admin.spaces.show', $space) }}"
+                                            method="POST"
+                                            class="d-none">
+                                            @csrf
+                                            @method('PATCH')
+                                        </form>
                                     @endif
                                 </div>
                             </div>
-
-                            {{-- Modal include (unchanged) --}}
-                            {{-- @include('admin.spaces.modals.action', ['space' => $space]) --}}
+                            {{-- Modals --}}
+                            @include('admin.spaces.modals.hide', ['space' => $space])
+                            @include('admin.spaces.modals.show', ['space' => $space])
                         </td>
                     </tr>
                 @endforeach
@@ -267,7 +284,7 @@
         .table-fixed td:nth-child(2),
         .table-fixed td:nth-child(3),
         .table-fixed td:nth-child(4),
-        .table-fixed td:nth-child(5), {
+        .table-fixed td:nth-child(5) {
             overflow: hidden;
             text-overflow: ellipsis;
         }

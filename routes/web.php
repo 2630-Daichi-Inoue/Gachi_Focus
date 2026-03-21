@@ -47,6 +47,14 @@ Route::middleware(['auth', 'admin'])
             ->withTrashed()
             ->name('spaces.update');
 
+        Route::patch('/spaces/{space}/hide', [SpacesController::class, 'hide'])
+            ->withTrashed()
+            ->name('spaces.hide');
+
+        Route::patch('/spaces/{space}/show', [SpacesController::class, 'show'])
+            ->withTrashed()
+            ->name('spaces.show');
+
         Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])
             ->name('spaces.destroy');
     });

@@ -155,6 +155,42 @@ class SpacesController extends Controller
         return redirect()->route('admin.spaces.index')->with('status', 'Successfully updated.');
     }
 
+    public function hide(Space $space)
+    {
+        if ($space->trashed()) {
+            return redirect()->route('admin.spaces.index')
+                ->with('error', $space->name . ' has already been deleted.');
+        }
+
+        # 1. Update the space data in the spaces table
+        $space->fill ([
+            'is_public' => false,
+        ]);
+
+        $space->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.spaces.index')->with('status', 'Successfully hidden.');
+    }
+
+    public function show(Space $space)
+    {
+        if ($space->trashed()) {
+            return redirect()->route('admin.spaces.index')
+                ->with('error', $space->name . ' has already been deleted.');
+        }
+
+        # 1. Update the space data in the spaces table
+        $space->fill ([
+            'is_public' => true,
+        ]);
+
+        $space->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.spaces.index')->with('status', 'Successfully shown.');
+    }
+
     public function destroy(Space $space)
     {
         $space->delete();
