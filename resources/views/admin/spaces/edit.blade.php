@@ -180,7 +180,9 @@
         </div>
 
         <!-- update button -->
-        <button type="submit" class="btn text-white fw-bold px-5" style="background-color: #757B9D">
+        <button type="submit"
+                class="btn text-white fw-bold px-5"
+                style="background-color: #757B9D">
             Update
         </button>
 
@@ -210,3 +212,15 @@
     @endif
 
 @endsection
+
+<script>
+    const modal = document.getElementById('confirmDeleteModal');
+    let triggerButton;
+    modal?.addEventListener('show.bs.modal', function (e) {
+        triggerButton = e.relatedTarget;
+    });
+    modal?.addEventListener('hide.bs.modal', function (e) {
+        triggerButton?.focus();
+        triggerButton = null;
+    });
+</script>
