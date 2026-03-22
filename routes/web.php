@@ -8,6 +8,7 @@ use Inertia\Inertia;
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\SpacesController;
+use App\Http\Controllers\Admin\AmenitiesController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -57,6 +58,18 @@ Route::middleware(['auth', 'admin'])
 
         Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])
             ->name('spaces.destroy');
+
+        Route::get('/amenities', [AmenitiesController::class, 'index'])
+            ->name('amenities.index');
+
+        Route::post('/amenities', [AmenitiesController::class, 'store'])
+            ->name('amenities.store');
+
+        Route::patch('/amenities/{amenity}', [AmenitiesController::class, 'update'])
+            ->name('amenities.update');
+
+        Route::delete('/amenities/{amenity}', [AmenitiesController::class, 'destroy'])
+            ->name('amenities.destroy');
     });
 
 Route::middleware('auth')->group(function () {

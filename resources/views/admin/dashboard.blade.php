@@ -17,8 +17,8 @@
                         <a href="{{ route('admin.users.index') }}" class="list-group-item fw-bold">Manage Users ></a> --}}
                         <a href="{{ route('admin.spaces.index') }}" class="list-group-item fw-bold">Spaces index</a>
                         <a href="{{ route('admin.spaces.register') }}" class="list-group-item fw-bold">Register a space</a>
-                        {{-- <a href="{{ route('categories.index') }}" class="list-group-item fw-bold">Edit Categories
-                            ></a> --}}
+                        <a href="{{ route('admin.amenities.index') }}" class="list-group-item fw-bold">Edit Amenities
+                            ></a>
                     </div>
                 </div>
 
