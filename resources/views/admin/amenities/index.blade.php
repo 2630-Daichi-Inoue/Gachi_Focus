@@ -120,14 +120,6 @@
   </div>
 </div>
 
-<form id="delete-amenity-form"
-    action=""
-    method="POST"
-    class="d-none">
-    @csrf
-    @method('DELETE')
-</form>
-
 @include('admin.amenities.modals.edit')
 @include('admin.amenities.modals.delete')
 
@@ -157,8 +149,7 @@
 
         // Set form action and label
             const form = document.getElementById('delete-amenity-form');
-            // form.action = action;
-            form.action = button.getAttribute('data-action');
+            form.action = action;
             document.getElementById('deleteAmenityName').textContent = name;
         });
 </script>
