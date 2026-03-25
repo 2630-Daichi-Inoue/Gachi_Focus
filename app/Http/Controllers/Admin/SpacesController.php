@@ -11,12 +11,29 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSpaceRequest;
 use App\Http\Requests\UpdateSpaceRequest;
+use Illuminate\Validation\Rule;
 
 class SpacesController extends Controller
 {
 
     public function index(Request $request)
     {
+
+        $prefectureList = array_merge(
+            config('constants.prefectures.Major Prefectures'),
+            config('constants.prefectures.Other Prefectures')
+        );
+
+        $request->validate([
+            'name' => ['nullable','string','max:50'],
+            'prefecture' => ['nullable', Rule::in($prefectureList)],
+            'city' => ['nullable','string','max:50'],
+            'address_line' => ['nullable','string','max:100'],
+            'is_public' => ['nullable','in:all,0,1'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
+
         $query = Space::query();
 
         // Filter by name
@@ -36,13 +53,16 @@ class SpacesController extends Controller
             $query->where('address_line', 'LIKE', '%' . $request->address_line . '%');
         }
         // Filter by is_public
-        if ($request->filled('is_public')) {
+        $isPublic = $request->input('is_public', 'all');
+        if ($isPublic !== 'all') {
             $query->where('is_public', $request->boolean('is_public'));
         }
 
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+
         $spaces = $query
                     ->latest()
-                    ->paginate(10);
+                    ->paginate($rowsPerPage);
 
         $prefectures = Space::select('prefecture')
                         ->distinct()

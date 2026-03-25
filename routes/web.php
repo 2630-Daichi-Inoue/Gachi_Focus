@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\AmenitiesController;
+use App\Http\Controllers\Admin\ReservationsController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -28,9 +29,11 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.')
     ->group(function () {
 
+        // Admin Dashboard
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
+        // Admin Spaces Management
         Route::get('/spaces', [SpacesController::class, 'index'])
             ->name('spaces.index');
 
@@ -59,6 +62,7 @@ Route::middleware(['auth', 'admin'])
         Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])
             ->name('spaces.destroy');
 
+        // Admin Amenities Management
         Route::get('/amenities', [AmenitiesController::class, 'index'])
             ->name('amenities.index');
 
@@ -70,6 +74,11 @@ Route::middleware(['auth', 'admin'])
 
         Route::delete('/amenities/{amenity}', [AmenitiesController::class, 'destroy'])
             ->name('amenities.destroy');
+
+        // Admin Reservations Management
+        Route::get('/reservations', [ReservationsController::class, 'index'])
+            ->name('reservations.index');
+
     });
 
 Route::middleware('auth')->group(function () {

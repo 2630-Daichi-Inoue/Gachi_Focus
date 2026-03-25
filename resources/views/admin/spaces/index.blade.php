@@ -2,13 +2,34 @@
 
 @section('title', 'Admin: Spaces')
 
-@section('content')
-
 <style>
     .input-unified {
         height: 36px;
     }
+
+    /* Fixed layout + fit width */
+    .table-fixed { table-layout: fixed; width: 100%; }
+
+    /* No wrap + ellipsis on selected columns */
+    .table-fixed th, .table-fixed td { white-space: nowrap; }
+    .table-fixed td:nth-child(2),
+    .table-fixed td:nth-child(3),
+    .table-fixed td:nth-child(4),
+    .table-fixed td:nth-child(5) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Column widths (sum approx 100%) */
+    .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 20%; }   /* Name */
+    .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 10%; }  /* Prefecture */
+    .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 10%; }  /* City / Ward */
+    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 30%; }  /* Address Line */
+    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 20%; }  /* Is Public */
+    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }   /* Action */
 </style>
+
+@section('content')
 
     {{-- Flash messages --}}
     @if (session('ok'))
@@ -41,7 +62,7 @@
     <form method="GET" action="{{ route('admin.spaces.index') }}" id="searchForm">
         <div class="row mb-2 align-items-stretch">
             <div class="col-md-6">
-                <h2>Space list</h2>
+                <h1>Space list</h1>
             </div>
             <div class="col-md-6 d-flex gap-5 justify-content-end">
                 <!-- Clear button -->
@@ -79,7 +100,7 @@
                     <select size="1"
                             id="prefecture"
                             name="prefecture"
-                            class="form-select form-select-sm border text-dark input-unified">
+                            class="form-control form-control-m border text-dark input-unified">
                         <option value="">All</option>
 
                         @foreach ($prefectures as $prefecture)
@@ -124,8 +145,8 @@
                 <div class="position-relative">
                     <select name="is_public"
                             id="is_public"
-                            class="form-select form-select-sm border text-dark input-unified">
-                        <option value="">All</option>
+                            class="form-control form-control-m border text-dark input-unified">
+                        <option value="all">All</option>
                         <option value="1" {{ $is_public === '1' ? 'selected' : '' }}>Public</option>
                         <option value="0" {{ $is_public === '0' ? 'selected' : '' }}>Hidden</option>
                     </select>
@@ -177,11 +198,12 @@
                                     <i class="fas fa-ellipsis"></i>
                                 </button>
                                 <div class="dropdown-menu">
-                                    {{-- View --}}
-                                    <button type="button" class="dropdown-item">
-                                        <i class="fa-solid fa-eye"></i> View
+                                    {{-- Edit --}}
+                                    <button type="button"
+                                            class="dropdown-item"
+                                            onclick="window.location='{{ route('admin.spaces.edit', $space) }}'">
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
-
 
                                     {{-- Public -> Hidden --}}
                                     @if ($space->is_public === true)
@@ -240,9 +262,10 @@
             <div class="col-md-4">
                 <form id="rowsPerPageForm" method="GET" action="{{ route('admin.spaces.index') }}"
                       class="d-flex align-items center gap-2 justify-content-end">
-                    <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
+                    <label for="rows_per_page" class="mb-0 small text-mute">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
-                    <select name="rows_per_page" id="rows_per_page"
+                    <select name="rows_per_page"
+                            id="rows_per_page"
                             class="form-select form-select-sm  text-dark w-auto">
                         <option value="20" {{ $per === 20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ $per === 50 ? 'selected' : '' }}>50</option>
@@ -263,38 +286,15 @@
         </div>
     @endif
 
+@endsection
+
+@section('scripts')
     <!-- instant apply JS for rows_per_page -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // const isPublicSel = document.getElementById('is_public');
-            // isPublicSel?.addEventListener('change', () => isPublicSel.form?.submit());
-
             const perSel = document.getElementById('rows_per_page');
             const perForm = document.getElementById('rowsPerPageForm');
             perSel?.addEventListener('change', () => perForm?.submit());
         });
     </script>
-
-    <style>
-        /* Fixed layout + fit width */
-        .table-fixed { table-layout: fixed; width: 100%; }
-
-        /* No wrap + ellipsis on selected columns */
-        .table-fixed th, .table-fixed td { white-space: nowrap; }
-        .table-fixed td:nth-child(2),
-        .table-fixed td:nth-child(3),
-        .table-fixed td:nth-child(4),
-        .table-fixed td:nth-child(5) {
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Column widths (sum approx 100%) */
-        .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 20%; }   /* Name */
-        .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 10%; }  /* Prefecture */
-        .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 10%; }  /* City / Ward */
-        .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 30%; }  /* Address Line */
-        .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 20%; }  /* Is Public */
-        .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }   /* Action */
-    </style>
 @endsection

@@ -25,10 +25,18 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'is_admin' => false, // Default to non-admin for safety
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'phone' => fake()->optional()->phoneNumber(),
+            'avatar_path' => null,
+            'user_status' => match (true) {
+                ($r = fake()->numberBetween(1, 100)) <= 95 => 'active', // 95% chance
+                $r <= 98 => 'restricted', // 3% chance
+                default => 'suspended', // 2% chance
+            },
+            // 'remember_token' => Str::random(10),
         ];
     }
 
@@ -39,6 +47,13 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function suspended(): static
+    {
+        return $this->state(fn () => [
+            'user_status' => 'suspended',
         ]);
     }
 }

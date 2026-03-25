@@ -14,15 +14,15 @@
       </div>
 
       <div class="modal-footer border-0">
-        <form method="POST" action="{{ route('admin.reservations.action', $reservation->id) }}">
-          @csrf
-          @method('PATCH')
-          <input type="hidden" name="action" id="modal-action-{{ $reservation->id }}" value="">
-          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-sm" id="modal-submit-{{ $reservation->id }}">
+        {{-- <form method="POST" action="{{ route('admin.reservations.action', $reservation->id) }}">
+            @csrf
+            @method('PATCH')
+            <input type="hidden" name="action" id="modal-action-{{ $reservation->id }}" value="">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-sm" id="modal-submit-{{ $reservation->id }}">
             {{-- switching content and color --}}
-          </button>
-        </form>
+            </button>
+        </form> --}}
       </div>
     </div>
   </div>
