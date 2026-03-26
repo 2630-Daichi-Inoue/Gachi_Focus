@@ -13,8 +13,9 @@
                         data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-wrap">
                 Are you sure you want to delete <strong>{{ $space->name }}</strong>?
+                <br>
                 This action cannot be undone and the space will no longer be available.
             </div>
             <div class="modal-footer border-0">

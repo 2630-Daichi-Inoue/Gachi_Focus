@@ -7,14 +7,14 @@
         <div class="modal-content border-danger">
             <div class="modal-header border-danger">
                 <h5 class="modal-title text-danger"
-                    id="confirmHideLabel-{{ $space->id }}">Hide</h5>
+                    id="confirmHideLabel-{{ $space->id }}">Hide Space</h5>
                 <button type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                Are you sure you want to hide <strong>{{ $space->name }}</strong>?
+            <div class="modal-body text-wrap">
+                Are you sure you want to hide <strong>{{ $space->name }}</strong> ?
             </div>
             <div class="modal-footer border-0">
                 <button type="button"

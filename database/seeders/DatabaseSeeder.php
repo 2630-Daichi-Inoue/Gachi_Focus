@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
-            // AmenitySeeder::class,
+            AmenitySeeder::class,
         ]);
 
         $users = User::factory(50)->create();

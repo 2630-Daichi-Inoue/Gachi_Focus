@@ -190,7 +190,8 @@ class SpacesController extends Controller
         $space->save();
 
         # 2. redirect to the index
-        return redirect()->route('admin.spaces.index')->with('status', 'Successfully hidden.');
+        return redirect()->route('admin.spaces.index')
+                        ->with('status', 'Successfully hidden.');
     }
 
     public function show(Space $space)

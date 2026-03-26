@@ -62,7 +62,7 @@
     <form method="GET" action="{{ route('admin.spaces.index') }}" id="searchForm">
         <div class="row mb-2 align-items-stretch">
             <div class="col-md-6">
-                <h1>Space list</h1>
+                <h1 class="h3 mb-0">Space list</h1>
             </div>
             <div class="col-md-6 d-flex gap-5 justify-content-end">
                 <!-- Clear button -->
@@ -189,7 +189,13 @@
                         <td>{{ $space->address_line }}</td>
 
                         {{-- Status --}}
-                        <td>{{ $space->is_public === true ? 'Public' : 'Hidden' }}</td>
+                        <td>
+                            @if ($space->is_public)
+                                <span class="text-dark">Public</span>
+                            @else
+                                <span class="text-danger">Hidden</span>
+                            @endif
+                        </td>
 
                         {{-- Actions (conditions kept; null-safe checks above guard display) --}}
                         <td>

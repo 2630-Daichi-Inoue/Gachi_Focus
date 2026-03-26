@@ -63,7 +63,7 @@
     <form method="GET" action="{{ route('admin.reservations.index') }}" id="searchForm">
         <div class="row mb-2 align-items-stretch">
             <div class="col-md-6">
-                <h1>Reservation list</h1>
+                <h1 class="h3 mb-0">Reservation list</h1>
             </div>
             <div class="col-md-6 d-flex gap-5 justify-content-end">
                 <!-- Clear button -->
@@ -93,11 +93,6 @@
                            class="form-control form-control-sm border input-unified ps-4"
                            placeholder="Search by user name."
                            value="{{ request('user_name') }}">
-                    {{-- <button type="button"
-                            id="clearUserName"
-                            class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-1 p-0 bg-transparent border-0 text-muted">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button> --}}
                 </div>
             </div>
 
@@ -112,11 +107,6 @@
                             class="form-control form-control-sm border input-unified ps-4"
                             placeholder="Search by space name."
                             value="{{ request('space_name') }}">
-                    {{-- <button type="button"
-                            id="clearSpaceName"
-                            class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-1 p-0 bg-transparent border-0 text-muted">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button> --}}
                 </div>
             </div>
 
@@ -148,7 +138,7 @@
                 @php $status = request('status', 'all'); @endphp
                 <select name="status" id="status" class="form-control form-control-m border text-dark input-unified">
                     <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All</option>
-                    <option value="booked" {{ $status === 'booked' ? 'selected' : '' }}>Booked</option>
+                    <option value="booked" {{ $status === 'booked' ? 'selected' : '' }}>Booked or Done</option>
                     <option value="canceled" {{ $status === 'canceled' ? 'selected' : '' }}>Canceled</option>
                 </select>
             </div>
@@ -212,43 +202,49 @@
 
                         {{-- Booking status (use simple badge; avoid assuming icon/class map) --}}
                         <td>
-                            @php
-                                // Map internal status -> label; fallback to raw text or dash
-                                $statusLabel = \App\Models\Reservation::RESERVATION_STATUS_MAP[$reservation->reservation_status] ?? ($reservation->reservation_status ?? '—');
-                            @endphp
-                            <span class="badge bg-light text-dark border">{{ $statusLabel }}</span>
+                            @if($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
+                                <span class="text-dark">Booked</span>
+                            @elseif($reservation->reservation_status === 'booked' && $reservation->end_at < now())
+                                <span class="text-success">Done</span>
+                            @elseif($reservation->reservation_status === 'canceled')
+                                <span class="text-danger">Canceled</span>
+                            @endif
                         </td>
 
                         {{-- Actions (conditions kept; null-safe checks above guard display) --}}
                         <td>
-                            @php
-                                $isBooked = strtolower((string) $reservation->reservation_status) === 'booked';
-                            @endphp
                             <div class="dropdown">
                                 <button class="btn btn-sm" data-bs-toggle="dropdown">
                                     <i class="fas fa-ellipsis"></i>
                                 </button>
                                 <div class="dropdown-menu">
                                     {{-- View --}}
-                                    <button type="button" class="dropdown-item">
+                                    {{-- <button type="button" class="dropdown-item">
                                         <i class="fa-solid fa-eye"></i> View
-                                    </button>
+                                    </button> --}}
 
                                     {{-- Booked -> Cancel --}}
-                                    @if ($isBooked)
+                                    @if($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
                                         <button type="button"
                                                 class="dropdown-item text-danger"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#reservation-action-{{ $reservation->id }}"
+                                                data-bs-target="#confirmCancelModal-{{ $reservation->id }}"
                                                 data-mode="cancel">
                                             <i class="fa-solid fa-ban"></i> Cancel
                                         </button>
+                                        <form id="cancel-reservation-form-{{ $reservation->id }}"
+                                                action="{{ route('admin.reservations.cancel', $reservation) }}"
+                                                method="POST"
+                                                class="d-none">
+                                            @csrf
+                                            @method('PATCH')
+                                        </form>
                                     @endif
                                 </div>
                             </div>
 
-                            {{-- Modal include (unchanged) --}}
-                            @include('admin.reservations.modals.action', ['reservation' => $reservation])
+                            {{-- Modal --}}
+                            @include('admin.reservations.modals.cancel', ['reservation' => $reservation])
                         </td>
                     </tr>
                 @endforeach
@@ -300,13 +296,5 @@
             const perForm = document.getElementById('rowsPerPageForm');
             perSel?.addEventListener('change', () => perForm?.submit());
         });
-
-        // instant clear JS for user_name and space_name
-        // document.addEventListener('DOMContentLoaded', () => {
-        //     const input = document.getElementById('user_name');
-        //     input.value = '';
-        //     input.focus();
-        // });
-
     </script>
 @endsection

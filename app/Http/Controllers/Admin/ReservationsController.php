@@ -42,18 +42,18 @@ class ReservationsController extends Controller
             );
         }
 
-        // Filter by status
-        $status = $request->input('status', 'all');
-        if($status !== 'all') {
-            $query->where('reservation_status', $status);
-        }
-
         // Filter by date range
         if ($from = $request->input('date_from')) {
             $query->where('end_at', '>=', "{$from} 00:00:00");
         }
         if ($to = $request->input('date_to')) {
             $query->where('start_at', '<=', "{$to} 23:59:59");
+        }
+
+        // Filter by status
+        $status = $request->input('status', 'all');
+        if($status !== 'all') {
+            $query->where('reservation_status', $status);
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
@@ -63,6 +63,25 @@ class ReservationsController extends Controller
                         ->paginate($rowsPerPage);
 
         return view('admin.reservations.index', compact('reservations'));
+    }
+
+    public function cancel(Reservation $reservation)
+    {
+        if ($reservation->end_at < now()) {
+            return redirect()->route('admin.reservations.index')
+                ->with('error', 'The reservation has already ended.');
+        }
+
+        # 1. Update the reservation data in the reservations table
+        $reservation->fill ([
+            'reservation_status' => 'canceled',
+        ]);
+
+        $reservation->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.reservations.index')
+                        ->with('status', 'Successfully canceled.');
     }
 
     # cancel or refund
