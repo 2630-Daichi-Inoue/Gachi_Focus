@@ -166,26 +166,10 @@
                 @foreach ($reservations as $reservation)
                     <tr>
                         {{-- User (null-safe) --}}
-                        <td class="text-truncate">
-                            @if ($reservation->user)
-                                <p>{{ $reservation->user->name }}</p>
-                                {{-- <a href="{{ route('profile.show', $reservation->user->id) }}"
-                                   class="text-decoration-none text-dark">
-                                    {{ $reservation->user->name }}
-                                </a> --}}
-                            @else
-                                <span class="text-muted">[Deleted user: {{ $reservation->user->name }}]</span>
-                            @endif
-                        </td>
+                        <td class="text-truncate">{{ $reservation->user->name }}</td>
 
                         {{-- Space (null-safe) --}}
-                        <td class="text-truncate">
-                            @if ($reservation->space)
-                                {{ $reservation->space->name }}
-                            @else
-                                <span class="text-muted">[Missing space: {{ $reservation->space->name }}]</span>
-                            @endif
-                        </td>
+                        <td class="text-truncate">{{ $reservation->space->name }}</td>
 
                         {{-- Start / End (safe formatting) --}}
                         <td>{{ \Carbon\Carbon::parse($reservation->start_at)->format('Y/n/j G:i') }}</td>

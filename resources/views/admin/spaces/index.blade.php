@@ -287,6 +287,7 @@
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">
+                {{-- {{ $spaces->withQueryString()->links() }} --}}
                 {{ $spaces->withQueryString()->links() }}
             </div>
         </div>

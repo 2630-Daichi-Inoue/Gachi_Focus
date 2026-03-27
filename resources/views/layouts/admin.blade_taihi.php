@@ -11,15 +11,16 @@
     <title>{{ config('app.name', 'GachiFocus') }} | @yield('title')</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('images/GachiFocus_logo_favicon.png') }}" type="image/phg">
+    <link rel="icon" href="{{ asset('images/GachiFocus_logo_favicon.png') }}" type="image/png">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
         integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
 
     <!-- Scripts -->
-    {{-- @vite(['resources/sass/app.scss', 'resources/js/admin.js']) --}}
-    @vite(['resources/sass/app.scss', 'resources/css/admin.css', 'resources/js/admin.js'])
+    @vite(['resources/sass/app.scss', 'resources/js/admin.js'])
 
     <!-- css -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
@@ -35,20 +36,6 @@
     .navbar-custom {
         background-color: #D9D9D9;
     }
-
-    .navbar-logo {
-        height: 60px !important;
-        width: auto !important;
-        max-height: 60px !important;
-        display: block;
-    }
-
-    .navbar-brand {
-        display: inline-flex;
-        align-items: center;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
 </style>
 
 <body>
@@ -57,7 +44,7 @@
             <div class="container">
                 <a class="navbar-brand"
                     href="{{ auth()->check() && auth()->user()->isAdmin() ? route('admin.dashboard') : route('index') }}">
-                    <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="Gachi Focus" class="navbar-logo">
+                    <img src="{{ asset('images/GachiFocus_logo.png') }}" alt="" height="60">
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -79,30 +66,21 @@
                                 </li>
                             @endif
                         @else
-                            @if (auth()->user()->isAdmin())
+                            @if(auth()->user()->isAdmin())
                                 <!-- ← Admin or User -->
                                 <!-- ADMIN LINKS -->
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.spaces.register') }}" class="nav-link me-3">Register Coworking Space</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.spaces.index') }}" class="nav-link me-3">Coworking Spaces</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.users.index') }}" class="nav-link me-3">Users</a>
-                                </li>
 
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.dashboard') }}" class="nav-link me-4 fw-semibold text-dark">
-                                        <i class="fa-solid fa-chart-line me-1"></i>Dash board
-                                    </a>
-                                </li>
+                                <a href="{{ route('admin.spaces.register') }}" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="{{ route('admin.spaces.index') }}" class="nav-link me-3">Coworking Spaces</a>
+                                <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
+                                <a href="{{ route('admin.users.index') }}" class="nav-link me-3">Users</a>
+
+                                <a href="{{ route('admin.dashboard') }}" class="nav-link me-4 fw-semibold text-dark">
+                                    <i class="fa-solid fa-chart-line me-1"></i>Dash board
+                                </a>
 
                                 {{-- If admin need to check the user side UI Vr. --}}
-                                {{-- <li class="nav-item dropdown">
+                                <li class="nav-item dropdown">
                                     <a id="userSideDropdown" class="nav-link dropdown-toggle fw-semibold text-dark me-3"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         User Side
@@ -110,35 +88,38 @@
 
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('reservations.current') }}">
+                                            {{-- <a class="dropdown-item" href="{{ route('reservations.current') }}">
                                                 <i class="fa-regular fa-calendar-check me-2 text-secondary"></i>Current
                                                 Reservation
-                                            </a>
+                                            </a> --}}
+                                            <span>Current Reservation</span>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('reservations.past') }}">
+                                            {{-- <a class="dropdown-item" href="{{ route('reservations.past') }}">
                                                 <i class="fa-solid fa-clock-rotate-left me-2 text-secondary"></i>Past
                                                 Reservation
-                                            </a>
+                                            </a> --}}
+                                            <span>Past Reservation</span>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('contact.create') }}">
+                                            {{-- <a class="dropdown-item" href="{{ route('contact.create') }}">
                                                 <i class="fa-regular fa-envelope me-2 text-secondary"></i>Contact
-                                            </a>
+                                            </a> --}}
+                                            <span>Contact</span>
                                         </li>
                                     </ul>
-                                </li> --}}
+                                </li>
 
-                                <!-- notification -->
+                                <!-- contacts -->
                                 <li class="nav-item dropdown">
                                     <a id="notificationDropdown" href="" class="nav-link position-relative me-3"
                                         data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
 
                                         <!-- Unread mark on the bell icon -->
-                                        {{-- @php
+                                        @php
                                             $hasUnread = auth()
                                                 ->user()
-                                                ->receivedNotifications()
+                                                ->notifications()
                                                 ->whereNull('read_at')
                                                 ->exists();
                                         @endphp
@@ -146,7 +127,7 @@
                                             <span id="unread-dot" class="position-absolute bg-danger rounded-circle"
                                                 style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
                                             </span>
-                                        @endif --}}
+                                        @endif
                                     </a>
 
                                     <!-- popup window of notifications -->
@@ -166,21 +147,21 @@
                                         </div>
 
                                         <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            {{-- <a href="{{ route('admin.notifications.index') }}" class="text-primary">All
-                                                Notifications &gt;</a> --}}
+                                            {{-- <a href="{{ route('admin.notifications.index') }}" class="text-primary">All --}}
+                                                Notifications &gt;</a>
                                         </div>
                                     </div>
                                 </li>
                             @else
                                 <!-- USER LINKS -->
                                 <!-- Current Reservation -->
-                                <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
+                                {{-- <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a> --}}
 
-                            <!-- Past Reservation -->
-                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
+                                <!-- Past Reservation -->
+                                {{-- <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a> --}}
 
                                 <!-- Contact -->
-                                <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
+                                {{-- <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a> --}}
 
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
@@ -191,7 +172,7 @@
                                         @php
                                             $hasUnread = auth()
                                                 ->user()
-                                                ->receivedNotifications()
+                                                ->notifications()
                                                 ->whereNull('read_at')
                                                 ->exists();
                                         @endphp
@@ -214,7 +195,7 @@
                                                 </div>
                                                 <hr class="my-2">
                                             @empty
-                                                <p>No notifications found.</p>
+                                                <p>No new notifications.</p>
                                             @endforelse
 
                                         </div>
@@ -291,9 +272,10 @@
 
                 @if (session('status'))
                 <div class="container p-3">
-                    <div class="alert alert-success text-center mb-0">
-                    {{-- flash message --}}
-                    {{ session('status') }}
+                    <div class="alert alert-success alert-dismissible fade show text-center mb-0">
+                        {{-- flash message --}}
+                        {{ session('status') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 </div>
 

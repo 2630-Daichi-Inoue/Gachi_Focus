@@ -146,14 +146,7 @@
                 @foreach ($users as $user)
                     <tr>
                         {{-- User (null-safe) --}}
-                        <td class="text-truncate">
-                            <p>{{ $user->name }}</p>
-                            {{-- <a href="{{ route('profile.show', $user->id) }}"
-                            class="text-decoration-none text-dark">
-                                {{ $user->name }}
-                            </a> --}}
-
-                        </td>
+                        <td class="text-truncate">{{ $user->name }}</td>
 
                         {{-- Email --}}
                         <td>{{ $user->email }}</td>
