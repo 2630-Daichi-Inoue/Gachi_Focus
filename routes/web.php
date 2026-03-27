@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\AmenitiesController;
 use App\Http\Controllers\Admin\ReservationsController;
+use App\Http\Controllers\Admin\UsersController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -81,6 +82,19 @@ Route::middleware(['auth', 'admin'])
 
         Route::patch('/reservations/{reservation}/cancel', [ReservationsController::class, 'cancel'])
             ->name('reservations.cancel');
+
+        // Admin Users Management
+        Route::get('/users', [UsersController::class, 'index'])
+            ->name('users.index');
+
+        Route::patch('/users/{user}/restrict', [UsersController::class, 'restrict'])
+            ->name('users.restrict');
+
+        Route::patch('/users/{user}/activate', [UsersController::class, 'activate'])
+            ->name('users.activate');
+
+        Route::patch('/users/{user}/ban', [UsersController::class, 'ban'])
+            ->name('users.ban');
     });
 
 Route::middleware('auth')->group(function () {

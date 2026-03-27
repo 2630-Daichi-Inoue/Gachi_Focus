@@ -1,32 +1,32 @@
 <div class="modal fade"
-    id="confirmCancelModal-{{ $reservation->id }}"
+    id="confirmActivateModal-{{ $user->id }}"
     tabindex="-1"
-    aria-labelledby="confirmCancelLabel-{{ $reservation->id }}"
+    aria-labelledby="confirmActivateLabel-{{ $user->id }}"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-danger">
             <div class="modal-header border-danger">
                 <h5 class="modal-title text-danger"
-                    id="confirmCancelLabel-{{ $reservation->id }}">Cancel Reservation</h5>
+                    id="confirmActivateLabel-{{ $user->id }}">Activate User</h5>
                 <button type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
             <div class="modal-body text-wrap">
-                Are you sure you want to cancel <strong>{{ $reservation->user->name }}</strong>'s reservation for <strong>{{ $reservation->space->name }}</strong> ?
+                Are you sure you want to activate <strong>{{ $user->name }}</strong> ?
                 <br>
-                This action cannot be undone.
+                You can restrict them again later if needed.
             </div>
             <div class="modal-footer border-0">
                 <button type="button"
                         class="btn btn-secondary"
-                        data-bs-dismiss="modal">No, keep it.
+                        data-bs-dismiss="modal">No, keep them.
                 </button>
                 <button type="button"
                         class="btn btn-danger"
-                        onclick="document.getElementById('cancel-reservation-form-{{ $reservation->id }}').submit();">
-                        Yes, cancel it.
+                        onclick="document.getElementById('activate-user-form-{{ $user->id }}').submit();">
+                        Yes, activate them.
                 </button>
             </div>
         </div>

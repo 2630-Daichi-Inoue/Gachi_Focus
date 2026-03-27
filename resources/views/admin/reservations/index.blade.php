@@ -6,29 +6,26 @@
     .input-unified {
         height: 36px;
     }
+
     /* Fixed layout + fit width */
     .table-fixed { table-layout: fixed; width: 100%; }
 
     /* No wrap + ellipsis on selected columns */
-    .table-fixed th, .table-fixed td { white-space: nowrap; }
-    .table-fixed td:nth-child(2),
-    .table-fixed td:nth-child(3),
-    .table-fixed td:nth-child(4),
-    .table-fixed td:nth-child(5) {
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .table-fixed th,
+    .table-fixed td {
+        white-space: nowrap;
+        max-width: 0; /* prevent auto-expansion */
     }
 
-    /* Column widths (sum approx 100%) */
-    .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 6%; }   /* ID */
-    .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 12%; }  /* User */
-    .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 18%; }  /* Space */
-    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 14%; }  /* Start */
-    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 14%; }  /* End */
-    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 8%; }   /* Fee */
-    .table-fixed th:nth-child(7), .table-fixed td:nth-child(7) { width: 10%; }  /* Status */
-    .table-fixed th:nth-child(8), .table-fixed td:nth-child(8) { width: 14%; }  /* Payment */
-    .table-fixed th:nth-child(9), .table-fixed td:nth-child(9) { width: 4%; }   /* Action */
+    /* Column widths */
+    .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 15%; } /* User */
+    .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 20%; } /* Space */
+    .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 15%; } /* Start */
+    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 15%; } /* End */
+    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 5%; }  /* Qty */
+    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 15%; } /* Price */
+    .table-fixed th:nth-child(7), .table-fixed td:nth-child(7) { width: 10%; } /* Status */
+    .table-fixed th:nth-child(8), .table-fixed td:nth-child(8) { width: 5%; }  /* Action */
 </style>
 
 @section('content')
@@ -82,7 +79,7 @@
         </div>
 
         <div class="row mb-2 align-items-stretch">
-            <!-- name -->
+            <!-- Name -->
             <div class="col-md-2">
                 <label for="user_name" class="form-label mb-1 small text-muted">User name</label>
                 <div class="position-relative">
@@ -96,7 +93,7 @@
                 </div>
             </div>
 
-            <!-- space -->
+            <!-- Space -->
             <div class="col-md-2">
                 <label for="space_name" class="form-label mb-1 small text-muted">Space name</label>
                 <div class="position-relative">
@@ -110,7 +107,7 @@
                 </div>
             </div>
 
-            <!-- date(from) -->
+            <!-- Date(from) -->
             <div class="col-md-2">
                 <label for="date_from" class="form-label small text-muted mb-1">Date(from)</label>
                 <input type="date"
@@ -120,7 +117,7 @@
                         value="{{ request('date_from') }}">
             </div>
 
-            <!-- date(to) -->
+            <!-- Date(to) -->
             <div class="col-md-2">
                 <label for="date_to" class="form-label small text-muted mb-1">Date(to)</label>
                 <input type="date"
@@ -130,7 +127,7 @@
                         value="{{ request('date_to') }}">
             </div>
 
-            <!-- status (instant apply) -->
+            <!-- Status -->
             <div class="col-md-2">
                 <label for="status" class="form-label mb-1 small text-muted">
                     Status
@@ -155,14 +152,14 @@
         <table class="table table-hover align-middle bg-white border text-secondary table-fixed">
             <thead class="small table-success text-secondary">
                 <tr>
-                    <th style="width: 15%;">User Name</th>
-                    <th style="width: 20%;">Space Name</th>
-                    <th style="width: 15%;">Start At</th>
-                    <th style="width: 15%;">End At</th>
-                    <th style="width: 10%;">Quantity</th>
-                    <th style="width: 10%;">Total Price</th>
-                    <th style="width: 10%;">Status</th>
-                    <th style="width: 5%;">Action</th>
+                    <th>User Name</th>
+                    <th>Space Name</th>
+                    <th>Start At</th>
+                    <th>End At</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -200,7 +197,7 @@
                         {{-- Total Price (keep as-is to avoid logic impact) --}}
                         <td>¥ {{ number_format($reservation->total_price_yen) }}</td>
 
-                        {{-- Booking status (use simple badge; avoid assuming icon/class map) --}}
+                        {{-- Status --}}
                         <td>
                             @if($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
                                 <span class="text-dark">Booked</span>
@@ -263,7 +260,7 @@
                 <form id="rowsPerPageForm"
                     method="GET"
                     action="{{ route('admin.reservations.index') }}"
-                    class="d-flex align-items center gap-2">
+                    class="d-flex align-items-center gap-2">
                     <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
                     <select name="rows_per_page" id="rows_per_page"

@@ -15,16 +15,18 @@
             </div>
             <div class="modal-body text-wrap">
                 Are you sure you want to show <strong>{{ $space->name }}</strong> ?
+                <br>
+                You can hide it again later if needed.
             </div>
             <div class="modal-footer border-0">
                 <button type="button"
                         class="btn btn-secondary"
-                        data-bs-dismiss="modal">No, cancel.
+                        data-bs-dismiss="modal">No, keep it.
                 </button>
                 <button type="button"
                         class="btn btn-danger"
                         onclick="document.getElementById('show-space-form-{{ $space->id }}').submit();">
-                        Yes, show.
+                        Yes, show it.
                 </button>
             </div>
         </div>

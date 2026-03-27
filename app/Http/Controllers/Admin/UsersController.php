@@ -22,49 +22,95 @@ class UsersController extends Controller
     {
         $request->validate([
             'name' => 'nullable|string|max:50',
-            'status' => 'nullable|in:all,active,banned',
+            'email' => 'nullable|string|max:100',
+            'status' => 'nullable|in:all,active,restricted,banned',
             'rows_per_page' => 'nullable|integer|in:20,50,100',
         ]);
 
-        $q = \App\Models\User::query()->withTrashed();
+        // Exclude admin
+        $query = User::query()
+                ->where('is_admin', false);
 
-        if($name = trim($request->input('name', ''))) {
-            $q->where('name', 'like', "%{$name}%");
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->where('name', 'LIKE', '%' . $request->name . '%');
         }
-
-
-        switch($request->input('status', 'all')) {
-            case
-                'active':$q->whereNull('deleted_at');
-                break;
-            case
-                'banned':$q->whereNotNull('deleted_at');
-                break;
+        // Filter by email
+        if ($request->filled('email')) {
+            $query->where('email', 'LIKE', '%' . $request->email . '%');
+        }
+        // Filter by status
+        $status = $request->input('status', 'all');
+        if($status !== 'all') {
+            $query->where('user_status', $status);
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
-        $all_users = $q->orderBy('id', 'desc')
-                        ->paginate($rowsPerPage)
-                        ->appends($request->query());
+        $users = $query
+                    ->latest()
+                    ->paginate($rowsPerPage);
 
-
-        return view('admin.users.index', compact('all_users'));
+        return view('admin.users.index', compact('users'));
     }
 
-    # ban
-    public function deactivate($id)
+    # Restrict User
+    public function restrict(User $user)
     {
-        $this->user->destroy($id);
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
 
-        return back();
+        # 1. Update the user data in the users table
+        $user->fill ([
+            'user_status' => 'restricted',
+        ]);
+
+        $user->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.users.index')
+                        ->with('status', 'Successfully restricted.');
     }
 
-    # activate
-    public function activate($id)
+    # Activate User
+    public function activate(User $user)
     {
-        $this->user->onlyTrashed()->findOrFail($id)->restore();
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
 
-        return back();
+        # 1. Update the user data in the users table
+        $user->fill ([
+            'user_status' => 'active',
+        ]);
+
+        $user->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.users.index')
+                        ->with('status', 'Successfully activated.');
+    }
+
+    # Ban User
+    public function ban(User $user)
+    {
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
+
+        # 1. Update the user data in the users table
+        $user->fill ([
+            'user_status' => 'banned',
+        ]);
+
+        $user->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.users.index')
+                        ->with('status', 'Successfully banned.');
     }
 }

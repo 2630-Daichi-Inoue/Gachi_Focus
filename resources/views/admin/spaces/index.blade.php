@@ -8,25 +8,25 @@
     }
 
     /* Fixed layout + fit width */
-    .table-fixed { table-layout: fixed; width: 100%; }
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%;
+    }
 
     /* No wrap + ellipsis on selected columns */
-    .table-fixed th, .table-fixed td { white-space: nowrap; }
-    .table-fixed td:nth-child(2),
-    .table-fixed td:nth-child(3),
-    .table-fixed td:nth-child(4),
-    .table-fixed td:nth-child(5) {
-        overflow: hidden;
-        text-overflow: ellipsis;
+    .table-fixed th,
+    .table-fixed td {
+        white-space: nowrap;
+        max-width: 0; /* prevent auto-expansion */
     }
 
     /* Column widths (sum approx 100%) */
-    .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 20%; }   /* Name */
+    .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 20%; }  /* Name */
     .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 10%; }  /* Prefecture */
     .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 10%; }  /* City / Ward */
     .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 30%; }  /* Address Line */
     .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 20%; }  /* Is Public */
-    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }   /* Action */
+    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }  /* Action */
 </style>
 
 @section('content')
@@ -164,7 +164,6 @@
         <table class="table table-hover align-middle bg-white border text-secondary table-fixed">
             <thead class="small table-success text-secondary">
                 <tr>
-                    {{-- <th>ID</th> --}}
                     <th>Name</th>
                     <th>Prefecture</th>
                     <th>City / Ward</th>
@@ -177,19 +176,19 @@
                 @foreach ($spaces as $space)
                     <tr>
                         {{-- Name --}}
-                        <td>{{ $space->name }}</td>
+                        <td class="text-truncate">{{ $space->name }}</td>
 
                         {{-- Prefecture --}}
-                        <td>{{ $space->prefecture }}</td>
+                        <td class="text-truncate">{{ $space->prefecture }}</td>
 
                         {{-- City --}}
-                        <td>{{ $space->city }}</td>
+                        <td class="text-truncate">{{ $space->city }}</td>
 
                         {{-- Address Line --}}
-                        <td>{{ $space->address_line }}</td>
+                        <td class="text-truncate">{{ $space->address_line }}</td>
 
                         {{-- Status --}}
-                        <td>
+                        <td class="text-truncate">
                             @if ($space->is_public)
                                 <span class="text-dark">Public</span>
                             @else
@@ -266,12 +265,13 @@
                 </p>
             </div>
             <div class="col-md-4">
-                <form id="rowsPerPageForm" method="GET" action="{{ route('admin.spaces.index') }}"
-                      class="d-flex align-items center gap-2 justify-content-end">
-                    <label for="rows_per_page" class="mb-0 small text-mute">Rows per page:</label>
+                <form id="rowsPerPageForm"
+                    method="GET"
+                    action="{{ route('admin.spaces.index') }}"
+                    class="d-flex align-items-center gap-2">
+                    <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
-                    <select name="rows_per_page"
-                            id="rows_per_page"
+                    <select name="rows_per_page" id="rows_per_page"
                             class="form-select form-select-sm  text-dark w-auto">
                         <option value="20" {{ $per === 20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ $per === 50 ? 'selected' : '' }}>50</option>
@@ -291,7 +291,6 @@
             </div>
         </div>
     @endif
-
 @endsection
 
 @section('scripts')

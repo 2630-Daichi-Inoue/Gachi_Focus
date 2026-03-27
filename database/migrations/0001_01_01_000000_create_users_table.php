@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
             $table->longText('avatar_path', 255)->nullable();
             $table->string('user_status', 20)
-                    ->default('active'); // e.g. active, restricted, suspended
+                    ->default('active'); // e.g. active, restricted, banned
             $table->timestamps();
             $table->softDeletes();
             // $table->rememberToken();

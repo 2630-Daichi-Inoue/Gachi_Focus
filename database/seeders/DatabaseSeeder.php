@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
             AmenitySeeder::class,
         ]);
 
-        $users = User::factory(50)->create();
-        $spaces = Space::factory(20)->create();
+        $users = User::factory(100)->create();
+        $spaces = Space::factory(50)->create();
         // User::factory()->suspended()->create();
 
         foreach(range(1, 100) as $i) {

@@ -34,7 +34,7 @@ class UserFactory extends Factory
             'user_status' => match (true) {
                 ($r = fake()->numberBetween(1, 100)) <= 95 => 'active', // 95% chance
                 $r <= 98 => 'restricted', // 3% chance
-                default => 'suspended', // 2% chance
+                default => 'banned', // 2% chance
             },
             // 'remember_token' => Str::random(10),
         ];
