@@ -21,7 +21,10 @@
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
-    <!-- css -->
+    <!-- Inertia Head -->
+    @inertiaHead
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <script src="//unpkg.com/alpinejs" defer></script>
@@ -38,6 +41,7 @@
 </style>
 
 <body>
+    @inertia
     <div id="app">
         <nav class="navbar navbar-expand-md navbar-custom shadow-sm fixed-top">
             <div class="container">

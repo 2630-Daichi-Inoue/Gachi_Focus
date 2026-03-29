@@ -79,7 +79,6 @@
     </form>
 
     <div class="row gx-2 mt-3">
-
             @forelse ($home_spaces as $space)
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
@@ -88,13 +87,12 @@
                         @include('users.spaces.contents.footer')
                     </div>
                 </div>
-            @empty       
+            @empty
                 <div class="text-center">
                     <h2>No results.</h2>
                     <p class="text-secondary">Try different filters or remove them.</p>
                 </div>
             @endforelse
-        
     </div>
 
     <div class="row">
@@ -108,7 +106,7 @@
             @endif
         </div>
 
-        <!-- pagenation -->
+        <!-- pagination -->
         <div class="col-md-6">
             <div class="d-flex justify-content-end">
                 {{ $home_spaces->links() }}

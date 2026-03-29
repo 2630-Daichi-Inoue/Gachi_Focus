@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\AmenitiesController;
 use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\UsersController;
 
+// User Controllers
+use App\Http\Controllers\SpaceController;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -95,7 +98,10 @@ Route::middleware(['auth', 'admin'])
 
         Route::patch('/users/{user}/ban', [UsersController::class, 'ban'])
             ->name('users.ban');
-    });
+    }
+);
+
+Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

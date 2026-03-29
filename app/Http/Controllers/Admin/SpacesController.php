@@ -33,7 +33,6 @@ class SpacesController extends Controller
             'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
-
         $query = Space::query();
 
         // Filter by name
@@ -128,7 +127,12 @@ class SpacesController extends Controller
         # Get all amenity IDs of the space.
         $selectedAmenityIds = $space->amenities->pluck('id')->toArray();
 
-        return view('admin.spaces.edit', ['space' => $space, 'amenities' => $amenities, 'selectedAmenityIds' => $selectedAmenityIds]);
+        return view('admin.spaces.edit', [
+                'space' => $space,
+                'amenities' => $amenities,
+                'selectedAmenityIds' => $selectedAmenityIds,
+            ]
+        );
     }
 
     public function update(UpdateSpaceRequest $request, Space $space)

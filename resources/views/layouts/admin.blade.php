@@ -18,10 +18,9 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Scripts -->
-    {{-- @vite(['resources/sass/app.scss', 'resources/js/admin.js']) --}}
     @vite(['resources/sass/app.scss', 'resources/css/admin.css', 'resources/js/admin.js'])
 
-    <!-- css -->
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <script src="//unpkg.com/alpinejs" defer></script>

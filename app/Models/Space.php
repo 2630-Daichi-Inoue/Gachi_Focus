@@ -72,6 +72,18 @@ class Space extends Model
         );
     }
 
+    public function reviews()
+    {
+        return $this->hasManyThrough(
+            Review::class,
+            Reservation::class,
+            'space_id',
+            'reservation_id',
+            'id',
+            'id'
+        );
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Scopes

@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Space;
 use App\Models\Reservation;
+use App\Models\Review;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
+            UserSeeder::class,
             AmenitySeeder::class,
         ]);
 
@@ -27,6 +29,13 @@ class DatabaseSeeder extends Seeder
                         ->for($user, 'user')
                         ->forSpace($space)
                         ->create();
+        }
+
+        $reservations = Reservation::inRandomOrder()->limit(50)->get();
+        foreach($reservations as $reservation) {
+            Review::factory()
+                    ->forReservation($reservation)
+                    ->create();
         }
     }
 }

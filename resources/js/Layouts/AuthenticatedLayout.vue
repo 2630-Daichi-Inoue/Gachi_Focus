@@ -22,7 +22,7 @@ const showingNavigationDropdown = ref(false);
                         <div class="flex">
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="route('spaces.index')">
                                     <ApplicationLogo
                                         class="block h-9 w-auto fill-current text-gray-800"
                                     />
@@ -34,11 +34,17 @@ const showingNavigationDropdown = ref(false);
                                 class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
                             >
                                 <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
+                                    :href="route('spaces.index')"
+                                    :active="route().current('spaces.index')"
                                 >
-                                    Dashboard
+                                    Spaces
                                 </NavLink>
+                                <!-- <NavLink
+                                    :href="route('reservations.index')"
+                                    :active="route().current('reservations.index')"
+                                >
+                                    My Reservations
+                                </NavLink> -->
                             </div>
                         </div>
 
@@ -141,11 +147,17 @@ const showingNavigationDropdown = ref(false);
                 >
                     <div class="space-y-1 pb-3 pt-2">
                         <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
+                            :href="route('spaces.index')"
+                            :active="route().current('spaces.index')"
                         >
-                            Dashboard
+                            Spaces
                         </ResponsiveNavLink>
+                        <!-- <ResponsiveNavLink
+                            :href="route('reservations.index')"
+                            :active="route().current('reservations.index')"
+                        >
+                            My Reservations
+                        </ResponsiveNavLink> -->
                     </div>
 
                     <!-- Responsive Settings Options -->

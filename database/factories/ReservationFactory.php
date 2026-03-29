@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\User;
 use App\Models\Space;
 use Carbon\Carbon;
 
@@ -24,7 +23,6 @@ class ReservationFactory extends Factory
                 ($r = fake()->numberBetween(1, 100)) <= 95 => 'booked', // 95% chance
                 default => 'canceled', // 5% chance
             },
-             // The following fields will be overridden when using forSpace() in DatabaseSeeder
         ];
     }
 

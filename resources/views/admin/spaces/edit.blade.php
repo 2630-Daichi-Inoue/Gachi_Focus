@@ -23,7 +23,7 @@
                 <label for="prefecture" class="form-label fw-bold">
                     Prefecture <span class="text-danger">※</span>
                 </label>
-                <select size="1" id="prefecture" name="prefecture" class="form-control input-unified">
+                <select size="1" id="prefecture" name="prefecture" class="form-select form-control input-unified">
                     @foreach (config('constants.prefectures') as $major_or_other => $prefectures)
                         <optgroup label="{{ $major_or_other }}">
                             @foreach ($prefectures as $prefecture)

@@ -19,7 +19,7 @@ class User extends Authenticatable
      * Mass assignable attributes
      */
     protected $fillable = [
-        'nickname',
+        'name',
         'is_admin',
         'email',
         'password',
@@ -92,9 +92,9 @@ class User extends Authenticatable
                     ->whereNull('deleted_at');
     }
 
-    public function scopeSuspended($query)
+    public function scopeBanned($query)
     {
-        return $query->where('user_status', 'suspended')
+        return $query->where('user_status', 'banned')
                     ->whereNull('deleted_at');
     }
 
@@ -118,7 +118,7 @@ class User extends Authenticatable
         return $this->user_status === 'restricted' && is_null($this->deleted_at);
     }
 
-    public function isSuspended(): bool
+    public function isBanned(): bool
     {
         return $this->user_status === 'suspended' && is_null($this->deleted_at);
     }

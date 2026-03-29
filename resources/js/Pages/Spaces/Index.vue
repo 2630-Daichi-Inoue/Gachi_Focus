@@ -1,0 +1,122 @@
+<script setup>
+import {reactive, watch} from 'vue'
+import { Head, router, Link } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import SpaceCardTitle from './contents/SpaceCardTitle.vue'
+import SpaceCardBody from './contents/SpaceCardBody.vue'
+import SpaceCardFooter from './contents/SpaceCardFooter.vue'
+
+const props = defineProps({
+    spaces: Object,
+    prefectures: Array,
+    filters: Object,
+})
+
+const form = reactive({
+    name: props.filters.name ?? '',
+    prefecture: props.filters.prefecture ?? '',
+    city: props.filters.city ?? '',
+    address_line: props.filters.address_line ?? '',
+    max_price: props.filters.max_price ?? '',
+    sort: props.filters.sort ?? 'rating_high_to_low',
+})
+
+const search = () => {
+    router.get(route('spaces.index'), form, {
+        preserveState: true,
+        replace: true,
+        preserveScroll: true,
+    })
+}
+
+const clearFilters = () => {
+    form.name = ''
+    form.prefecture = ''
+    form.city = ''
+    form.address_line = ''
+    form.max_price = ''
+    form.sort = 'rating_high_to_low'
+    search()
+}
+
+watch(() => form.sort, () => {
+    search()
+})
+</script>
+
+<template>
+    <AuthenticatedLayout>
+        <Head title="Spaces" />
+
+        <!-- Search area -->
+        <div class="p-4">
+            <form @submit.prevent="search" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
+                    <input v-model="form.name" type="text" placeholder="Name" class="border rounded px-3 py-2" />
+                    <select v-model="form.prefecture" name="prefecture" id="prefecture" class="border rounded px-3 py-2">
+                        <option value="">Select Prefecture</option>
+                        <option v-for="prefecture in prefectures" :key="prefecture" :value="prefecture">{{ prefecture }}</option>
+                    </select>
+                    <input v-model="form.city" type="text" placeholder="City" class="border rounded px-3 py-2" />
+                    <!-- <input v-model="form.address_line" type="text" placeholder="Address Line" class="border rounded px-3 py-2" /> -->
+                    <select v-model="form.sort" class="border rounded px-3 py-2">
+                        <option value="rating_high_to_low">Rating: High → Low</option>
+                        <option value="price_high_to_low">Price: High → Low</option>
+                        <option value="price_low_to_high">Price: Low → High</option>
+                        <option value="capacity_high_to_low">Capacity: High → Low</option>
+                        <option value="capacity_low_to_high">Capacity: Low → High</option>
+                        <option value="newest">Newest First</option>
+                    </select>
+
+                    <div class="flex gap-2">
+                        <button type="button" @click="clearFilters" class="border rounded px-3 py-2">
+                            Clear Filters
+                        </button>
+                        <button type="submit" class="bg-slate-600 text-white rounded px-3 py-2">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Empty state -->
+            <div v-if="spaces?.data?.length === 0" class="text-center mt-8">
+                <h3 class="text-xl font-semibold">No results.</h3>
+                <p class="text-gray-500">Try different filters or remove them.</p>
+            </div>
+
+            <!-- Card list -->
+            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div v-for="space in spaces.data"
+                    :key="space.id"
+                    class="md:w-full mb-4"
+                >
+                    <div class="h-full flex flex-col">
+                        <SpaceCardTitle :space="space" />
+                        <SpaceCardBody :space="space" />
+                        <SpaceCardFooter :space="space" />
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-between items-center mt-6" v-if="spaces.data.length > 0">
+                <p class="text-sm text-gray-500">
+                    Showing {{ spaces.from }} to {{ spaces.to }} of {{ spaces.total }} results
+                </p>
+                <div class="flex gap-1">
+                    <template v-for="link in spaces.links" :key="link.url ?? link.label">
+                        <button
+                            v-if="link.url"
+                            @click="router.visit(link.url)"
+                            v-html="link.label"
+                            class="px-3 py-1 border rounded text-sm"
+                            :class="{ 'bg-gray-200': link.active }"
+                        />
+                    </template>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>

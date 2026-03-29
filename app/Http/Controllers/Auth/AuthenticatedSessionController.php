@@ -36,7 +36,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
-        if ($user->isSuspended()) {
+        if ($user->isBanned()) {
             Auth::logout();
 
             $request->session()->invalidate();
