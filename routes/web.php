@@ -102,6 +102,7 @@ Route::middleware(['auth', 'admin'])
 );
 
 Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
+Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

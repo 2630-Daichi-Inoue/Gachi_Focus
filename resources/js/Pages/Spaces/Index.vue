@@ -2,9 +2,9 @@
 import {reactive, watch} from 'vue'
 import { Head, router, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import SpaceCardTitle from './contents/SpaceCardTitle.vue'
-import SpaceCardBody from './contents/SpaceCardBody.vue'
-import SpaceCardFooter from './contents/SpaceCardFooter.vue'
+import SpaceCardTitle from './Components/Index/SpaceCardTitle.vue'
+import SpaceCardBody from './Components/Index/SpaceCardBody.vue'
+import SpaceCardFooter from './Components/Index/SpaceCardFooter.vue'
 
 const props = defineProps({
     spaces: Object,
@@ -24,7 +24,7 @@ const form = reactive({
 const search = () => {
     router.get(route('spaces.index'), form, {
         preserveState: true,
-        replace: true,
+        // replace: true,
         preserveScroll: true,
     })
 }
@@ -46,7 +46,7 @@ watch(() => form.sort, () => {
 
 <template>
     <AuthenticatedLayout>
-        <Head title="Spaces" />
+        <Head title="Show Space" />
 
         <!-- Search area -->
         <div class="p-4">

@@ -12,18 +12,21 @@ class Review extends Model
     use HasUlids, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'space_id', 'rating', 'cleanliness',
-        'conditions', 'facilities', 'comment', 'photo',
+        'reservation_id',
+        'rating',
+        'comment',
+        'is_public',
     ];
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function space()
-    {
-        return $this->belongsTo(Space::class);
-    }
 }
 

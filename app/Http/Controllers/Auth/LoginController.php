@@ -57,7 +57,7 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        return redirect('/');
+        return redirect('spaces.index');
     }
 
     protected function loggedOut(Request $request)

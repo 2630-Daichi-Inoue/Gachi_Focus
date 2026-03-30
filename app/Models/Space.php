@@ -31,6 +31,10 @@ class Space extends Model
         'is_public',
     ];
 
+    protected $appends = [
+        'full_address',
+    ];
+
     /**
      * Attribute casting.
      */
@@ -114,12 +118,12 @@ class Space extends Model
             && $endTime <= $this->close_time;
     }
 
-    public function fullAddress(): string
+    public function getFullAddressAttribute(): string
     {
-        return "{$this->prefecture}{$this->city}{$this->address_line}";
+        return "{$this->address_line}, {$this->city}, {$this->prefecture}";
     }
 
-    public function unitPriceForDate(CarbonInterface $date): int
+    public function getUnitPriceForDateAttribute(CarbonInterface $date): int
     {
         return $date->isWeekend()
             ? $this->weekend_price_yen

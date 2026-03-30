@@ -55,6 +55,18 @@ class User extends Authenticatable
         return $this->hasMany(Reservation::class);
     }
 
+    public function reviews()
+    {
+        return $this->hasManyThrough(
+            Review::class,
+            Reservation::class,
+            'user_id',
+            'reservation_id',
+            'id',
+            'id'
+        );
+    }
+
     public function favoriteSpaces()
     {
         return $this->belongsToMany(
@@ -120,7 +132,7 @@ class User extends Authenticatable
 
     public function isBanned(): bool
     {
-        return $this->user_status === 'suspended' && is_null($this->deleted_at);
+        return $this->user_status === 'banned' && is_null($this->deleted_at);
     }
 
     public function isWithdrawn(): bool

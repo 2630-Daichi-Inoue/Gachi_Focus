@@ -3,6 +3,9 @@ import { Link } from '@inertiajs/vue3'
 const props = defineProps({
     space: Object,
 })
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
+};
 </script>
 
 <template>
@@ -22,12 +25,12 @@ const props = defineProps({
 
             <p class="mb-1">
                 Weekday:
-                ¥{{ space.weekday_price_yen }}/30min
+                ¥{{ formatPrice(space.weekday_price_yen) }}/30min
             </p>
 
             <p class="mb-1">
                 Weekend:
-                ¥{{ space.weekend_price_yen }}/30min
+                ¥{{ formatPrice(space.weekend_price_yen) }}/30min
             </p>
 
             <p class="mb-1">
@@ -35,7 +38,7 @@ const props = defineProps({
             </p>
 
             <p class="mb-1">
-                Rating: ★{{ space.reviews_avg_rating ? Number(space.reviews_avg_rating).toFixed(1) : '-' }}
+                Rating: ★{{ space.public_reviews_avg_rating ? Number(space.public_reviews_avg_rating).toFixed(1) : '-' }}
             </p>
         </div>
     </div>
