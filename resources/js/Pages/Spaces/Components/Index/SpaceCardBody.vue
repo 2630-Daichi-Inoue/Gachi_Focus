@@ -25,12 +25,12 @@ const formatPrice = (price) => {
 
             <p class="mb-1">
                 Weekday:
-                ¥{{ formatPrice(space.weekday_price_yen) }}/30min
+                ¥{{ formatPrice(space.weekday_price_yen) }} / 0.5h
             </p>
 
             <p class="mb-1">
                 Weekend:
-                ¥{{ formatPrice(space.weekend_price_yen) }}/30min
+                ¥{{ formatPrice(space.weekend_price_yen) }} / 0.5h
             </p>
 
             <p class="mb-1">

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UsersController;
 
 // User Controllers
 use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\ReservationController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -101,8 +102,12 @@ Route::middleware(['auth', 'admin'])
     }
 );
 
+// User Spaces Routes
 Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
 Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
+
+// User Booking Route
+Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

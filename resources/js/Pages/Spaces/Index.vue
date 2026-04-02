@@ -1,6 +1,6 @@
 <script setup>
 import {reactive, watch} from 'vue'
-import { Head, router, Link } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import SpaceCardTitle from './Components/Index/SpaceCardTitle.vue'
 import SpaceCardBody from './Components/Index/SpaceCardBody.vue'
@@ -46,7 +46,7 @@ watch(() => form.sort, () => {
 
 <template>
     <AuthenticatedLayout>
-        <Head title="Show Space" />
+        <Head title="Space Index" />
 
         <!-- Search area -->
         <div class="p-4">

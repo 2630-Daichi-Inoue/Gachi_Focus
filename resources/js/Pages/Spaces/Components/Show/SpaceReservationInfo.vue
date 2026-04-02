@@ -51,11 +51,11 @@ const formatPrice = (price) => {
             </div>
         </div>
         <div>
-            <Link :href="Fill_here_later"
+            <!-- <Link :href="Fill_here_later"
                 class="font-medium text-blue-600 hover:underline">
                 Need to contact us? >
-            </Link>
-            <Link :href="`/spaces/${space.id}/book`"
+            </Link> -->
+            <Link :href="route('reservations.create', space.id)"
                 class="bg-sky-700 flex items-center justify-center h-10 w-1/2 mt-4 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
                 Book it
             </Link>

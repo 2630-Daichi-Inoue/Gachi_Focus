@@ -82,7 +82,6 @@ class SpacesController extends Controller
 
     public function store(StoreSpaceRequest $request)
     {
-
         # 1. Validate all form data
         $data = $request->validated();
         // store the uploaded image (storage/app/public/spaces)
@@ -114,8 +113,9 @@ class SpacesController extends Controller
     public function edit(Space $space)
     {
         if ($space->trashed()) {
-            return redirect()->route('admin.spaces.index')
-                ->with('error', $space->name . ' has already been deleted.');
+            return redirect()
+                    ->route('admin.spaces.index')
+                    ->with('error', $space->name . ' has already been deleted.');
         }
 
         $space->load('amenities');

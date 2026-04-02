@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers;
-
 
 use App\Models\Space;
 use App\Models\Amenity;
@@ -13,13 +11,13 @@ use Inertia\Inertia;
 
 class SpaceController extends Controller
 {
-    private $space;
-    private $user;
+    // private $space;
+    // private $user;
 
-    public function __construct(Space $space)
-    {
-        $this->space = $space;
-    }
+    // public function __construct(Space $space)
+    // {
+    //     $this->space = $space;
+    // }
 
     public function index(Request $request)
     {
