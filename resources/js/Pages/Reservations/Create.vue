@@ -12,9 +12,9 @@ const props = defineProps({
     date: String,
 })
 
-const selectedDate = ref(props.date)
+const date = ref(props.date)
 
-watch(selectedDate, (newDate) => {
+watch(date, (newDate) => {
     router.get(
         route('reservations.create', props.space.id),
         { date: newDate },
@@ -42,7 +42,7 @@ watch(selectedDate, (newDate) => {
                 <ReservationForm
                                 :space="space"
                                 :startCandidates="startCandidates"
-                                v-model:selectedDate="selectedDate" />
+                                v-model:date="date" />
             </div>
         </div>
     </AuthenticatedLayout>

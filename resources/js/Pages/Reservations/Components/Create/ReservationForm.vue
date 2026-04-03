@@ -1,28 +1,19 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import { reactive, computed, watch } from 'vue'
 
 const props = defineProps({
     space: Object,
     startCandidates: Array,
-    selectedDate: String,
+    date: String,
 })
 
 const form = reactive({
-    selectedDate: props.selectedDate ?? '',
+    date: props.date ?? '',
     startAt: null,
     endAt: null,
     quantity: 1,
 })
-
-const reserve = () => {
-    // Reservation logic will go here
-    if (!form.selectedDate || !form.startAt || !form.endAt || !form.quantity) {
-        alert('Please fill in all fields.')
-        return
-    }
-    alert('Reservation logic to be implemented.')
-}
 
 const toMinutes = (time) => {
     const [hour, minute] = time.split(':').map(Number)
@@ -56,12 +47,12 @@ watch(() => form.startAt, () => {
     form.endAt = null
 })
 
-const emit = defineEmits(['update:selectedDate'])
+const emit = defineEmits(['update:date'])
 
-watch(() => form.selectedDate, (newDate) => {
+watch(() => form.date, (newDate) => {
     form.startAt = null
     form.endAt = null
-    emit('update:selectedDate', newDate)
+    emit('update:date', newDate)
 })
 
 const formatPrice = (price) => {
@@ -75,8 +66,8 @@ const getDayOfWeek = (dateString) => {
 }
 
 const isWeekend = computed(() => {
-    if (!form.selectedDate) return false
-    const day = getDayOfWeek(form.selectedDate)
+    if (!form.date) return false
+    const day = getDayOfWeek(form.date)
     return day === 0 || day === 6
 })
 
@@ -92,23 +83,38 @@ const pricePerHalfHour = computed(() => {
 })
 
 const totalPrice = computed(() => {
-    if (!form.selectedDate || !form.startAt || !form.endAt || !form.quantity) {
+    if (!form.date || !form.startAt || !form.endAt || !form.quantity) {
         return 0
     }
 
     return pricePerHalfHour.value * form.quantity * slotCount.value
 })
 
+const goToPayment = () => {
+    if (!form.date || !form.startAt || !form.endAt || !form.quantity) {
+        alert('Please fill in all fields.')
+        return
+    }
+    // alert('Going to payment page.')
+    router.get(route('reservations.payment', props.space.id), {
+        date: form.date,
+        start_at: form.startAt,
+        end_at: form.endAt,
+        quantity: form.quantity,
+        total_price: totalPrice.value,
+    })
+}
+
 </script>
 
 <template>
 <div class="bg-white border border-gray-300 p-4">
-    <form @submit.prevent="reserve" class="space-y-4">
+    <form @submit.prevent="goToPayment" class="space-y-4">
         <div>
             <label for="date">Date</label>
-            <input v-model="form.selectedDate" name="date" id="date" type="date" placeholder="Date" class="border rounded mb-4" />
+            <input v-model="form.date" name="date" id="date" type="date" placeholder="Date" class="border rounded mb-4" />
             <p class="mb-4">Price / 0.5 h:
-                <template v-if="form.selectedDate">
+                <template v-if="form.date">
                     {{ formatPrice(pricePerHalfHour) }}
                 </template>
             </p>
@@ -141,7 +147,7 @@ const totalPrice = computed(() => {
             </Link>
             <button type="submit"
                     class="flex items-center justify-center md:w-3/4 text-white font-bold text-3xl border border-gray-300 rounded transition bg-cyan-600 hover:bg-cyan-700">
-                Proceed to Payment
+                Continue to Payment
             </button>
         </div>
     </form>

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\CustomNotification;
 
-class NotificationController extends Controller
+class NotificationsController extends Controller
 {
     public function index()
     {
@@ -14,7 +14,7 @@ class NotificationController extends Controller
                 ->orderByDesc('created_at')
                 ->paginate(5);
 
-        return view('admin.notification', compact('notifications'));
+        return view('admin.notifications', compact('notifications'));
     }
 
     public function markAsRead(CustomNotification $notification)
@@ -26,8 +26,8 @@ class NotificationController extends Controller
         if(is_null($notification->read_at)){
             $notification->update(['read_at' => now()]);
         }
-        
-        if($request->expectsJson()){
+
+        if(request()->expectsJson()){
             return response()->json(['status' => 'ok']);
         }
 

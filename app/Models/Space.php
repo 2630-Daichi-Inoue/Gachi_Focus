@@ -118,12 +118,7 @@ class Space extends Model
             && $endTime <= $this->close_time;
     }
 
-    public function getFullAddressAttribute(): string
-    {
-        return "{$this->address_line}, {$this->city}, {$this->prefecture}";
-    }
-
-    public function getUnitPriceForDateAttribute(CarbonInterface $date): int
+    public function getUnitPriceForDate(CarbonInterface $date): int
     {
         return $date->isWeekend()
             ? $this->weekend_price_yen
@@ -145,5 +140,10 @@ class Space extends Model
     {
         $close_time = $this->attributes['close_time'] ?? null;
         return Carbon::createFromFormat('H:i:s', $close_time)->format('H:i');
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return "{$this->address_line}, {$this->city}, {$this->prefecture}";
     }
 }

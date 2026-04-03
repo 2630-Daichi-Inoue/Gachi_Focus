@@ -25,9 +25,9 @@ Route::get('/', function () {
     ]);
 })->name('index');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
@@ -102,12 +102,17 @@ Route::middleware(['auth', 'admin'])
     }
 );
 
-// User Spaces Routes
-Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
-Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
+Route::middleware('auth')->group(function () {
 
-// User Booking Route
-Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
+    // User Spaces Routes
+    Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
+    Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
+
+    // User Booking Route
+    Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
+    Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])->name('reservations.payment');
+
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

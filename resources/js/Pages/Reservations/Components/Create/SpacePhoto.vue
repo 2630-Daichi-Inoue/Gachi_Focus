@@ -10,7 +10,7 @@ defineProps({
         :alt="`space ${space.name}`"
         class="w-full h-full object-cover"
     >
-    <div class="absolute inset-0 ml-2 mt-2">
+    <div class="absolute inset-0 mx-2 mt-2">
         <div class="font-bold text-3xl text-white text-shadow-lg bg-slate-500 bg-opacity-50 px-2 py-1 rounded">
             {{ space.name }}
         </div>
