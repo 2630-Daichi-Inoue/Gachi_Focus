@@ -110,8 +110,10 @@ Route::middleware('auth')->group(function () {
 
     // User Booking Route
     Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
+    
     Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])->name('reservations.payment');
 
+    Route::post('/spaces/{space}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
 });
 
 Route::middleware('auth')->group(function () {

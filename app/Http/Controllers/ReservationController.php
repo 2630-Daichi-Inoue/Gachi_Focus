@@ -57,8 +57,8 @@ class ReservationController extends Controller
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
         $newStartAt  = Carbon::parse($data['date'] . ' ' . $data['start_at']);
+        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
 
         $checkedSpace = Space::whereKey($space->id)->firstOrFail();
 
@@ -102,8 +102,9 @@ class ReservationController extends Controller
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
         $newStartAt  = Carbon::parse($data['date'] . ' ' . $data['start_at']);
+        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
+
 
         $reservation = DB::transaction(function() use ($space, $data, $newStartAt, $newEndAt) {
             $checkedSpace = Space::whereKey($space->id)->lockForUpdate()->firstOrFail();
@@ -130,8 +131,7 @@ class ReservationController extends Controller
             return Reservation::create([
                 'user_id'        => Auth::id(),
                 'space_id'       => $checkedSpace->id,
-                'reservation_status' => 'booked',
-                'date'           => $data['date'],
+                'reservation_status' => 'booked',  // For MVP, reservation is booked immediately. In production, this should become pending_payment until payment succeeds.
                 'start_at'     => $newStartAt,
                 'end_at'       => $newEndAt,
                 'quantity'       => $data['quantity'],

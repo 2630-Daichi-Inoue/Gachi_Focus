@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'GachiFocus') }} | @yield('title')</title>
+    <title>{{ config('app.name', 'Gachi Focus') }} | @yield('title')</title>
 
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('images/GachiFocus_logo_favicon.png') }}" type="image/png">

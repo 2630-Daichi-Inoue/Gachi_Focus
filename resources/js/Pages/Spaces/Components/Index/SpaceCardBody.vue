@@ -6,6 +6,15 @@ const props = defineProps({
 const formatPrice = (price) => {
     return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
 };
+
+const formatTime = (timeStr) => {
+    const [hour, minute] = timeStr.split(':');
+    const date = new Date();
+    date.setHours(hour);
+    date.setMinutes(minute);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 </script>
 
 <template>
@@ -21,6 +30,11 @@ const formatPrice = (price) => {
         <div class="w-1/2">
             <p class="mb-1">
                 {{ space.city }}, {{ space.prefecture }}
+            </p>
+
+            <p class="mb-1">
+                Opening Hours:
+                {{ formatTime(space.open_time) }} - {{ formatTime(space.close_time) }}
             </p>
 
             <p class="mb-1">
@@ -48,7 +62,7 @@ const formatPrice = (price) => {
             View details
         </Link>
         <!-- the link below will be modified later -->
-        <Link :href="`/spaces/${space.id}`"
+        <Link :href="route('reservations.create', space.id)"
             class="bg-sky-700 flex items-center justify-center h-10 w-1/4 mt-4 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
             Book it
         </Link>

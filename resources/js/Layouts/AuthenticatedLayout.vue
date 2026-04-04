@@ -1,13 +1,45 @@
 <script setup>
-import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { ref, watch } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import ApplicationLogo from '@/Components/ApplicationLogo.vue'
+import Dropdown from '@/Components/Dropdown.vue'
+import DropdownLink from '@/Components/DropdownLink.vue'
+import NavLink from '@/Components/NavLink.vue'
+import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 
-const showingNavigationDropdown = ref(false);
+const showingNavigationDropdown = ref(false)
+
+const page = usePage()
+
+const showOk = ref(false)
+const showError = ref(false)
+
+watch(
+    () => page.props.flash?.ok,
+    (value) => {
+        if (value) {
+            showOk.value = true
+            setTimeout(() => {
+                showOk.value = false
+            }, 3000)
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    () => page.props.flash?.error,
+    (value) => {
+        if (value) {
+            showError.value = true
+            setTimeout(() => {
+                showError.value = false
+            }, 3000)
+        }
+    },
+    { immediate: true }
+)
+
 </script>
 
 <template>
@@ -192,6 +224,25 @@ const showingNavigationDropdown = ref(false);
                     </div>
                 </div>
             </nav>
+
+            <!-- Toast -->
+            <div class="fixed top-20 right-4 z-50 space-y-2">
+                <div
+                    v-if="showOk && page.props.flash?.ok"
+                    class="min-w-[280px] rounded border border-green-300 bg-green-100 px-4 py-3 text-green-800 shadow-lg flex justify-between transition-opacity duration-300"
+                >
+                    <span>{{ page.props.flash.ok }}</span>
+                    <button @click="showOk = false">×</button>
+                </div>
+
+                <div
+                    v-if="showError && page.props.flash?.error"
+                    class="min-w-[280px] rounded border border-red-300 bg-red-100 px-4 py-3 text-red-800 shadow-lg flex justify-between transition-opacity duration-300"
+                >
+                    <span>{{ page.props.flash.error }}</span>
+                    <button @click="showError = false">×</button>
+                </div>
+            </div>
 
             <!-- Page Heading -->
             <header

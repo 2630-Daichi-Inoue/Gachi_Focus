@@ -40,12 +40,14 @@ defineProps({
     <div>
         <div v-if="space.amenities.length > 0">
             <p class="text-2xl font-bold mb-2">Amenities</p>
-            <span
-                v-for="amenity in space.amenities"
-                :key="amenity.id"
-                class="px-3 py-1 rounded border text-sm">
-                {{ amenity.name }}
-            </span>
+            <div class="flex flex-wrap gap-2 mb-2">
+                <div
+                    v-for="amenity in space.amenities"
+                    :key="amenity.id"
+                    class="px-3 py-1 bg-cyan-100 rounded border border-black text-sm inline-flex items-center">
+                    {{ amenity.name }}
+                </div>
+            </div>
         </div>
         <div v-else>
             <p class="text-gray-500">No amenities listed.</p>
