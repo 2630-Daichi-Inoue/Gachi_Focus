@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\StoreReservationRequest;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class ReservationController extends Controller
 {
@@ -88,7 +89,6 @@ class ReservationController extends Controller
                 'start_at' => $data['start_at'],
                 'end_at' => $data['end_at'],
                 'quantity' => $data['quantity'],
-                // 'unit_price_yen' => $unit_price_yen,
                 'total_price_yen' => $unit_price_yen * $data['quantity'] * $slot_count,
             ],
         ]);
@@ -129,14 +129,14 @@ class ReservationController extends Controller
             $slot_count = $newStartAt->diffInMinutes($newEndAt) / 30;
 
             return Reservation::create([
-                'user_id'        => Auth::id(),
-                'space_id'       => $checkedSpace->id,
+                'user_id'            => Auth::id(),
+                'space_id'           => $checkedSpace->id,
                 'reservation_status' => 'booked',  // For MVP, reservation is booked immediately. In production, this should become pending_payment until payment succeeds.
-                'start_at'     => $newStartAt,
-                'end_at'       => $newEndAt,
-                'quantity'       => $data['quantity'],
-                'slot_count'     => $slot_count,
-                'unit_price_yen' => $unit_price_yen,
+                'start_at'           => $newStartAt,
+                'end_at'             => $newEndAt,
+                'quantity'           => $data['quantity'],
+                'slot_count'         => $slot_count,
+                'unit_price_yen'     => $unit_price_yen,
                 'total_price_yen'    => $unit_price_yen * $data['quantity'] * $slot_count,
             ]);
         });
@@ -157,4 +157,74 @@ class ReservationController extends Controller
         ->with('ok', 'Your reservation has been successfully made!');
     }
 
+    /**
+     * Display a listing of the reservations.
+     */
+    public function index(Request $request)
+    {
+        $reservation_status_list = ['booked', 'canceled'];
+        $sort_list = ['date_future_to_past', 'date_past_to_future'];
+
+        $request->validate([
+            'name' => ['nullable','string','max:50'],
+            'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservation_status_list))],
+            'sort' => ['nullable', Rule::in($sort_list)],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
+        $query = Reservation::query()
+                                ->where('user_id', Auth::id())
+                                ->with('space');
+
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->whereHas('space', function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->name . '%');
+            });
+        }
+        // Filter by reservation_status
+        $reservationStatus = $request->input('reservation_status', 'all');
+        if($reservationStatus !== 'all') {
+            $query->where('reservation_status', $reservationStatus);
+        }
+        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
+
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+
+        // Default: date present → past
+        $this->applySort($query, $request->input('sort', 'date_future_to_past'));
+
+        $reservations = $query
+                        ->paginate($rowsPerPage)
+                        ->withQueryString();
+
+        return Inertia::render('Reservations/Index', [
+            'reservations' => $reservations,
+            'filters' => [
+                'name' => $request->name,
+                'reservation_status' => $request->input('reservation_status', 'all'),
+                'sort' => $request->input('sort', 'date_future_to_past'),
+                'rows_per_page' => $rowsPerPage,
+            ]
+        ]);
+    }
+
+    private function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    {
+        switch ($sort ?? 'date_future_to_past') {
+            case 'date_future_to_past':
+                $q->orderBy('start_at', 'desc')
+                    ->latest('id');
+                break;
+
+            case 'date_past_to_future':
+                $q->orderBy('start_at', 'asc')
+                    ->latest('id');
+                break;
+
+            default:
+                $q->orderBy('start_at', 'desc')
+                    ->latest('id');
+        }
+    }
 }

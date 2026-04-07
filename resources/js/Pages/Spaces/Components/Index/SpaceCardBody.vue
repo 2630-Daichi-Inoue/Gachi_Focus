@@ -1,8 +1,10 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+
 const props = defineProps({
     space: Object,
 })
+
 const formatPrice = (price) => {
     return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
 };

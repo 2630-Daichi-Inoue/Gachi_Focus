@@ -3,24 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Space;
-use App\Models\Amenity;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Illuminate\Validation\Rule;
 
 class SpaceController extends Controller
 {
-    // private $space;
-    // private $user;
-
-    // public function __construct(Space $space)
-    // {
-    //     $this->space = $space;
-    // }
 
     public function index(Request $request)
     {
+        $prefectureList = array_merge(
+            config('constants.prefectures.Major Prefectures'),
+            config('constants.prefectures.Other Prefectures')
+        );
+
+        $request->validate([
+            'name' => ['nullable','string','max:50'],
+            'prefecture' => ['nullable', Rule::in($prefectureList)],
+            'city' => ['nullable','string','max:50'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
         $query = Space::query()
                         ->where('is_public', true)
                         ->with('amenities')
@@ -49,13 +54,15 @@ class SpaceController extends Controller
         }
         // Filter by max_price
         if ($request->filled('max_price')) {
-            $query->where('weekday_price_yen', '<=', $request->max_price);
+            $query->where('weekend_price_yen', '<=', $request->max_price);
         }
 
         // Default: rating high → low
         $this->applySort($query, $request->input('sort', 'rating_high_to_low'));
 
-        $spaces = $query->paginate(6)->withQueryString();
+        $spaces = $query
+                    ->paginate(6)
+                    ->withQueryString();
 
         $prefectures = Space::where('is_public', true)
                             ->select('prefecture')

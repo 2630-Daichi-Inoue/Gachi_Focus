@@ -35,7 +35,7 @@ const formatTime = (timeStr) => {
 
     <!-- Google Map Link -->
     <div class="mb-2">
-        <p class="map-address">
+        <p>
             <i class="fa-solid fa-location-dot mt-2 mr-2"></i>
             <Link :href="`https://www.google.com/maps?q=${encodeURIComponent(space.full_address)}`"
                 target="_blank"

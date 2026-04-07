@@ -25,11 +25,11 @@ class SpacesController extends Controller
         );
 
         $request->validate([
-            'name' => ['nullable','string','max:50'],
+            'name' => ['nullable', 'string', 'max:50'],
             'prefecture' => ['nullable', Rule::in($prefectureList)],
-            'city' => ['nullable','string','max:50'],
-            'address_line' => ['nullable','string','max:100'],
-            'is_public' => ['nullable','in:all,0,1'],
+            'city' => ['nullable', 'string', 'max:50'],
+            'address_line' => ['nullable', 'string', 'max:100'],
+            'is_public' => ['nullable', 'in:all,0,1'],
             'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
@@ -64,11 +64,11 @@ class SpacesController extends Controller
                     ->paginate($rowsPerPage);
 
         $prefectures = Space::select('prefecture')
-                        ->distinct()
-                        ->orderBy('prefecture')
-                        ->pluck('prefecture');
+                            ->distinct()
+                            ->orderBy('prefecture')
+                            ->pluck('prefecture');
 
-        return view('admin.spaces.index', compact('spaces', 'prefectures'));
+        return view('admin.spaces.index', compact('spaces', 'prefectures', 'rowsPerPage'));
     }
 
     public function register()
@@ -89,18 +89,18 @@ class SpacesController extends Controller
 
         # 2. Save space data to spaces table
         $space= Space::create([
-            'name' => $data['name'],
-            'prefecture' => $data['prefecture'],
-            'city'  => $data['city'],
-            'address_line' => $data['address_line'],
-            'capacity' => $data['capacity'],
-            'open_time' => $data['open_time'],
-            'close_time' => $data['close_time'],
+            'name'              => $data['name'],
+            'prefecture'        => $data['prefecture'],
+            'city'              => $data['city'],
+            'address_line'      => $data['address_line'],
+            'capacity'          => $data['capacity'],
+            'open_time'         => $data['open_time'],
+            'close_time'        => $data['close_time'],
             'weekend_price_yen' => $data['weekend_price_yen'],
             'weekday_price_yen' => $data['weekday_price_yen'],
-            'description' => $data['description'],
-            'image_path' => $imagePath,
-            'is_public' => $data['is_public'] ?? true,
+            'description'       => $data['description'],
+            'image_path'        => $imagePath,
+            'is_public'         => $data['is_public'] ?? true,
         ]);
 
         # 3. Sync amenities to the pivot table
@@ -147,16 +147,16 @@ class SpacesController extends Controller
 
         # 2. Update the space data in the spaces table
         $space->fill ([
-            'name' => $data['name'],
-            'prefecture' => $data['prefecture'],
-            'city'  => $data['city'],
-            'address_line' => $data['address_line'],
-            'capacity' => $data['capacity'],
-            'open_time' => $data['open_time'],
-            'close_time' => $data['close_time'],
+            'name'              => $data['name'],
+            'prefecture'        => $data['prefecture'],
+            'city'              => $data['city'],
+            'address_line'      => $data['address_line'],
+            'capacity'          => $data['capacity'],
+            'open_time'         => $data['open_time'],
+            'close_time'        => $data['close_time'],
             'weekend_price_yen' => $data['weekend_price_yen'],
             'weekday_price_yen' => $data['weekday_price_yen'],
-            'description' => $data['description'],
+            'description'       => $data['description'],
         ]);
         // if(isset($data['is_public'])) $space->is_public = $data['is_public'];
 

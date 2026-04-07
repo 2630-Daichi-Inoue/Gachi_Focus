@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
@@ -20,11 +20,13 @@ class UsersController extends Controller
 
     public function index(Request $request)
     {
+        $userStatusList = ['active','restricted','banned'];
+
         $request->validate([
-            'name' => 'nullable|string|max:50',
-            'email' => 'nullable|string|max:100',
-            'status' => 'nullable|in:all,active,restricted,banned',
-            'rows_per_page' => 'nullable|integer|in:20,50,100',
+            'name'          => ['nullable', 'string', 'max:50'],
+            'email'         => ['nullable', 'string', 'max:100'],
+            'user_status'   => ['nullable', Rule::in(array_merge(['all'], $userStatusList))],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         // Exclude admin
@@ -39,10 +41,10 @@ class UsersController extends Controller
         if ($request->filled('email')) {
             $query->where('email', 'LIKE', '%' . $request->email . '%');
         }
-        // Filter by status
-        $status = $request->input('status', 'all');
-        if($status !== 'all') {
-            $query->where('user_status', $status);
+        // Filter by user_status
+        $userStatus = $request->input('user_status', 'all');
+        if($userStatus !== 'all') {
+            $query->where('user_status', $userStatus);
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
@@ -51,7 +53,7 @@ class UsersController extends Controller
                     ->latest()
                     ->paginate($rowsPerPage);
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'rowsPerPage'));
     }
 
     # Restrict User

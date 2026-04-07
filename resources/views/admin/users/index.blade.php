@@ -110,15 +110,15 @@
 
             <!-- Status -->
             <div class="col-md-2">
-                <label for="status" class="form-label mb-1 small text-muted">
+                <label for="user_status" class="form-label mb-1 small text-muted">
                     Status
                 </label>
-                @php $status = request('status', 'all'); @endphp
-                <select name="status" id="status" class="form-control form-control-m border text-dark input-unified">
-                    <option value="all" {{ $status === 'all' ? 'selected' : '' }}>All</option>
-                    <option value="active" {{ $status === 'active' ? 'selected' : '' }}>Active</option>
-                    <option value="restricted" {{ $status === 'restricted' ? 'selected' : '' }}>Restricted</option>
-                    <option value="banned" {{ $status === 'banned' ? 'selected' : '' }}>Banned</option>
+                @php $userStatus = request('user_status', 'all'); @endphp
+                <select name="user_status" id="user_status" class="form-control form-control-m border text-dark input-unified">
+                    <option value="all" {{ $userStatus === 'all' ? 'selected' : '' }}>All</option>
+                    <option value="active" {{ $userStatus === 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="restricted" {{ $userStatus === 'restricted' ? 'selected' : '' }}>Restricted</option>
+                    <option value="banned" {{ $userStatus === 'banned' ? 'selected' : '' }}>Banned</option>
                 </select>
             </div>
 

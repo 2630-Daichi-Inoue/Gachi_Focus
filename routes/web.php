@@ -108,12 +108,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
     Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
 
-    // User Booking Route
+    // User Reservation-making Routes
     Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
-    
     Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])->name('reservations.payment');
-
     Route::post('/spaces/{space}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+
+    // User Reservation Management Routes
+    Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+
 });
 
 Route::middleware('auth')->group(function () {

@@ -46,7 +46,7 @@ watch(() => form.sort, () => {
 
 <template>
     <AuthenticatedLayout>
-        <Head title="Space Index" />
+        <Head title="Spaces Index" />
 
         <!-- Search area -->
         <div class="p-4">
