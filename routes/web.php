@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\UsersController;
 // User Controllers
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\ReviewController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -115,6 +116,13 @@ Route::middleware('auth')->group(function () {
 
     // User Reservation Management Routes
     Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+    Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+
+    // User Review Routes
+    Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
+    Route::get('/reservations/{reservation}/reviews/creat', [ReviewController::class, 'createOrEdit'])->name('reviews.create');
+    Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+
 
 });
 

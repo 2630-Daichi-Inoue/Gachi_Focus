@@ -51,9 +51,17 @@ watch(() => form.startAt, () => {
 
 const emit = defineEmits(['update:date'])
 
+const isValidDateString = (value) => {
+    return /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
+
 watch(() => form.date, (newDate) => {
     form.startAt = null
     form.endAt = null
+
+    if (!newDate) return
+    if (!isValidDateString(newDate)) return
+
     emit('update:date', newDate)
 })
 
@@ -93,11 +101,9 @@ const totalPrice = computed(() => {
 })
 
 const goToPayment = () => {
-    if (!form.date || !form.startAt || !form.endAt || !form.quantity) {
-        alert('Please fill in all fields.')
-        return
-    }
-    // alert('Going to payment page.')
+
+
+
     router.get(route('reservations.payment', props.space.id), {
         date: form.date,
         start_at: form.startAt,
@@ -107,77 +113,101 @@ const goToPayment = () => {
     })
 }
 
+const today = new Date(
+    new Date().getTime() - new Date().getTimezoneOffset() * 60000
+).toISOString().split('T')[0]
+
+const startCandidatesExist = computed(() => {
+    return props.startCandidates && props.startCandidates.length > 0
+})
+
 </script>
 
 <template>
 <div class="bg-white border border-gray-300 p-4">
-    <form @submit.prevent="goToPayment" class="space-y-4">
-        <div>
-            <div class="flex flex-col mb-4 max-w-xs">
-                <label for="date" class="mb-1">Date</label>
-                <input
-                    v-model="form.date"
-                    name="date"
-                    id="date"
-                    type="date"
-                    class="border rounded"
-                />
-            </div>
-            <p class="mb-4">Price / 0.5 h:
-                <template v-if="form.date">
-                    {{ formatPrice(pricePerHalfHour) }}
-                </template>
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
-                <div class="flex flex-col">
-                    <label for="start_at" class="form-label">Start At</label>
-                    <select v-model="form.startAt" name="start_at" id="start_at" class="border rounded">
-                        <option v-for="candidate in startCandidates" :key="candidate" :value="candidate">{{ candidate }}</option>
-                    </select>
-                </div>
-                <div class="flex flex-col">
-                    <label for="end_at" class="form-label">End At</label>
-                    <select v-model="form.endAt" name="end_at" id="end_at" class="border rounded" :disabled="!form.startAt">
-                        <option v-for="candidate in endCandidates" :key="candidate" :value="candidate">
-                            {{ candidate }}
-                        </option>
-                    </select>
-                </div>
-                <div class="flex flex-col">
-                    <label for="quantity" class="form-label">Quantity</label>
+        <form @submit.prevent="goToPayment" class="space-y-4">
+            <div>
+                <div class="flex flex-col mb-4 max-w-xs">
+                    <label for="date" class="mb-1">Date</label>
                     <input
-                        v-model.number="form.quantity"
-                        type="number"
-                        id="quantity"
-                        name="quantity"
+                        v-model="form.date"
+                        name="date"
+                        id="date"
+                        type="date"
                         class="border rounded"
-                        :min="1"
-                        :max="space.capacity"
+                        :min="today"
                     />
                 </div>
+                <p v-if="page.props.errors.date" class="text-red-600 text-sm">
+                    {{ page.props.errors.date }}
+                </p>
+
+                <p class="mb-4">Price / 0.5 h:
+                    <template v-if="form.date">
+                        {{ formatPrice(pricePerHalfHour) }}
+                    </template>
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+                    <div class="flex flex-col">
+                        <label for="start_at" class="form-label">Start At</label>
+                        <select v-model="form.startAt" name="start_at" id="start_at" class="border rounded">
+                            <option v-for="candidate in startCandidates" :key="candidate" :value="candidate">{{ candidate }}</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="end_at" class="form-label">End At</label>
+                        <select v-model="form.endAt" name="end_at" id="end_at" class="border rounded" :disabled="!form.startAt">
+                            <option v-for="candidate in endCandidates" :key="candidate" :value="candidate">
+                                {{ candidate }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="quantity" class="form-label">Quantity</label>
+                        <input
+                            v-model.number="form.quantity"
+                            type="number"
+                            id="quantity"
+                            name="quantity"
+                            class="border rounded"
+                            :min="1"
+                            :max="space.capacity"
+                        />
+                    </div>
+                </div>
+
+                <p v-if="page.props.errors.start_at" class="text-red-600 text-sm">
+                    {{ page.props.errors.start_at }}
+                </p>
+
+                <p v-if="page.props.errors.end_at" class="text-red-600 text-sm">
+                    {{ page.props.errors.end_at }}
+                </p>
+
+                <p v-if="page.props.errors.quantity" class="text-red-600 text-sm">
+                    {{ page.props.errors.quantity }}
+                </p>
             </div>
-        </div>
 
-        <div>
-            <p>Total Price:
-                {{ formatPrice(totalPrice) }}
-            </p>
-        </div>
+            <div>
+                <p>Total Price:
+                    {{ formatPrice(totalPrice) }}
+                </p>
+            </div>
 
-        <p v-if="page.props.errors.quantity" class="text-red-600 text-sm">
-            {{ page.props.errors.quantity }}
-        </p>
-
-        <div class="flex flex-col md:flex-row gap-2">
-            <Link :href="`/spaces/${space.id}`"
-                    class="flex items-center justify-center md:w-1/4 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
-                Go Back
-            </Link>
-            <button type="submit"
-                    class="flex ixtems-center justify-center md:w-3/4 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700 p-2">
-                Continue to Payment
-            </button>
-        </div>
-    </form>
+            <div v-if="startCandidatesExist" class="flex flex-col md:flex-row gap-2">
+                <Link :href="`/spaces/${space.id}`"
+                        class="flex items-center justify-center md:w-1/4 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
+                    Go Back
+                </Link>
+                <button type="submit"
+                        class="flex ixtems-center justify-center md:w-3/4 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700 p-2">
+                    Continue to Payment
+                </button>
+            </div>
+            <div v-else>
+                <p class="text-red-600 text-sm">Sorry, but we have no available time slots for today.</p>
+            </div>
+        </form>
 </div>
 </template>

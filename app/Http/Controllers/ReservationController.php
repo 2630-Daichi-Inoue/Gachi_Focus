@@ -22,7 +22,7 @@ class ReservationController extends Controller
     {
         if (!$space->isPublic()) {
             return redirect()->route('spaces.index')
-                    ->with('error', 'Sorry, but this space is not currently available.');
+                            ->with('error', 'Sorry, but this space is not currently available.');
         }
 
         // Default to today, can be overridden by users' input
@@ -32,10 +32,29 @@ class ReservationController extends Controller
         $openTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->open_time}");
         $closeTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->close_time}");
 
-        // Candidates for reservation start time (every 30 min slot between open and close)
-        $startCandidates = [];
         $cursorOpenTime = $openTime->copy();
         $lastStartAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
+
+        // If the reservation date is today, we need to adjust the cursorOpenTime to the next possible 30 min slot
+        if(Carbon::parse($date)->isToday()) {
+            $now = Carbon::now();
+            $minute = $now->minute;
+
+            if($minute === 0 || $minute === 30) {
+                $roundedNow = $now->copy()->second(0);
+            } else if ($minute < 30) {
+                $roundedNow = $now->copy()->minute(30)->second(0);
+            } else {
+                $roundedNow = $now->copy()->addHour()->minute(0)->second(0);
+            }
+
+            if($roundedNow->gt($openTime)) {
+                $cursorOpenTime = $roundedNow;
+            }
+        }
+
+        // Candidates for reservation start time (every 30 min slot between open and close)
+        $startCandidates = [];
         while ($cursorOpenTime->lte($lastStartAt)) {
             $formattedCursorTime = $cursorOpenTime->format('H:i');
             $startCandidates[] = $formattedCursorTime;
@@ -105,16 +124,15 @@ class ReservationController extends Controller
         $newStartAt  = Carbon::parse($data['date'] . ' ' . $data['start_at']);
         $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
 
-
         $reservation = DB::transaction(function() use ($space, $data, $newStartAt, $newEndAt) {
             $checkedSpace = Space::whereKey($space->id)->lockForUpdate()->firstOrFail();
 
             $overlappingQuantity = Reservation::query()
-            ->where('space_id', $checkedSpace->id)
-            ->where('reservation_status', 'booked')
-            ->where('start_at', '<', $newEndAt)
-            ->where('end_at', '>', $newStartAt)
-            ->sum('quantity');
+                                    ->where('space_id', $checkedSpace->id)
+                                    ->where('reservation_status', 'booked')
+                                    ->where('start_at', '<', $newEndAt)
+                                    ->where('end_at', '>', $newStartAt)
+                                    ->sum('quantity');
 
             if ($overlappingQuantity + $data['quantity'] > $checkedSpace->capacity) {
                 throw ValidationException::withMessages([
@@ -227,4 +245,24 @@ class ReservationController extends Controller
                     ->latest('id');
         }
     }
+
+    public function cancel(Reservation $reservation)
+    {
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if ($reservation->reservation_status === 'canceled') {
+            return back()->with('error', 'This reservation has already been canceled.');
+        }
+
+        if (Carbon::parse($reservation->start_at)->subHour()->lte(now())) {
+            return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
+        }
+
+        $reservation->update(['reservation_status' => 'canceled']);
+
+        return back()->with('ok', 'Your reservation has been canceled.');
+
+        }
 }

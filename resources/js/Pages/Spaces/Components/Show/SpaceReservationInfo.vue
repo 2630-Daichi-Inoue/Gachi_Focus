@@ -74,7 +74,7 @@ const formatTime = (timeStr) => {
             <div class="flex flex-col md:flex-row gap-2 mt-4">
                 <Link :href="`/spaces`"
                     class="flex items-center justify-center md:w-1/2 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
-                Go Back
+                    Go Back
                 </Link>
                 <Link :href="route('reservations.create', space.id)"
                     class="p-2 font-bold text-3xl flex items-center justify-center md:w-1/2 text-white border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
