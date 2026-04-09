@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\{Auth, Config, Log, DB};
 use App\Models\Reservation;
 use Carbon\Carbon;
 use Stripe\Stripe;
-use Stripe\Checkout\Session as CheckoutSession;
+// use Stripe\Checkout\Session as CheckoutSession;
 use Stripe\Webhook;
 
 class PaymentController extends Controller
@@ -188,5 +188,5 @@ class PaymentController extends Controller
             'reservation' => $reservation,
         ]);
     }
-    
+
 }

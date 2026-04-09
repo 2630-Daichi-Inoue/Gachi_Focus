@@ -120,7 +120,7 @@ Route::middleware('auth')->group(function () {
 
     // User Review Routes
     Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
-    Route::get('/reservations/{reservation}/reviews/creat', [ReviewController::class, 'createOrEdit'])->name('reviews.create');
+    Route::get('/reservations/{reservation}/reviews/create', [ReviewController::class, 'createOrEdit'])->name('reviews.create');
     Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
 
 

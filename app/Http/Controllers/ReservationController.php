@@ -41,15 +41,15 @@ class ReservationController extends Controller
             $minute = $now->minute;
 
             if($minute === 0 || $minute === 30) {
-                $roundedNow = $now->copy()->second(0);
+                $roundedNow = $now->copy()->second(0)->microsecond(0);
             } else if ($minute < 30) {
-                $roundedNow = $now->copy()->minute(30)->second(0);
+                $roundedNow = $now->copy()->minute(30)->second(0)->microsecond(0);
             } else {
-                $roundedNow = $now->copy()->addHour()->minute(0)->second(0);
+                $roundedNow = $now->copy()->addHour()->minute(0)->second(0)->microsecond(0);
             }
 
             if($roundedNow->gt($openTime)) {
-                $cursorOpenTime = $roundedNow;
+                $cursorOpenTime = $roundedNow->copy();
             }
         }
 
