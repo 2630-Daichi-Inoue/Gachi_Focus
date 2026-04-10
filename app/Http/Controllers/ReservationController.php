@@ -205,8 +205,8 @@ class ReservationController extends Controller
         if($reservationStatus !== 'all') {
             $query->where('reservation_status', $reservationStatus);
         }
-        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
 
+        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
@@ -215,6 +215,8 @@ class ReservationController extends Controller
         $reservations = $query
                         ->paginate($rowsPerPage)
                         ->withQueryString();
+
+        $reservations->load('review');
 
         return Inertia::render('Reservations/Index', [
             'reservations' => $reservations,

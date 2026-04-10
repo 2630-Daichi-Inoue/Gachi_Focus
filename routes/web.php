@@ -122,7 +122,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
     Route::get('/reservations/{reservation}/reviews/create', [ReviewController::class, 'createOrEdit'])->name('reviews.create');
     Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-
+    Route::get('/reservations/{reservation}/reviews/edit', [ReviewController::class, 'createOrEdit'])->name('reviews.edit');
+    Route::patch('/reservations/{reservation}/reviews', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reservations/{reservation}/reviews', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
 });
 

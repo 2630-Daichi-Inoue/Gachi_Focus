@@ -35,6 +35,7 @@ class ReviewFactory extends Factory
         return $this->state(function () use ($reservation) {
             return [
                 'reservation_id' => $reservation->id,
+                'user_id' => $reservation->user_id,
             ];
         });
     }

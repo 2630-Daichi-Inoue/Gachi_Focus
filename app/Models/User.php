@@ -57,14 +57,7 @@ class User extends Authenticatable
 
     public function reviews()
     {
-        return $this->hasManyThrough(
-            Review::class,
-            Reservation::class,
-            'user_id',
-            'reservation_id',
-            'id',
-            'id'
-        );
+        return $this->hasMany(Review::class);
     }
 
     public function favoriteSpaces()

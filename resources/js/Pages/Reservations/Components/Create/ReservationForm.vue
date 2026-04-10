@@ -101,9 +101,6 @@ const totalPrice = computed(() => {
 })
 
 const goToPayment = () => {
-
-
-
     router.get(route('reservations.payment', props.space.id), {
         date: form.date,
         start_at: form.startAt,

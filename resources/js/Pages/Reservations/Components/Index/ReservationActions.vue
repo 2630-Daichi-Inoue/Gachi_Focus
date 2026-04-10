@@ -13,7 +13,7 @@ const getMessage = computed(() => {
         return 'This reservation has been canceled.';
     }
     if (props.reservation.reservation_status === 'booked' && isCompleted.value) {
-        return 'This reservation has been completed.';
+        return 'Thank you for using our services!';
     }
     if (props.reservation.reservation_status === 'booked' && canCancel.value) {
         return 'You can cancel this reservation until 1 hour before it starts.';
@@ -45,7 +45,6 @@ const canCancel = computed(() => {
 const showCancelReservationModal = ref(false);
 
 const cancelReservation = () => {
-
     // Call the API to cancel the reservation
     router.patch(route('reservations.cancel', props.reservation.id), {},  {
         preserveScroll: true,
@@ -67,7 +66,7 @@ const hasReview = computed(() => !!props.reservation.review)
         <!-- Button area -->
         <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
             <Link v-if="isCompleted"
-                    :href="`/reservations/${reservation.id}/review`"
+                    :href="hasReview ? route('reviews.edit', { reservation: props.reservation.id }) : route('reviews.create', { reservation: props.reservation.id })"
                     class="p-2 bg-sky-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
                 {{ hasReview ? 'Edit Review' : 'Leave Review' }}
             </Link>
@@ -84,7 +83,7 @@ const hasReview = computed(() => !!props.reservation.review)
             'text-gray-500': isCanceled,
             'text-green-500': isCompleted,
             'text-black': canCancel,
-            'text-red-500': !canCancel && !isCanceled,
+            'text-red-500': !canCancel && !isCanceled && !isCompleted,
         }">
             {{ getMessage }}
         </p>

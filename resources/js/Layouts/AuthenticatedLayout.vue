@@ -73,12 +73,12 @@ watch(
                                 >
                                     Spaces
                                 </NavLink>
-                                <!-- <NavLink
+                                <NavLink
                                     :href="route('reservations.index')"
                                     :active="route().current('reservations.index')"
                                 >
                                     My Reservations
-                                </NavLink> -->
+                                </NavLink>
                             </div>
                         </div>
 

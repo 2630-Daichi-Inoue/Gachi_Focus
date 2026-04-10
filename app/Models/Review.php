@@ -12,6 +12,7 @@ class Review extends Model
     use HasUlids, HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'user_id',
         'reservation_id',
         'rating',
         'comment',

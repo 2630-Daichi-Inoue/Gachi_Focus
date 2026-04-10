@@ -16,7 +16,8 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlId('reservation_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlId('reservation_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('rating')->min(1)->max(5);
             $table->text('comment')->nullable();
             $table->boolean('is_public')->default(true);
