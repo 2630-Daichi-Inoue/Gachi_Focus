@@ -1,7 +1,8 @@
 <script setup>
 import { Link, router, usePage } from '@inertiajs/vue3'
-import { reactive, computed } from 'vue'
+import { reactive, computed, ref } from 'vue'
 import Vue3StarRating from 'vue3-star-ratings'
+import DeleteReviewModal from './DeleteReviewModal.vue'
 
 const props = defineProps({
     reservation: Object,
@@ -38,6 +39,22 @@ const ratingProxy = computed({
     }
 })
 
+const showDeleteModal = ref(false);
+
+const deleteReview = () => {
+    // Call the API to delete the review
+    router.delete(route('reviews.destroy', props.reservation.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showDeleteModal.value = false;
+        },
+        onError: () => {
+            alert('Failed to delete the review. Please try again.');
+        },
+    })
+};
+
+
 </script>
 
 <template>
@@ -73,7 +90,7 @@ const ratingProxy = computed({
             </div>
 
             <div class="w-full">
-                <label for="comment" class="text-2xl text-gray-500">Comment</label>
+                <label for="comment" class="text-2xl text-gray-500">Comment <span class="text-lg">(Optional)</span></label>
                 <textarea id="comment"
                         v-model="form.comment"
                         placeholder="Write your review here."
@@ -85,14 +102,28 @@ const ratingProxy = computed({
 
         <div class="flex flex-col md:flex-row gap-4">
             <Link :href="route('reservations.index')"
-                    class="flex items-center justify-center md:w-1/2 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
+                    class="flex items-center justify-center md:w-1/3 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                 Go Back
             </Link>
+            <button v-if="props.review"
+                    type="button"
+                    @click="showDeleteModal = true"
+                    class="flex items-center justify-center md:w-1/3 text-red-500 font-bold text-3xl border border-red-500 rounded transition hover:bg-red-200">
+                Delete Review
+            </button>
             <button type="submit"
-                    class="flex items-center justify-center md:w-1/2 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
+                    class="flex items-center justify-center md:w-1/3 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
                 {{ props.review ? 'Update Review' : 'Submit Review' }}
             </button>
         </div>
     </form>
+        <Transition name="modal-fade">
+            <DeleteReviewModal
+                v-if="showDeleteModal"
+                :reservation="reservation"
+                @close="showDeleteModal = false"
+                @confirm="deleteReview"
+            />
+        </Transition>
 </div>
 </template>

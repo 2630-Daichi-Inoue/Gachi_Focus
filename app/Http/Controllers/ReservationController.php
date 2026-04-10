@@ -216,7 +216,11 @@ class ReservationController extends Controller
                         ->paginate($rowsPerPage)
                         ->withQueryString();
 
-        $reservations->load('review');
+        $reservations->load([
+            'review' => function($q) {
+                $q->withTrashed();
+            }
+        ]);
 
         return Inertia::render('Reservations/Index', [
             'reservations' => $reservations,

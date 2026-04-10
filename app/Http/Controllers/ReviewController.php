@@ -73,20 +73,19 @@ class ReviewController extends Controller
     {
         $review = Review::where('user_id', Auth::id())
                         ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
                         ->first();
 
-        if ($review && $review->exists) {
-            if ($review->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
-        } else {
-            if ($reservation->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to review this reservation.');
         }
 
         if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->end_at)->isFuture()) {
-            abort(403, 'You can review only completed reservations.');
+            return back()->with('error', 'You can review only completed reservations.');
+        }
+
+        if ($review && $review->deleted_at !== null) {
+            return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
         $reservation->load('space');
@@ -110,6 +109,7 @@ class ReviewController extends Controller
 
         $existingReview = Review::where('user_id', Auth::id())
                                 ->where('reservation_id', $reservation->id)
+                                ->withTrashed()
                                 ->first();
 
         if ($existingReview) {
@@ -135,20 +135,19 @@ class ReviewController extends Controller
 
         $review = Review::where('user_id', Auth::id())
                         ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
                         ->first();
 
-        if ($review && $review->exists) {
-            if ($review->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
-        } else {
-            if ($reservation->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to review this reservation.');
         }
 
         if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->end_at)->isFuture()) {
-            abort(403, 'You can review only completed reservations.');
+            return back()->with('error', 'You can review only completed reservations.');
+        }
+
+        if ($review->deleted_at !== null) {
+            return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
         $review->fill([
@@ -164,20 +163,28 @@ class ReviewController extends Controller
     {
         $review = Review::where('user_id', Auth::id())
                         ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
                         ->first();
 
-        if ($review && $review->exists) {
-            if ($review->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
-        } else {
-            if ($reservation->user_id !== Auth::id()) {
-                abort(403, 'Unauthorized action.');
-            }
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to delete this review.');
         }
+
+        if (!$review) {
+            return redirect()->route('reservations.index')->with('error', 'You have not reviewed this reservation yet.');
+        }
+
+        if ($review->deleted_at !== null) {
+            return redirect()->route('reservations.index')->with('error', 'You have already deleted your review for this reservation.');
+        }
+
+        $review->fill([
+            'is_public'      => false,
+        ])->save();
 
         $review->delete();
 
-        return back()->with('ok', 'Your review has been deleted.');
+        return redirect()->route('reservations.index')
+                        ->with('ok', 'Your review has been deleted.');
     }
 }
