@@ -193,7 +193,7 @@ const startCandidatesExist = computed(() => {
             </div>
 
             <div v-if="startCandidatesExist" class="flex flex-col md:flex-row gap-2">
-                <Link :href="`/spaces/${space.id}`"
+                <Link :href="route('spaces.show', space.id)"
                         class="flex items-center justify-center md:w-1/4 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                     Go Back
                 </Link>

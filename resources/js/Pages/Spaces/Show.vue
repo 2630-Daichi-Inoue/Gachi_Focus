@@ -20,7 +20,9 @@ defineProps({
             </div>
 
             <div>
-                <SpaceDetail :space="space" :reviewInfo="reviewInfo" />
+                <SpaceDetail :space="space"
+                            :reviewInfo="reviewInfo"
+                />
             </div>
 
             <div class="md:col-span-2 xl:col-span-1">

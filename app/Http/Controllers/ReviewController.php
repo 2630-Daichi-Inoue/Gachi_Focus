@@ -179,7 +179,7 @@ class ReviewController extends Controller
         }
 
         $review->fill([
-            'is_public'      => false,
+            'is_public' => false,
         ])->save();
 
         $review->delete();

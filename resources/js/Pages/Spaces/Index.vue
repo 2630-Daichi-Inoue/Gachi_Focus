@@ -24,7 +24,6 @@ const form = reactive({
 const search = () => {
     router.get(route('spaces.index'), form, {
         preserveState: true,
-        // replace: true,
         preserveScroll: true,
     })
 }
@@ -101,7 +100,7 @@ watch(() => form.sort, () => {
             </div>
 
             <!-- Footer -->
-            <div class="flex justify-between items-center mt-6" v-if="spaces.data.length > 0">
+            <div class="flex justify-between items-center" v-if="spaces.data.length > 0">
                 <p class="text-sm text-gray-500">
                     Showing {{ spaces.from }} to {{ spaces.to }} of {{ spaces.total }} results
                 </p>

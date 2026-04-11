@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
     // User Spaces Routes
     Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
     Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
+    Route::get('/spaces/{space}/reviews', [SpaceController::class, 'reviewIndex'])->name('spaces.reviewIndex');
 
     // User Reservation-making Routes
     Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');

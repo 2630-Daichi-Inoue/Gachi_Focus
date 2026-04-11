@@ -233,7 +233,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    private function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'date_future_to_past') {
             case 'date_future_to_past':

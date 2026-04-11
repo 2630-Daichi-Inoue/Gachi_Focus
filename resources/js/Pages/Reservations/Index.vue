@@ -20,7 +20,6 @@ const form = reactive({
 const search = () => {
     router.get(route('reservations.index'), form, {
         preserveState: true,
-        // replace: true,
         preserveScroll: true,
     })
 }
