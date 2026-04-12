@@ -1,7 +1,7 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3'
 import { computed, ref } from 'vue';
-import CancelReservationModal from './CancelReservationModal.vue'
+import CancelReservationModal from './CancelContactModal.vue'
 
 const props = defineProps({
     reservation: Object,
@@ -74,8 +74,8 @@ const hasDeletedReview = computed(() => {
     <div class="mx-2 flex flex-col gap-2 items-center w-full">
         <!-- Button area -->
         <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
-            <Link v-if="!hasDeletedReview && isCompleted"
-                    :href="hasActiveReview ? route('reviews.edit', { reservation: reservation.id }) : route('reviews.create', { reservation: reservation.id })"
+            <Link v-if="!hasDeletedReview"
+                    :href="hasActiveReview ? route('reviews.edit', { reservation: props.reservation.id }) : route('reviews.create', { reservation: props.reservation.id })"
                     class="p-2 bg-sky-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
                 {{ hasActiveReview ? 'Edit Review': 'Leave Review' }}
             </Link>
@@ -86,10 +86,6 @@ const hasDeletedReview = computed(() => {
                     disabled:hover:bg-white">
                 Cancel
             </button>
-            <Link :href="route('contacts.create', { reservation_id: reservation.id })"
-                    class="p-2 bg-slate-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
-                Contact Us
-            </Link>
         </div>
         <!-- Message area -->
         <p class="text-sm" :class="{

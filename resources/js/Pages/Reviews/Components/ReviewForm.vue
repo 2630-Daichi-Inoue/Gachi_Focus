@@ -77,16 +77,16 @@ const deleteReview = () => {
 
             <div class="w-full">
                 <h2 class="text-2xl text-gray-500">Rating</h2>
-                    <Vue3StarRating
-                                v-model="ratingProxy"
-                                :increment="1"
-                                :numberOfStars="5"
-                                :starSize="30"
-                                starColor="#fbbf24"
-                                inactiveColor="#e0e0e0"
-                                :show-rating="false"
-                    >
-                    </Vue3StarRating>
+                <Vue3StarRating
+                            v-model="ratingProxy"
+                            :increment="1"
+                            :numberOfStars="5"
+                            :starSize="30"
+                            starColor="#fbbf24"
+                            inactiveColor="#e0e0e0"
+                            :show-rating="false"
+                >
+                </Vue3StarRating>
             </div>
 
             <div class="w-full">
@@ -117,13 +117,13 @@ const deleteReview = () => {
             </button>
         </div>
     </form>
-        <Transition name="modal-fade">
-            <DeleteReviewModal
-                v-if="showDeleteModal"
-                :reservation="reservation"
-                @close="showDeleteModal = false"
-                @confirm="deleteReview"
-            />
-        </Transition>
+    <Transition name="modal-fade">
+        <DeleteReviewModal
+            v-if="showDeleteModal"
+            :reservation="reservation"
+            @close="showDeleteModal = false"
+            @confirm="deleteReview"
+        />
+    </Transition>
 </div>
 </template>

@@ -104,7 +104,6 @@ class ReviewController extends Controller
 
     public function store(StoreReviewRequest $request, Reservation $reservation)
     {
-
         $data = $request->validated();
 
         $existingReview = Review::where('user_id', Auth::id())

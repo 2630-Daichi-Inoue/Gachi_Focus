@@ -116,27 +116,48 @@ Route::middleware(['auth', 'admin'])
 Route::middleware('auth')->group(function () {
 
     // User Spaces Routes
-    Route::get('/spaces', [SpaceController::class, 'index'])->name('spaces.index');
-    Route::get('/spaces/{space}', [SpaceController::class, 'show'])->name('spaces.show');
-    Route::get('/spaces/{space}/reviews', [SpaceController::class, 'reviewIndex'])->name('spaces.reviewIndex');
+    Route::get('/spaces', [SpaceController::class, 'index'])
+            ->name('spaces.index');
+    Route::get('/spaces/{space}', [SpaceController::class, 'show'])
+            ->name('spaces.show');
+    Route::get('/spaces/{space}/reviews', [SpaceController::class, 'reviewIndex'])
+            ->name('spaces.reviewIndex');
 
     // User Reservation-making Routes
-    Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
-    Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])->name('reservations.payment');
-    Route::post('/spaces/{space}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])
+            ->name('reservations.create');
+    Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])
+            ->name('reservations.payment');
+    Route::post('/spaces/{space}/reservations', [ReservationController::class, 'store'])
+            ->name('reservations.store');
 
     // User Reservation Management Routes
-    Route::get('/reservations', [ReservationController::class, 'index'])->name('reservations.index');
-    Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
+    Route::get('/reservations', [ReservationController::class, 'index'])
+            ->name('reservations.index');
+    Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])
+            ->name('reservations.cancel');
 
     // User Review Routes
-    Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])->name('reviews.index');
-    Route::get('/reservations/{reservation}/reviews/create', [ReviewController::class, 'createOrEdit'])->name('reviews.create');
-    Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-    Route::get('/reservations/{reservation}/reviews/edit', [ReviewController::class, 'createOrEdit'])->name('reviews.edit');
-    Route::patch('/reservations/{reservation}/reviews', [ReviewController::class, 'update'])->name('reviews.update');
-    Route::delete('/reservations/{reservation}/reviews', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])
+            ->name('reviews.index');
+    Route::get('/reservations/{reservation}/reviews/create', [ReviewController::class, 'createOrEdit'])
+            ->name('reviews.create');
+    Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])
+            ->name('reviews.store');
+    Route::get('/reservations/{reservation}/reviews/edit', [ReviewController::class, 'createOrEdit'])
+            ->name('reviews.edit');
+    Route::patch('/reservations/{reservation}/reviews', [ReviewController::class, 'update'])
+            ->name('reviews.update');
+    Route::delete('/reservations/{reservation}/reviews', [ReviewController::class, 'destroy'])
+            ->name('reviews.destroy');
 
+    // User Contact Routes
+    Route::get('/contacts', [\App\Http\Controllers\ContactController::class, 'index'])
+            ->name('contacts.index');
+    Route::get('/contacts/create', [\App\Http\Controllers\ContactController::class, 'create'])
+            ->name('contacts.create');
+    Route::post('/contacts', [\App\Http\Controllers\ContactController::class, 'store'])
+            ->name('contacts.store');
 });
 
 Route::middleware('auth')->group(function () {

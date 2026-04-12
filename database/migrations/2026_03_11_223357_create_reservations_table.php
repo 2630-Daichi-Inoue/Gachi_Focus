@@ -15,9 +15,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reservations', function (Blueprint $table) {
-            $table->ulid('id')->primary();
-            $table->foreignUlId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUlId('space_id')->constrained()->cascadeOnDelete();
+            $table->ulid('id')
+                    ->primary();
+            $table->foreignUlId('user_id')
+                    ->constrained()
+                    ->cascadeOnDelete();
+            $table->foreignUlId('space_id')
+                    ->constrained()
+                    ->cascadeOnDelete();
             $table->string('reservation_status')
                     ->default('booked'); // 'booked', 'canceled'
             $table->datetime('start_at');
@@ -26,7 +31,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('slot_count'); // 1 <= slot_count <= 16(eight hours at most)
             $table->unsignedInteger('unit_price_yen');
             $table->unsignedInteger('total_price_yen');
-            $table->datetime('canceled_at')->nullable();
+            $table->datetime('canceled_at')
+                    ->nullable();
             $table->timestamps();
 
             $table->index(['space_id', 'start_at']);

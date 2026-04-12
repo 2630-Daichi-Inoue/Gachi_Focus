@@ -68,7 +68,7 @@ const formatTime = (timeStr) => {
             </div>
         </div>
         <div>
-            <Link :href="Fill_here_later"
+            <Link :href="route('contacts.create', { reservation_id: null })"
                 class="font-medium text-blue-600 hover:underline">
                 Need to contact us? >
             </Link>
@@ -77,7 +77,7 @@ const formatTime = (timeStr) => {
                     class="flex items-center justify-center md:w-1/2 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                     Go Back
                 </Link>
-                <Link :href="route('reservations.create', space.id)"
+                <Link :href="route('reservations.create', { space: space.id })"
                     class="p-2 font-bold text-3xl flex items-center justify-center md:w-1/2 text-white border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
                     Book it
                 </Link>

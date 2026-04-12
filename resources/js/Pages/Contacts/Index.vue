@@ -2,32 +2,30 @@
 import {reactive, watch} from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import ReservationInfo from './Components/Index/ReservationInfo.vue'
-import ReservedSpaceInfo from './Components/Index/ReservedSpaceInfo.vue'
-import ReservationActions from './Components/Index/ReservationActions.vue'
+// import ContactInfo from './Components/Index/ContactInfo.vue'
+// import ContactStatus from './Components/Index/ContactStatus.vue'
+// import ContactActions from './Components/Index/ContactActions.vue'
 
 const props = defineProps({
-    reservations: Object,
+    contacts: Object,
     filters: Object,
 })
 
 const form = reactive({
-    name: props.filters.name ?? '',
-    reservation_status: props.filters.reservation_status ?? 'all',
-    sort: props.filters.sort ?? 'date_future_to_past',
+    contactStatus: props.filters.contactStatus ?? 'all',
+    sort: props.filters.sort ?? 'datePresentToPast',
 })
 
 const search = () => {
-    router.get(route('reservations.index'), form, {
+    router.get(route('contacts.index'), form, {
         preserveState: true,
         preserveScroll: true,
     })
 }
 
 const clearFilters = () => {
-    form.name = ''
-    form.reservation_status = 'all'
-    form.sort = 'date_future_to_past'
+    form.contactStatus = 'all'
+    form.sort = 'datePresentToPast'
     search()
 }
 
@@ -38,25 +36,24 @@ watch(() => form.sort, () => {
 
 <template>
     <AuthenticatedLayout>
-        <Head title="Reservations Index" />
+        <Head title="Contacts Index" />
 
         <div class="text-3xl font-bold ms-4 mt-4">
-            My Reservations
+            My Contacts
         </div>
 
         <!-- Search area -->
         <div class="m-4">
             <form @submit.prevent="search" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <input v-model="form.name" type="text" placeholder="Space's Name" class="border rounded px-3 py-2" />
-                    <select v-model="form.reservation_status" class="border rounded px-3 py-2">
+                    <select v-model="form.contactStatus" class="border rounded px-3 py-2">
                         <option value="all">All</option>
-                        <option value="booked">Booked or Completed</option>
-                        <option value="canceled">Canceled</option>
+                        <option value="open">Open</option>
+                        <option value="closed">Closed</option>
                     </select>
                     <select v-model="form.sort" class="border rounded px-3 py-2">
-                        <option value="date_future_to_past">Date: Future → Past</option>
-                        <option value="date_past_to_future">Date: Past → Future</option>
+                        <option value="datePresentToPast">Date: Present → Past</option>
+                        <option value="datePastToPresent">Date: Past → Present</option>
                     </select>
 
                     <div class="flex gap-2">
@@ -71,38 +68,39 @@ watch(() => form.sort, () => {
             </form>
 
             <!-- Empty state -->
-            <div v-if="reservations?.data?.length === 0" class="text-center mt-8">
+            <div v-if="contacts?.data?.length === 0" class="text-center mt-8">
                 <h3 class="text-xl font-semibold">No results.</h3>
                 <p class="text-gray-500">Try different filters or remove them.</p>
             </div>
 
-            <!-- Reservations list -->
+            <!-- Contacts list -->
             <div v-else class="flex flex-col gap-4 mt-4">
-                <div v-for="reservation in reservations.data"
-                    :key="reservation.id"
+                <div v-for="contact in contacts.data"
+                    :key="contact.id"
                     class="md:w-full"
                 >
                     <div class="h-full flex flex-col md:flex-row border-t border-gray-300 pt-4">
-                        <div class="w-full md:w-1/3 flex">
-                            <ReservedSpaceInfo :reservation="reservation" />
+                        <!--
+                        <div class="w-full md:w-1/2 flex justify-center items-center">
+                            <ContactInfo :contact="contact" />
                         </div>
-                        <div class="w-full md:w-1/3 flex justify-center items-center">
-                            <ReservationInfo :reservation="reservation" />
+                        <div class="w-full md:w-1/4 flex justify-center items-center">
+                            <ContactStatus :contact="contact" />
                         </div>
-                        <div class="w-full md:w-1/3 flex justify-end items-center">
-                            <ReservationActions :reservation="reservation" />
-                        </div>
+                        <div class="w-full md:w-1/4 flex justify-end items-center">
+                            <ContactActions :contact="contact" />
+                        </div> -->
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
-            <div class="flex justify-between items-center mt-6" v-if="reservations.data.length > 0">
+            <div class="flex justify-between items-center mt-6" v-if="contacts.data.length > 0">
                 <p class="text-sm text-gray-500">
-                    Showing {{ reservations.from }} to {{ reservations.to }} of {{ reservations.total }} results
+                    Showing {{ contacts.from }} to {{ contacts.to }} of {{ contacts.total }} results
                 </p>
                 <div class="flex gap-1">
-                    <template v-for="link in reservations.links" :key="link.url ?? link.label">
+                    <template v-for="link in contacts.links" :key="link.url ?? link.label">
                         <button
                             v-if="link.url"
                             @click="router.visit(link.url)"

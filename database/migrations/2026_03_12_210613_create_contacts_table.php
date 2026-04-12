@@ -15,14 +15,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contacts', function (Blueprint $table) {
-            $table->ulid('id')->primary();
-            $table->foreignUlId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUlId('reservation_id')->constrained()->cascadeOnDelete()->nullable();
-            $table->string('title', 100);
+            $table->ulid('id')
+                    ->primary();
+            $table->foreignUlId('user_id')
+                    ->constrained()
+                    ->cascadeOnDelete();
+            $table->foreignUlId('reservation_id')
+                    ->nullable()
+                    ->constrained();
+            $table->string('title', 50);
             $table->text('message');
-            $table->string('contact_status', 20)->default('open');
-            $table->timestamp('read_at')->nullable();
-            $table->timestamp('canceled_at')->nullable();
+            $table->string('contact_status', 20)
+                    ->default('open'); // 'open', 'closed'
+            $table->timestamp('read_at')
+                    ->nullable();
+            $table->timestamp('canceled_at')
+                    ->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'created_at']);

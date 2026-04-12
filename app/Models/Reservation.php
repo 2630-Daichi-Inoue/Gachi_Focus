@@ -43,7 +43,7 @@ class Reservation extends Model
      * Reservation status labels
      */
     public const RESERVATION_STATUS_MAP = [
-        'booked'    => 'Booked',
+        'booked'   => 'Booked',
         'canceled' => 'Canceled',
     ];
 

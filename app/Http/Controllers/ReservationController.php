@@ -15,6 +15,83 @@ use Illuminate\Validation\Rule;
 
 class ReservationController extends Controller
 {
+        /**
+     * Display a listing of the reservations.
+     */
+    public function index(Request $request)
+    {
+        $reservation_status_list = ['booked', 'canceled'];
+        $sort_list = ['date_future_to_past', 'date_past_to_future'];
+
+        $request->validate([
+            'name'               => ['nullable','string','max:50'],
+            'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservation_status_list))],
+            'sort'               => ['nullable', Rule::in($sort_list)],
+            'rows_per_page'      => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
+        $query = Reservation::query()
+                                ->where('user_id', Auth::id())
+                                ->with('space');
+
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->whereHas('space', function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->name . '%');
+            });
+        }
+        // Filter by reservation_status
+        $reservationStatus = $request->input('reservation_status', 'all');
+        if($reservationStatus !== 'all') {
+            $query->where('reservation_status', $reservationStatus);
+        }
+
+        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+
+        // Default: date present → past
+        $this->applySort($query, $request->input('sort', 'date_future_to_past'));
+
+        $reservations = $query
+                        ->paginate($rowsPerPage)
+                        ->withQueryString();
+
+        $reservations->load([
+            'review' => function($q) {
+                $q->withTrashed();
+            }
+        ]);
+
+        return Inertia::render('Reservations/Index', [
+            'reservations' => $reservations,
+            'filters' => [
+                'name' => $request->name,
+                'reservation_status' => $request->input('reservation_status', 'all'),
+                'sort' => $request->input('sort', 'date_future_to_past'),
+                'rows_per_page' => $rowsPerPage,
+            ]
+        ]);
+    }
+
+    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    {
+        switch ($sort ?? 'date_future_to_past') {
+            case 'date_future_to_past':
+                $q->orderBy('start_at', 'desc')
+                    ->latest('id');
+                break;
+
+            case 'date_past_to_future':
+                $q->orderBy('start_at', 'asc')
+                    ->latest('id');
+                break;
+
+            default:
+                $q->orderBy('start_at', 'desc')
+                    ->latest('id');
+        }
+    }
+
     /**
      * Show reservation form for a specific space.
      */
@@ -173,83 +250,6 @@ class ReservationController extends Controller
 
         return redirect()->route('spaces.show', $space)
         ->with('ok', 'Your reservation has been successfully made!');
-    }
-
-    /**
-     * Display a listing of the reservations.
-     */
-    public function index(Request $request)
-    {
-        $reservation_status_list = ['booked', 'canceled'];
-        $sort_list = ['date_future_to_past', 'date_past_to_future'];
-
-        $request->validate([
-            'name' => ['nullable','string','max:50'],
-            'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservation_status_list))],
-            'sort' => ['nullable', Rule::in($sort_list)],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
-        ]);
-
-        $query = Reservation::query()
-                                ->where('user_id', Auth::id())
-                                ->with('space');
-
-        // Filter by name
-        if ($request->filled('name')) {
-            $query->whereHas('space', function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->name . '%');
-            });
-        }
-        // Filter by reservation_status
-        $reservationStatus = $request->input('reservation_status', 'all');
-        if($reservationStatus !== 'all') {
-            $query->where('reservation_status', $reservationStatus);
-        }
-
-        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
-
-        // Default: date present → past
-        $this->applySort($query, $request->input('sort', 'date_future_to_past'));
-
-        $reservations = $query
-                        ->paginate($rowsPerPage)
-                        ->withQueryString();
-
-        $reservations->load([
-            'review' => function($q) {
-                $q->withTrashed();
-            }
-        ]);
-
-        return Inertia::render('Reservations/Index', [
-            'reservations' => $reservations,
-            'filters' => [
-                'name' => $request->name,
-                'reservation_status' => $request->input('reservation_status', 'all'),
-                'sort' => $request->input('sort', 'date_future_to_past'),
-                'rows_per_page' => $rowsPerPage,
-            ]
-        ]);
-    }
-
-    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
-    {
-        switch ($sort ?? 'date_future_to_past') {
-            case 'date_future_to_past':
-                $q->orderBy('start_at', 'desc')
-                    ->latest('id');
-                break;
-
-            case 'date_past_to_future':
-                $q->orderBy('start_at', 'asc')
-                    ->latest('id');
-                break;
-
-            default:
-                $q->orderBy('start_at', 'desc')
-                    ->latest('id');
-        }
     }
 
     public function cancel(Reservation $reservation)

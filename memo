@@ -9,6 +9,9 @@ Improvement points
 8.Rows per page for resercations, spaces, and reviews index.
 9.Separation of filtering box and sorting one for space, reservation, and review index.
 10.Making messages on admin's management screens deletable or disapper in a few seconds.
+11.Delete unnecessary files e.g. users' blade files, other unused files.
+12.Writing comments on codes for better understanging.
+13.Argument of sorting functions whether it shoud be Builder.
 
 Check later
 1.Usage of page in PaymentFrom.vue.

@@ -17,7 +17,7 @@ class AmenitiesController extends Controller
 
     public function create()
     {
-        // nothing to do here since we will use a modal for creating amenities
+        // Nothing goes here since we will use a modal for creating amenities
     }
 
     public function store(Request $request)
@@ -33,14 +33,14 @@ class AmenitiesController extends Controller
         return back()->with('success','Successfully added.');
     }
 
-    public function show(Amenity $amenity)
+    public function show()
     {
-        // nothing to do here since we will not have a separate page for showing an amenity
+        // Nothing goes here since we will not have a separate page for showing an amenity
     }
 
-    public function edit(Amenity $amenity)
+    public function edit()
     {
-        // nothing to do here since we will use a modal for editing amenities
+        // Nothing goes here since we will use a modal for editing amenities
     }
 
     public function update(Request $request, Amenity $amenity)

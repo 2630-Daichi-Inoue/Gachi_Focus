@@ -77,8 +77,21 @@ watch(
                                     :href="route('reservations.index')"
                                     :active="route().current('reservations.index')"
                                 >
-                                    My Reservations
+                                    My reservations
                                 </NavLink>
+                                <NavLink
+                                    :href="route('contacts.index')"
+                                    :active="route().current('contacts.index')"
+                                >
+                                    My contacts
+                                </NavLink>
+                                <NavLink
+                                    :href="route('contacts.create', { reservation_id: null })"
+                                    :active="route().current('contacts.create')"
+                                >
+                                    Make a contact
+                                </NavLink>
+
                             </div>
                         </div>
 
