@@ -18,6 +18,7 @@
                         <a href="{{ route('admin.spaces.index') }}" class="list-group-item fw-bold">Manage Spaces ></a>
                         <a href="{{ route('admin.spaces.register') }}" class="list-group-item fw-bold">Register a space ></a>
                         <a href="{{ route('admin.amenities.index') }}" class="list-group-item fw-bold">Edit Amenities ></a>
+                        <a href="{{ route('admin.reviews.index') }}" class="list-group-item fw-bold">Manage Reviews ></a>
                     </div>
                 </div>
 

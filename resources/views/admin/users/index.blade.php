@@ -183,7 +183,7 @@
                                     </button> --}}
 
                                     {{-- Active or Banned -> Restricted --}}
-                                    @if($user->user_status === 'active' || $user->user_status === 'banned')
+                                    @if ($user->user_status === 'active' || $user->user_status === 'banned')
                                         <button type="button"
                                                 class="dropdown-item text-warning"
                                                 data-bs-toggle="modal"

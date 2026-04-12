@@ -17,7 +17,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('spaces', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->ulid('id')
+                  ->primary();
             $table->string('name', 50);
             $table->string('prefecture', 20);
             $table->string('city', 50);

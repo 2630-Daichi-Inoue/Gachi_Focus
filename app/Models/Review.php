@@ -19,6 +19,10 @@ class Review extends Model
         'is_public',
     ];
 
+    protected $casts = [
+        'is_public' => 'boolean',
+    ];
+
     public function reservation()
     {
         return $this->belongsTo(Reservation::class);

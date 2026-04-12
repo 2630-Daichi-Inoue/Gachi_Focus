@@ -11,12 +11,6 @@ use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
-    private $user;
-
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }
 
     public function index(Request $request)
     {
@@ -31,7 +25,7 @@ class UsersController extends Controller
 
         // Exclude admin
         $query = User::query()
-                ->where('is_admin', false);
+                        ->where('is_admin', false);
 
         // Filter by name
         if ($request->filled('name')) {

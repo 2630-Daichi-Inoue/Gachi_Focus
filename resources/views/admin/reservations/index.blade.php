@@ -205,7 +205,7 @@
                                     </button> --}}
 
                                     {{-- Booked -> Cancel --}}
-                                    @if($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
+                                    @if ($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
                                         <button type="button"
                                                 class="dropdown-item text-danger"
                                                 data-bs-toggle="modal"

@@ -7,10 +7,11 @@ use Inertia\Inertia;
 
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\Admin\AmenitiesController;
-use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\Admin\SpacesController;
+use App\Http\Controllers\Admin\ReservationsController;
+use App\Http\Controllers\Admin\AmenitiesController;
+use App\Http\Controllers\Admin\ReviewsController;
 
 // User Controllers
 use App\Http\Controllers\SpaceController;
@@ -25,10 +26,6 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 })->name('index');
-
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
@@ -100,6 +97,19 @@ Route::middleware(['auth', 'admin'])
 
         Route::patch('/users/{user}/ban', [UsersController::class, 'ban'])
             ->name('users.ban');
+
+        // Admin Reviews Management
+        Route::get('/reviews', [ReviewsController::class, 'index'])
+            ->name('reviews.index');
+
+        Route::patch('/reviews/{review}/hide', [ReviewsController::class, 'hide'])
+            ->withTrashed()
+            ->name('reviews.hide');
+
+        Route::patch('/reviews/{review}/show', [ReviewsController::class, 'show'])
+            ->withTrashed()
+            ->name('reviews.show');
+
     }
 );
 

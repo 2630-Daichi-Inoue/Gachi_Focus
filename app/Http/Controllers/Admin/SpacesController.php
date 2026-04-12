@@ -29,8 +29,8 @@ class SpacesController extends Controller
             'prefecture' => ['nullable', Rule::in($prefectureList)],
             'city' => ['nullable', 'string', 'max:50'],
             'address_line' => ['nullable', 'string', 'max:100'],
-            'is_public' => ['nullable', 'in:all,0,1'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'is_public' => ['nullable', 'in:all, 0, 1'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20, 50, 100']
         ]);
 
         $query = Space::query();
@@ -52,8 +52,7 @@ class SpacesController extends Controller
             $query->where('address_line', 'LIKE', '%' . $request->address_line . '%');
         }
         // Filter by is_public
-        $isPublic = $request->input('is_public', 'all');
-        if ($isPublic !== 'all') {
+        if ($request->filled('is_public') && $request->is_public !== 'all') {
             $query->where('is_public', $request->boolean('is_public'));
         }
 
