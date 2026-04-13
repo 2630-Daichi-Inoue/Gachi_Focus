@@ -20,22 +20,21 @@ class ContactController extends Controller
 
     public function index(Request $request)
     {
-        $contactStatusList = ['open', 'closed'];
-        $sortList = ['dateFutureToPast', 'datePastToFuture'];
+        $contactStatusList = ['open', 'closed', 'canceled'];
+        $sortList = ['datePresentToPast', 'datePastToPresent'];
 
         $request->validate([
             'contactStatus' => ['nullable', Rule::in(array_merge(['all'], $contactStatusList))],
             'sort'          => ['nullable', Rule::in($sortList)],
-            'rowsPerPage'   => ['nullable', 'integer', 'in:20, 50, 100']
+            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
         $query = Contact::query()
                             ->where('user_id', Auth::id());
 
         // Filter by contact_status
-        $contactStatus = $request->input('contactStatus', 'all');
-        if($contactStatus !== 'all') {
-            $query->where('contact_status', $contactStatus);
+        if($request->input('contactStatus', 'all')!== 'all') {
+            $query->where('contact_status', $request->input('contactStatus'));
         }
 
         $rowsPerPage = (int)$request->input('rowsPerPage', 20);
@@ -122,5 +121,32 @@ class ContactController extends Controller
             return redirect()->route('contacts.index')
                             ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
         }
+    }
+
+    public function cancel(Contact $contact)
+    {
+        if ($contact->user_id !== Auth::id()) {
+            abort(403, 'You cannot cancel a contact that does not belong to you.');
+        }
+
+        if ($contact->contact_status === 'closed') {
+            return back()->with('error', 'This contact has already been closed.');
+        }
+
+        if ($contact->contact_status === 'canceled') {
+            return back()->with('error', 'This contact has already been canceled.');
+        }
+
+        if ($contact->read_at !== null) {
+            return back()->with('error', 'This contact has already been read. Please wait for our response.');
+        }
+
+        $contact->update([
+            'contact_status' => 'canceled',
+            'canceled_at' => now(),
+        ]);
+
+        return back()->with('ok', 'Your contact has been canceled.');
+
     }
 }

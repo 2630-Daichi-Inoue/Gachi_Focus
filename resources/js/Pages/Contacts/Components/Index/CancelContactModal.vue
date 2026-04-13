@@ -4,9 +4,9 @@ const emit = defineEmits(['close', 'confirm']);
 
 <template>
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center" @click.self="$emit('close')">
-        <div class="bg-white p-4 rounded">
+        <div class="bg-white p-4 rounded-lg shadow-lg">
             <p class="text-lg font-bold mb-4">
-                Are you sure you want to cancel this reservation?
+                Are you sure you want to cancel this contact?
             </p>
             <div class="flex justify-evenly gap-2 mt-4">
                 <button @click="$emit('close')" class="p-4 btn bg-red-700 text-white font-bold border border-gray-300 rounded transition hover:bg-red-800 h-10 w-1/2 flex items-center justify-center">

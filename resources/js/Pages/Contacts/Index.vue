@@ -1,10 +1,10 @@
 <script setup>
-import {reactive, watch} from 'vue'
+import {reactive, watch, computed} from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-// import ContactInfo from './Components/Index/ContactInfo.vue'
-// import ContactStatus from './Components/Index/ContactStatus.vue'
-// import ContactActions from './Components/Index/ContactActions.vue'
+import ContactInfo from './Components/Index/ContactInfo.vue'
+import ContactStatus from './Components/Index/ContactStatus.vue'
+import ContactActions from './Components/Index/ContactActions.vue'
 
 const props = defineProps({
     contacts: Object,
@@ -23,15 +23,24 @@ const search = () => {
     })
 }
 
+const appliedContactStatus = computed(() => props.filters.contactStatus ?? 'all')
+
+watch(() => form.sort, () => {
+    router.get(route('contacts.index'), {
+        contactStatus: appliedContactStatus.value,
+        sort: form.sort,
+    }, {
+        preserveState: true,
+        preserveScroll: true,
+    })
+})
+
 const clearFilters = () => {
     form.contactStatus = 'all'
     form.sort = 'datePresentToPast'
     search()
 }
 
-watch(() => form.sort, () => {
-    search()
-})
 </script>
 
 <template>
@@ -50,6 +59,7 @@ watch(() => form.sort, () => {
                         <option value="all">All</option>
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
+                        <option value="canceled">Canceled</option>
                     </select>
                     <select v-model="form.sort" class="border rounded px-3 py-2">
                         <option value="datePresentToPast">Date: Present → Past</option>
@@ -79,17 +89,17 @@ watch(() => form.sort, () => {
                     :key="contact.id"
                     class="md:w-full"
                 >
-                    <div class="h-full flex flex-col md:flex-row border-t border-gray-300 pt-4">
-                        <!--
-                        <div class="w-full md:w-1/2 flex justify-center items-center">
+                    <div class="h-full flex flex-col md:flex-row border-t border-gray-300 pt-4 gap-4">
+
+                        <div class="w-full md:w-1/3 flex justify-center items-center">
                             <ContactInfo :contact="contact" />
                         </div>
-                        <div class="w-full md:w-1/4 flex justify-center items-center">
+                        <div class="w-full md:w-1/3 flex justify-center items-center">
                             <ContactStatus :contact="contact" />
                         </div>
-                        <div class="w-full md:w-1/4 flex justify-end items-center">
+                        <div class="w-full md:w-1/3 flex justify-center items-center">
                             <ContactActions :contact="contact" />
-                        </div> -->
+                        </div>
                     </div>
                 </div>
             </div>

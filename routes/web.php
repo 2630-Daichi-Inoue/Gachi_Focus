@@ -158,6 +158,8 @@ Route::middleware('auth')->group(function () {
             ->name('contacts.create');
     Route::post('/contacts', [\App\Http\Controllers\ContactController::class, 'store'])
             ->name('contacts.store');
+    Route::patch('/contacts/{contact}/cancel', [\App\Http\Controllers\ContactController::class, 'cancel'])
+            ->name('contacts.cancel');
 });
 
 Route::middleware('auth')->group(function () {

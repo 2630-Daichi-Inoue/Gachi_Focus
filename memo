@@ -12,6 +12,8 @@ Improvement points
 11.Delete unnecessary files e.g. users' blade files, other unused files.
 12.Writing comments on codes for better understanging.
 13.Argument of sorting functions whether it shoud be Builder.
+14.One liner for vue files if they can be made.
+15.Holding the same status when sorting for vue files.
 
 Check later
 1.Usage of page in PaymentFrom.vue.

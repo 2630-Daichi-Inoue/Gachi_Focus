@@ -266,9 +266,12 @@ class ReservationController extends Controller
             return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
         }
 
-        $reservation->update(['reservation_status' => 'canceled']);
+        $reservation->update([
+            'reservation_status' => 'canceled',
+            'canceled_at' => now(),
+        ]);
 
         return back()->with('ok', 'Your reservation has been canceled.');
 
-        }
+    }
 }
