@@ -15,8 +15,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('amenities', function (Blueprint $table) {
-            $table->ulid('id')->primary();
-            $table->string('name', 50)->unique();
+            $table->ulid('id')
+                    ->primary();
+            $table->string('name', 50)
+                    ->unique();
             $table->timestamps();
         });
     }

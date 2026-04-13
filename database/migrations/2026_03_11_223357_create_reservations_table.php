@@ -18,11 +18,9 @@ return new class extends Migration
             $table->ulid('id')
                     ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+                    ->constrained();
             $table->foreignUlId('space_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+                    ->constrained();
             $table->string('reservation_status')
                     ->default('booked'); // 'booked', 'canceled'
             $table->datetime('start_at');

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SpacesController;
 use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\AmenitiesController;
 use App\Http\Controllers\Admin\ReviewsController;
+use \App\Http\Controllers\Admin\ContactsController;
 
 // User Controllers
 use App\Http\Controllers\SpaceController;
@@ -110,6 +111,15 @@ Route::middleware(['auth', 'admin'])
             ->withTrashed()
             ->name('reviews.show');
 
+        // Admin Contacts Management
+        Route::get('/contacts', [ContactsController::class, 'index'])
+            ->name('contacts.index');
+
+        Route::patch('/contacts/{contact}/read', [ContactsController::class, 'read'])
+            ->name('contacts.read');
+
+        Route::patch('/contacts/{contact}/close', [ContactsController::class, 'close'])
+            ->name('contacts.close');
     }
 );
 

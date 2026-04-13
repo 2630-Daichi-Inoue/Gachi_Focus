@@ -14,6 +14,9 @@ Improvement points
 13.Argument of sorting functions whether it shoud be Builder.
 14.One liner for vue files if they can be made.
 15.Holding the same status when sorting for vue files.
+16.Position of sorting box.
+17.Replace fill with update in contorollers unless there are any reasons to use fill.
+18.Simplify backend-checking-result statement in admin's controllers.
 
 Check later
 1.Usage of page in PaymentFrom.vue.

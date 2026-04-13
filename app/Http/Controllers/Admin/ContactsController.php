@@ -4,15 +4,104 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Contact;
 
 class ContactsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $request->validate([
+            'userName'      => ['nullable', 'string', 'max:50'],
+            'contactStatus' => ['nullable', 'in:all,open,closed,canceled'],
+            'keyword'       => ['nullable', 'string', 'max:50'],
+            'readStatus'    => ['nullable', 'in:all,1,0'],
+            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100'],
+        ]);
+
+        $query = Contact::query()
+                        ->with('user');
+
+        // Filter by username
+        if ($request->filled('userName')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->userName . '%');
+            });
+        }
+        // Filter by contact status
+        if ($request->filled('contactStatus') && $request->contactStatus !== 'all') {
+            $query->where('contact_status', $request->contactStatus);
+        }
+        // Filter by keyword in title or message
+        if ($request->filled('keyword')) {
+            $query->where('title', 'LIKE', '%' . $request->keyword . '%')
+                  ->orWhere('message', 'LIKE', '%' . $request->keyword . '%');
+        }
+        // Filter by read status
+        if ($request->filled('readStatus') && $request->readStatus !== 'all') {
+            if ($request->readStatus === '1') {
+                $query->whereNotNull('read_at');
+            } else {
+                $query->whereNull('read_at');
+            }
+        }
+
+        $rowsPerPage = (int)$request->input('rowsPerPage', 20);
+
+        $contacts = $query
+                    ->latest()
+                    ->paginate($rowsPerPage);
+
+        return view('admin.contacts.index', compact('contacts', 'rowsPerPage'));
+    }
+
+    public function read(Contact $contact)
+    {
+
+        if ($contact->read_at !== null) {
+            return redirect()->route('admin.contacts.index')
+                            ->with('error', 'This contact has already been marked as read.');
+        }
+
+        if ($contact->contact_status !== 'open') {
+            return redirect()->route('admin.contacts.index')
+                            ->with('error', 'This contact is not open anymore.');
+        }
+
+        # 1. Update the contact data in the contacts table
+        $contact->fill ([
+            'read_at' => now(),
+        ]);
+
+        $contact->save();
+
+        # 2. redirect to the index
+        return redirect()->route('admin.contacts.index')
+                        ->with('status', 'Successfully marked as read.');
+    }
+
+    public function close(Contact $contact)
+    {
+        if ($contact->read_at === null) {
+            return redirect()->route('admin.contacts.index')
+                            ->with('error', 'This contact has not been marked as read yet.');
+        }
+
+        if ($contact->contact_status !== 'open') {
+            return redirect()->route('admin.contacts.index')
+                            ->with('error', 'This contact is not open anymore.');
+        }
+
+        # 1. Update the contact data in the contacts table
+        $contact->update ([
+            'contact_status' => 'closed',
+        ]);
+
+        # 2. redirect to the index
+        return redirect()->route('admin.contacts.index')
+                        ->with('status', 'Successfully marked as closed.');
     }
 
     /**
@@ -20,7 +109,7 @@ class ContactsController extends Controller
      */
     public function create()
     {
-        //
+        // Nothing goes here since contacts are created by users, not admins.
     }
 
     /**
@@ -28,7 +117,7 @@ class ContactsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        // Nothing goes here since contacts are created by users, not admins.
     }
 
     /**
@@ -36,7 +125,7 @@ class ContactsController extends Controller
      */
     public function show(string $id)
     {
-        //
+        // Nothing goes here since we have a separate "read" method for marking as read and showing details in a modal.
     }
 
     /**
@@ -44,7 +133,7 @@ class ContactsController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        // Nothing goes here since we have a separate "close" method for marking as closed and we don't have any other editable fields for contacts.
     }
 
     /**
@@ -52,7 +141,7 @@ class ContactsController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Nothing goes here since we have separate methods for marking as read and closed, and we don't have any other editable fields for contacts.
     }
 
     /**
@@ -60,6 +149,6 @@ class ContactsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Nothing goes here since we don't want admins to delete contacts, as they may contain important information regarding user issues and inquiries.
     }
 }

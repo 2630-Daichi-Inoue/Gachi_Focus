@@ -140,6 +140,12 @@
                 </select>
             </div>
 
+            <!-- Reservation ID from admin's contact index page -->
+            <input type="hidden"
+                    name="reservation_id"
+                    id="reservation_id"
+                    class="form-control form-control-sm border input-unified ps-4"
+                    value="{{ request('reservation_id') }}">
         </div>
     </form>
 

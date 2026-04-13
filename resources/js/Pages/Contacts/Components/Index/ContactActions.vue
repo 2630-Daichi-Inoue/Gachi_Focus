@@ -18,9 +18,9 @@ const isCanceled = computed(() => props.contact.contact_status === 'canceled');
 
 const canCancel = computed(() => isOpen.value && isUnread.value);
 
-const showCancelContactModal = ref(false);
-
 const showViewContactModal = ref(false);
+
+const showCancelContactModal = ref(false);
 
 const cancelContact = () => {
     // Call the API to cancel the contact

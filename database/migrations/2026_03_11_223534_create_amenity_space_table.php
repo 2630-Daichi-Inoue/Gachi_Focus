@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('amenity_space', function (Blueprint $table) {
-            $table->foreignUlId('space_id')->constrained()->cascadeOnDelete();
-            $table->foreignUlId('amenity_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlId('space_id')
+                    ->constrained();
+            $table->foreignUlId('amenity_id')
+                    ->constrained()
+                    ->cascadeOnDelete();
 
             $table->primary(['space_id','amenity_id']);
             $table->index(['space_id', 'amenity_id']);

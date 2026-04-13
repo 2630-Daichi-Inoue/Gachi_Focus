@@ -18,8 +18,7 @@ return new class extends Migration
             $table->ulid('id')
                     ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+                    ->constrained();
             $table->foreignUlId('reservation_id')
                     ->nullable()
                     ->constrained();

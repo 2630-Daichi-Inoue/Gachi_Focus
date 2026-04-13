@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('favorites', function (Blueprint $table) {
-            $table->foreignUlId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignUlId('space_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlId('user_id')
+                    ->constrained();
+            $table->foreignUlId('space_id')
+                    ->constrained();
 
             $table->primary(['user_id','space_id']);
             $table->index(['user_id', 'space_id']);

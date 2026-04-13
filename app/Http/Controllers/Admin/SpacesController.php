@@ -29,8 +29,8 @@ class SpacesController extends Controller
             'prefecture' => ['nullable', Rule::in($prefectureList)],
             'city' => ['nullable', 'string', 'max:50'],
             'address_line' => ['nullable', 'string', 'max:100'],
-            'is_public' => ['nullable', 'in:all, 0, 1'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20, 50, 100']
+            'is_public' => ['nullable', 'in:all,0,1'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
         $query = Space::query();

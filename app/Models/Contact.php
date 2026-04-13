@@ -44,10 +44,9 @@ class Contact extends Model
 
     /**
     * Get the reservation associated with the contact.
-    * Nullable because not all contacts may be tied to a reservation.
     */
     public function reservation()
     {
-        return $this->hasOne(Reservation::class);
+        return $this->belongsTo(Reservation::class);
     }
 }

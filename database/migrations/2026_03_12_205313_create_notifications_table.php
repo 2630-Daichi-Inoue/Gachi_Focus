@@ -16,12 +16,14 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUlId('user_id')
+                    ->constrained();
             $table->string('type', 50);
             $table->string('title', 100);
             $table->text('message');
             $table->nullableUlidMorphs('related');
-            $table->timestamp('read_at')->nullable();
+            $table->timestamp('read_at')
+                    ->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'created_at']);

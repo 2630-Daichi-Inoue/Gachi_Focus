@@ -18,12 +18,10 @@ return new class extends Migration
             $table->ulid('id')
                     ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+                    ->constrained();
             $table->foreignUlId('reservation_id')
                     ->unique()
-                    ->constrained()
-                    ->cascadeOnDelete();
+                    ->constrained();
             $table->unsignedTinyInteger('rating')
                     ->min(1)
                     ->max(5);

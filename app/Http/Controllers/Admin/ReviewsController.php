@@ -16,10 +16,10 @@ class ReviewsController extends Controller
 
         $request->validate([
             'userName'     => ['nullable', 'string', 'max:50'],
-            'rating'       => ['nullable', 'in:all, 1, 2, 3, 4, 5'],
+            'rating'       => ['nullable', 'in:all,1,2,3,4,5'],
             'keyword'      => ['nullable', 'string', 'max:50'],
-            'isPublic'     => ['nullable', 'in:all, 1, 0'],
-            'rowsPerPage'  => ['nullable', 'integer', 'in:20, 50, 100'],
+            'isPublic'     => ['nullable', 'in:all,1,0'],
+            'rowsPerPage'  => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Review::query()
