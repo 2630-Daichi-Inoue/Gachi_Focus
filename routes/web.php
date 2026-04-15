@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\AmenitiesController;
 use App\Http\Controllers\Admin\ReviewsController;
 use \App\Http\Controllers\Admin\ContactsController;
+use \App\Http\Controllers\Admin\AnnouncementsController;
 
 // User Controllers
 use App\Http\Controllers\SpaceController;
@@ -120,6 +121,20 @@ Route::middleware(['auth', 'admin'])
 
         Route::patch('/contacts/{contact}/close', [ContactsController::class, 'close'])
             ->name('contacts.close');
+
+        // Admin Announcements Management
+        Route::get('/announcements', [AnnouncementsController::class, 'index'])
+            ->name('announcements.index');
+
+        Route::get('/announcements/create', [AnnouncementsController::class, 'create'])
+            ->name('announcements.create');
+
+        Route::post('/announcements', [AnnouncementsController::class, 'store'])
+            ->name('announcements.store');
+
+        Route::patch('/announcements/{announcement}/hide', [AnnouncementsController::class, 'hide'])
+            ->name('announcements.hide');
+
     }
 );
 

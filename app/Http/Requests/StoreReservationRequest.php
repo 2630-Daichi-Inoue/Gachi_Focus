@@ -15,13 +15,6 @@ class StoreReservationRequest extends FormRequest
         return true;
     }
 
-    // public function dateValidator($date, $fail): void
-    // {
-    //     if (Carbon::parse($date)->isBefore(Carbon::today())) {
-    //         $fail('Please select today or a future date.');
-    //     }
-    // }
-
     public function timeValidator($datetime, $fail): void
     {
         $time_collection = explode(':', $datetime);
@@ -31,19 +24,6 @@ class StoreReservationRequest extends FormRequest
         }
 
     }
-
-    // public function quantityValidator($quantity, $fail): void
-    // {
-    //     $space = $this->route('space');
-
-    //     if ($quantity < 1) {
-    //         $fail('The quantity must be at least 1.');
-    //     }
-
-    //     if ($quantity > $space->capacity) {
-    //         $fail('The quantity must not exceed the space capacity.');
-    //     }
-    // }
 
     public function withValidator($validator): void
     {
@@ -77,9 +57,6 @@ class StoreReservationRequest extends FormRequest
                 'required',
                 'date_format:Y-m-d',
                 'after_or_equal:today',
-                // function ($attribute, $value, $fail) {
-                //     $this->dateValidator($value, $fail);
-                // },
             ],
 
             'start_at' => [
@@ -104,9 +81,6 @@ class StoreReservationRequest extends FormRequest
                 'integer',
                 'min:1',
                 'max:' . $space->capacity,
-                // function ($attribute, $value, $fail) {
-                //     $this->quantityValidator($value, $fail);
-                // },
             ],
 
         ];

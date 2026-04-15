@@ -13,7 +13,6 @@ class ReviewsController extends Controller
      */
     public function index(Request $request)
     {
-
         $request->validate([
             'userName'     => ['nullable', 'string', 'max:50'],
             'rating'       => ['nullable', 'in:all,1,2,3,4,5'],

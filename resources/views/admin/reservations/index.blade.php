@@ -81,7 +81,7 @@
         <div class="row mb-2 align-items-stretch">
             <!-- Name -->
             <div class="col-md-2">
-                <label for="user_name" class="form-label mb-1 small text-muted">User name</label>
+                <label for="user_name" class="form-label mb-1 large text-muted">User name</label>
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
                     <input type="search"
@@ -95,7 +95,7 @@
 
             <!-- Space -->
             <div class="col-md-2">
-                <label for="space_name" class="form-label mb-1 small text-muted">Space name</label>
+                <label for="space_name" class="form-label mb-1 large text-muted">Space name</label>
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
                     <input type="search"
@@ -109,27 +109,31 @@
 
             <!-- Date(from) -->
             <div class="col-md-2">
-                <label for="date_from" class="form-label small text-muted mb-1">Date(from)</label>
-                <input type="date"
-                        name="date_from"
-                        id="date_from"
-                        class="form-control form-control-sm border input-unified"
-                        value="{{ request('date_from') }}">
+                <label for="date_from" class="form-label large text-muted mb-1">Date(from)</label>
+                <div class="position-relative">
+                    <input type="date"
+                            name="date_from"
+                            id="date_from"
+                            class="form-control form-control-sm border input-unified"
+                            value="{{ request('date_from') }}">
+                </div>
             </div>
 
             <!-- Date(to) -->
             <div class="col-md-2">
-                <label for="date_to" class="form-label small text-muted mb-1">Date(to)</label>
-                <input type="date"
-                        name="date_to"
-                        id="date_to"
-                        class="form-control form-control-sm border input-unified"
-                        value="{{ request('date_to') }}">
+                <label for="date_to" class="form-label large text-muted mb-1">Date(to)</label>
+                <div class="position-relative">
+                    <input type="date"
+                            name="date_to"
+                            id="date_to"
+                            class="form-control form-control-sm border input-unified"
+                            value="{{ request('date_to') }}">
+                </div>
             </div>
 
             <!-- Status -->
             <div class="col-md-2">
-                <label for="status" class="form-label mb-1 small text-muted">
+                <label for="status" class="form-label mb-1 large text-muted">
                     Status
                 </label>
                 @php $status = request('status', 'all'); @endphp

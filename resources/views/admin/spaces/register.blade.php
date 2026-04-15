@@ -185,11 +185,11 @@
             Register
         </button>
 
-        @if ($errors->any())
+        {{-- @if ($errors->any())
             @foreach ($errors->all() as $error)
                 <div>{{ $error }}</div>
             @endforeach
-        @endif
+        @endif --}}
     </form>
 
 @endsection

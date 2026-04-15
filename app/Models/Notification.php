@@ -19,7 +19,7 @@ class Notification extends Model
         'read_at',
     ];
 
-    public function receiver()
+    public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

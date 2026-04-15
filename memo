@@ -17,6 +17,106 @@ Improvement points
 16.Position of sorting box.
 17.Replace fill with update in contorollers unless there are any reasons to use fill.
 18.Simplify backend-checking-result statement in admin's controllers.
+19.Simplify routes for both admin and users using by prefix and name.
+20.Error messages on data submitting pages to be commented out.
+21.Change names of variables with '*_at' into '*ed_at.'
 
 Check later
 1.Usage of page in PaymentFrom.vue.
+2.Difference between ->lt and <.
+
+Read me
+
+Outline of this application
+-A web application for coworking space management and reservation.
+-Admin: Managing spaces, users, spaces' amenities, reservations, reviews, contacts, and notification.
+-User: Search for spaces, book a space, cancel a reservation, post a review, creae a contact.
+
+Used technologies
+-Laravel＠11.46.1
+-Vue@3.5.30
+
+This project is designed as an MVP, focusing on core functionality with room for scalability and improvement.
+
+## Challenges & Improvement Points
+
+### 🧠 Design / Logic
+- Prevent overlapping reservations for the same space and time
+  → Needs stronger backend control (e.g. transaction / locking)
+
+- Clarify reservation lifecycle when payment is introduced
+  → Decide whether reservation is confirmed before or after payment
+
+- Simplify backend validation logic
+  → Reduce duplicated condition checks in controllers
+
+---
+
+### ⚙️ Backend
+- Replace `fill()` + `save()` with `update()` where appropriate
+- Refactor sorting functions (argument consistency using Builder)
+- Improve filtering logic (handling 'all' values more cleanly)
+- Simplify route definitions using prefix and name grouping
+
+---
+
+### 🎨 Frontend / UX
+- Separate filtering and sorting UI for better usability
+- Maintain filter state when sorting is changed
+- Add rows-per-page selection for index pages (reservations, spaces, reviews)
+- Improve admin messages (auto-dismiss or manually dismissible)
+- Adjust UI details (e.g. spacing between review stars, layout consistency)
+
+---
+
+### 🧹 Code Quality
+- Unify naming conventions (camelCase)
+- Remove unused files and clean project structure
+- Add comments for better readability and maintainability
+- Refactor common utility functions (e.g. formatPrice, formatTime)
+
+---
+
+## 🚀 Future Improvements
+
+### 💳 Payment Integration
+- Introduce payment system (e.g. Stripe)
+- Add `payment_status` to reservations
+- Handle payment failure / cancellation scenarios
+- Design refund logic for canceled reservations
+
+---
+
+### ⭐ Favorite Feature
+- Allow users to bookmark (favorite) spaces
+- Create a dedicated favorites list page
+
+---
+
+### 📩 Contact System Enhancements
+- Add detailed contact view for admin
+- Introduce "read" and "unread" state handling
+- Allow admin responses (optional future extension)
+
+---
+
+### 🔔 Notification System
+- Admin can create announcements
+- Users can view notifications
+- (Optional) Add read/unread tracking
+
+---
+
+### 🧪 Testing & Stability
+- Perform end-to-end testing for all user flows:
+  - Reservation → Cancel → Review
+  - Contact creation and status transitions
+- Improve edge-case handling (invalid inputs, direct URL access)
+
+---
+
+### 📊 Possible Extensions
+- Reservation history dashboard
+- Space availability visualization
+- Multi-image support for spaces
+- Advanced filtering (price range, amenities, etc.)

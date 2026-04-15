@@ -15,7 +15,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notifications', function (Blueprint $table) {
-            $table->ulid('id')->primary();
+            $table->ulid('id')
+                    ->primary();
             $table->foreignUlId('user_id')
                     ->constrained();
             $table->string('type', 50);

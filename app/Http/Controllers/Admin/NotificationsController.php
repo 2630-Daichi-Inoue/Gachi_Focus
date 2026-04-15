@@ -10,9 +10,9 @@ class NotificationsController extends Controller
 {
     public function index()
     {
-        $notifications = CustomNotification::where('receiver_id', auth()->id())
-                ->orderByDesc('created_at')
-                ->paginate(5);
+        $notifications = Notification::where('receiver_id', auth()->id())
+                                        ->orderByDesc('created_at')
+                                        ->paginate(5);
 
         return view('admin.notifications', compact('notifications'));
     }
