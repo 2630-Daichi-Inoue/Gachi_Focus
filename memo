@@ -20,6 +20,8 @@ Improvement points
 19.Simplify routes for both admin and users using by prefix and name.
 20.Error messages on data submitting pages to be commented out.
 21.Change names of variables with '*_at' into '*ed_at.'
+22.Add 'expired_at' to annucement feature for letting admin manage announcements more easily.
+23.New badge, pinning, and clickable card for  for user's announcement index.
 
 Check later
 1.Usage of page in PaymentFrom.vue.

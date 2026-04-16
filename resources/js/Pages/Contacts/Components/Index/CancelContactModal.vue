@@ -4,7 +4,7 @@ const emit = defineEmits(['close', 'confirm']);
 
 <template>
     <div class="fixed inset-0 bg-black/50 flex items-center justify-center" @click.self="$emit('close')">
-        <div class="bg-white p-4 rounded-lg shadow-lg">
+        <div class="bg-white p-4 w-2/3 rounded-lg shadow-lg">
             <p class="text-lg font-bold mb-4">
                 Are you sure you want to cancel this contact?
             </p>

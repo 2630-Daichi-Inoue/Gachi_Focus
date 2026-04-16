@@ -91,6 +91,12 @@ watch(
                                 >
                                     Make a contact
                                 </NavLink>
+                                <NavLink
+                                    :href="route('announcements.index')"
+                                    :active="route().current('announcements.index')"
+                                >
+                                    Announcements
+                                </NavLink>
 
                             </div>
                         </div>

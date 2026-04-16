@@ -185,6 +185,10 @@ Route::middleware('auth')->group(function () {
             ->name('contacts.store');
     Route::patch('/contacts/{contact}/cancel', [\App\Http\Controllers\ContactController::class, 'cancel'])
             ->name('contacts.cancel');
+
+    // User Announcement Routes
+    Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])
+            ->name('announcements.index');
 });
 
 Route::middleware('auth')->group(function () {

@@ -55,7 +55,7 @@ const getMessage = computed(() => {
 
 <template>
     <div class="mx-2 flex flex-col gap-2 items-center w-full">
-        <!-- Button area -->
+        <!-- Buttons -->
         <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
             <button @click="showViewContactModal = true"
                     class="btn p-4 bg-white flex items-center justify-center h-10 text-sky-500 font-bold border border-sky-500 rounded transition hover:bg-sky-200 disabled:opacity-50 disabled:cursor-not-allowed
@@ -70,7 +70,7 @@ const getMessage = computed(() => {
                 Cancel
             </button>
         </div>
-        <!-- Message area -->
+        <!-- Message -->
         <p class="text-sm" :class="{
             'text-black': canCancel,
             'text-sky-500': isOpen && !isUnread,
@@ -79,7 +79,17 @@ const getMessage = computed(() => {
         }">
             {{ getMessage }}
         </p>
-        <!-- Cancel contact modal area -->
+
+        <!-- View contact modal -->
+        <Transition name="modal-fade">
+            <ViewContactModal
+                v-if="showViewContactModal"
+                :contact="props.contact"
+                @close="showViewContactModal = false"
+            />
+        </Transition>
+
+        <!-- Cancel contact modal -->
         <Transition name="modal-fade">
             <CancelContactModal
                 v-if="showCancelContactModal"
@@ -89,13 +99,5 @@ const getMessage = computed(() => {
             />
         </Transition>
 
-        <!-- View contact modal area -->
-        <Transition name="modal-fade">
-            <ViewContactModal
-                v-if="showViewContactModal"
-                :contact="props.contact"
-                @close="showViewContactModal = false"
-            />
-        </Transition>
     </div>
 </template>

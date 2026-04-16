@@ -6,14 +6,9 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreContactRequest;
 use App\Models\Contact;
 use App\Models\Reservation;
-use App\Mail\ContactSubmitted;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Symfony\Component\Uid\Ulid;
 
 class ContactController extends Controller
 {

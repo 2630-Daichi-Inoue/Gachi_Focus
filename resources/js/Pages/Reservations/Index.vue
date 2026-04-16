@@ -40,12 +40,12 @@ watch(() => form.sort, () => {
     <AuthenticatedLayout>
         <Head title="Reservations Index" />
 
-        <div class="text-3xl font-bold ms-4 mt-4">
-            My Reservations
-        </div>
-
-        <!-- Search area -->
-        <div class="m-4">
+        <div class="m-4 max-w-6xl mx-auto">
+            <!-- Title -->
+            <div class="text-3xl font-bold mb-4">
+                My Reservations
+            </div>
+            <!-- Filters -->
             <form @submit.prevent="search" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                     <input v-model="form.name" type="text" placeholder="Space's Name" class="border rounded px-3 py-2" />
@@ -83,15 +83,17 @@ watch(() => form.sort, () => {
                     class="md:w-full"
                 >
                     <div class="h-full flex flex-col md:flex-row border-t border-gray-300 pt-4">
-                        <div class="w-full md:w-1/3 flex">
+
+                        <div class="w-full md:w-1/2 flex">
                             <ReservedSpaceInfo :reservation="reservation" />
                         </div>
-                        <div class="w-full md:w-1/3 flex justify-center items-center">
+                        <div class="w-full md:w-1/4 flex justify-center items-center">
                             <ReservationInfo :reservation="reservation" />
                         </div>
-                        <div class="w-full md:w-1/3 flex justify-end items-center">
+                        <div class="w-full md:w-1/4 flex items-center md:justify-start lg:justify-end">
                             <ReservationActions :reservation="reservation" />
                         </div>
+
                     </div>
                 </div>
             </div>

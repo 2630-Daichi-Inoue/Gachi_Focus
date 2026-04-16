@@ -2,32 +2,29 @@
 import {reactive, watch, computed} from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import ContactInfo from './Components/Index/ContactInfo.vue'
-import ContactStatus from './Components/Index/ContactStatus.vue'
-import ContactActions from './Components/Index/ContactActions.vue'
+import AnnouncementInfo from './Components/Index/AnnouncementInfo.vue'
+import AnnouncementActions from './Components/Index/AnnouncementActions.vue'
 
 const props = defineProps({
-    contacts: Object,
+    announcements: Object,
     filters: Object,
 })
 
 const form = reactive({
-    contactStatus: props.filters.contactStatus ?? 'all',
+    keyword: props.filters.keyword ?? '',
     sort: props.filters.sort ?? 'datePresentToPast',
 })
 
 const search = () => {
-    router.get(route('contacts.index'), form, {
+    router.get(route('announcements.index'), form, {
         preserveState: true,
         preserveScroll: true,
     })
 }
 
-const appliedContactStatus = computed(() => props.filters.contactStatus ?? 'all')
-
 watch(() => form.sort, () => {
-    router.get(route('contacts.index'), {
-        contactStatus: appliedContactStatus.value,
+    router.get(route('announcements.index'), {
+        keyword: props.filters.keyword ?? '',
         sort: form.sort,
     }, {
         preserveState: true,
@@ -36,7 +33,7 @@ watch(() => form.sort, () => {
 })
 
 const clearFilters = () => {
-    form.contactStatus = 'all'
+    form.keyword = ''
     form.sort = 'datePresentToPast'
     search()
 }
@@ -45,22 +42,18 @@ const clearFilters = () => {
 
 <template>
     <AuthenticatedLayout>
-        <Head title="Contacts Index" />
+        <Head title="Announcements Index" />
 
         <div class="m-4 max-w-6xl mx-auto">
             <!-- Title -->
             <div class="text-3xl font-bold mb-4">
-                My Contacts
+                Announcements
             </div>
             <!-- Filters -->
             <form @submit.prevent="search" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                    <select v-model="form.contactStatus" class="border rounded px-3 py-2">
-                        <option value="all">All</option>
-                        <option value="open">Open</option>
-                        <option value="closed">Closed</option>
-                        <option value="canceled">Canceled</option>
-                    </select>
+                    <input v-model="form.keyword" type="text" placeholder="Search by keyword." class="border rounded px-3 py-2" />
+
                     <select v-model="form.sort" class="border rounded px-3 py-2">
                         <option value="datePresentToPast">Date: Present → Past</option>
                         <option value="datePastToPresent">Date: Past → Present</option>
@@ -78,40 +71,37 @@ const clearFilters = () => {
             </form>
 
             <!-- Empty state -->
-            <div v-if="contacts?.data?.length === 0" class="text-center mt-8">
+            <div v-if="announcements?.data?.length === 0" class="text-center mt-8">
                 <h3 class="text-xl font-semibold">No results.</h3>
                 <p class="text-gray-500">Try different filters or remove them.</p>
             </div>
 
-            <!-- Contacts list -->
+            <!-- Announcements list -->
             <div v-else class="flex flex-col gap-4 mt-4">
-                <div v-for="contact in contacts.data"
-                    :key="contact.id"
+                <div v-for="announcement in announcements.data"
+                    :key="announcement.id"
                     class="md:w-full"
                 >
                     <div class="h-full flex flex-col md:flex-row border-t border-gray-300 pt-4 gap-4">
 
-                        <div class="w-full md:w-1/2 flex justify-center items-center">
-                            <ContactInfo :contact="contact" />
+                        <div class="w-full md:w-4/5 flex justify-center items-center">
+                            <AnnouncementInfo :announcement="announcement" />
                         </div>
-                        <div class="w-full md:w-1/6 flex md:justify-center md:items-center">
-                            <ContactStatus :contact="contact" />
+                        <div class="w-full md:w-1/5 flex justify-center items-center">
+                            <AnnouncementActions :announcement="announcement" />
                         </div>
-                        <div class="w-full md:w-1/3 flex justify-center items-center">
-                            <ContactActions :contact="contact" />
-                        </div>
-                        
+
                     </div>
                 </div>
             </div>
 
             <!-- Footer -->
-            <div class="flex justify-between items-center mt-6" v-if="contacts.data.length > 0">
+            <div class="flex justify-between items-center mt-6" v-if="announcements.data.length > 0">
                 <p class="text-sm text-gray-500">
-                    Showing {{ contacts.from }} to {{ contacts.to }} of {{ contacts.total }} results
+                    Showing {{ announcements.from }} to {{ announcements.to }} of {{ announcements.total }} results
                 </p>
                 <div class="flex gap-1">
-                    <template v-for="link in contacts.links" :key="link.url ?? link.label">
+                    <template v-for="link in announcements.links" :key="link.url ?? link.label">
                         <button
                             v-if="link.url"
                             @click="router.visit(link.url)"
