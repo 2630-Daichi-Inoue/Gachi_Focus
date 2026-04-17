@@ -21,6 +21,7 @@
                         <a href="{{ route('admin.contacts.index') }}" class="list-group-item fw-bold">Manage Contacts ></a>
                         <a href="{{ route('admin.announcements.index') }}" class="list-group-item fw-bold">Manage Announcements ></a>
                         <a href="{{ route('admin.announcements.create') }}" class="list-group-item fw-bold">Create Announcement ></a>
+                        <a href="{{ route('admin.notifications.index') }}" class="list-group-item fw-bold">Manage Notifications ></a>
                     </div>
                 </div>
 

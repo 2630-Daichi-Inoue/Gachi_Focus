@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Create announcement')
+@section('title', 'Create an announcement')
 
 <style>
     .input-unified {

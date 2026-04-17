@@ -128,7 +128,7 @@ class User extends Authenticatable
         return $this->user_status === 'banned' && is_null($this->deleted_at);
     }
 
-    public function isWithdrawn(): bool
+    public function isDeleted(): bool
     {
         return !is_null($this->deleted_at);
     }

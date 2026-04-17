@@ -49,4 +49,24 @@ class Contact extends Model
     {
         return $this->belongsTo(Reservation::class);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public function isUnread(): bool
+    {
+        return $this->read_at === null && is_null($this->canceled_at);
+    }
+
+    public function isCanceled(): bool
+    {
+        return !is_null($this->canceled_at);
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->contact_status === 'closed' && is_null($this->canceled_at);
+    }
 }

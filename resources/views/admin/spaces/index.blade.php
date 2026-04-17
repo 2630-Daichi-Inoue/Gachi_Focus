@@ -203,6 +203,11 @@
                                     <i class="fas fa-ellipsis"></i>
                                 </button>
                                 <div class="dropdown-menu">
+                                    {{-- Notifications --}}
+                                    <button type="button"
+                                            class="dropdown-item"
+                                            onclick="window.location='{{ route('admin.space-notifications.create', ['space' => $space]) }}'">
+                                        <i class="fa-solid fa-bell"></i> Notifications
                                     {{-- Edit --}}
                                     <button type="button"
                                             class="dropdown-item"

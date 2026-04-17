@@ -66,6 +66,11 @@ class Space extends Model
         return $this->hasMany(Reservation::class);
     }
 
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'related');
+    }
+
     public function favoritedUsers()
     {
         return $this->belongsToMany(

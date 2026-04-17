@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin: Contacts')
+@section('title', 'Admin: Notifications')
 
 <style>
     .input-unified {
@@ -23,11 +23,11 @@
     /* Column widths (sum approx 100%) */
     .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 15%; }  /* Username */
     .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 20%; }  /* Title */
-    .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 15%; }  /* Reservation */
-    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 10%; }  /* Status */
-    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 10%; }  /* Created At */
-    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }  /* Read At */
-    .table-fixed th:nth-child(7), .table-fixed td:nth-child(7) { width: 10%; }  /* Action */
+    .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 20%; }  /* Message */
+    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 10%; }  /* Type */
+    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 15%; }  /* Created At */
+    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 15%; }  /* Read At */
+    .table-fixed th:nth-child(7), .table-fixed td:nth-child(7) { width: 5%; }  /* Action */
 </style>
 
 @section('content')
@@ -60,14 +60,14 @@
         </div>
     @endif
 
-    <form method="GET" action="{{ route('admin.contacts.index') }}" id="searchForm">
+    <form method="GET" action="{{ route('admin.notifications.index') }}" id="searchForm">
         <div class="row mb-2 align-items-stretch">
             <div class="col-md-6">
-                <h1 class="h3 mb-0">Contact list</h1>
+                <h1 class="h3 mb-0">Notification list</h1>
             </div>
             <div class="col-md-6 d-flex gap-5 justify-content-end">
                 <!-- Clear button -->
-                <a href="{{ route('admin.contacts.index') }}"
+                <a href="{{ route('admin.notifications.index') }}"
                    class="btn btn-outline-secondary bg-secondary-subtle text-dark border  w-25 h-100 d-flex align-items-center justify-content-center">
                     Clear filters
                 </a>
@@ -82,18 +82,6 @@
         </div>
 
         <div class="row mb-2 align-items-stretch">
-            <!-- Username -->
-            <div class="col-md-2">
-                <label for="userName" class="form-label mb-1 large text-muted">Username</label>
-                <div class="position-relative">
-                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
-                    <input type="search" name="userName" id="userName"
-                        class="form-control form-control-sm border ps-4 input-unified"
-                        placeholder="Search by username."
-                        value="{{ request('userName') }}">
-                </div>
-            </div>
-
             <!-- Keyword -->
             <div class="col-md-2">
                 <label for="keyword" class="form-label mb-1 large text-muted">Keyword</label>
@@ -106,18 +94,18 @@
                 </div>
             </div>
 
-            <!-- Contact Status -->
+            <!-- Type-->
             <div class="col-md-2">
-                <label for="contactStatus" class="form-label mb-1 large text-muted">Contact Status</label>
-                @php $contactStatus = request('contactStatus', 'all'); @endphp
+                <label for="type" class="form-label mb-1 large text-muted">Type</label>
+                @php $type = request('type', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="contactStatus"
-                            id="contactStatus"
+                    <select name="type"
+                            id="type"
                             class="form-control form-control-m border text-dark input-unified">
-                        <option value="all">All</option>
-                        <option value="open" {{ $contactStatus === 'open' ? 'selected' : '' }}>Open</option>
-                        <option value="closed" {{ $contactStatus === 'closed' ? 'selected' : '' }}>Closed</option>
-                        <option value="canceled" {{ $contactStatus === 'canceled' ? 'selected' : '' }}>Canceled</option>
+                        <option value="all" {{ $type === 'all' ? 'selected' : '' }}>All</option>
+                        <option value="user" {{ $type === 'user' ? 'selected' : '' }}>User</option>
+                        <option value="space" {{ $type === 'space' ? 'selected' : '' }}>Space</option>
+                        <option value="contact" {{ $type === 'contact' ? 'selected' : '' }}>Contact</option>
                     </select>
                 </div>
             </div>
@@ -130,16 +118,17 @@
                     <select name="readStatus"
                             id="readStatus"
                             class="form-control form-control-m border text-dark input-unified">
-                        <option value="all">All</option>
+                        <option value="all" {{ $readStatus === 'all' ? 'selected' : '' }}>All</option>
                         <option value="1" {{ $readStatus === '1' ? 'selected' : '' }}>Read</option>
                         <option value="0" {{ $readStatus === '0' ? 'selected' : '' }}>Unread</option>
                     </select>
                 </div>
             </div>
+
         </div>
     </form>
 
-    @if ($contacts->isEmpty())
+    @if ($notifications->isEmpty())
         <div class="text-center">
             <h2>No results.</h2>
             <p class="text-secondary">Try different filters or remove them.</p>
@@ -150,49 +139,47 @@
                 <tr>
                     <th>Username</th>
                     <th>Title</th>
-                    <th>Reservation</th>
-                    <th>Status</th>
+                    <th>Message</th>
+                    <th>Type</th>
                     <th>Created At</th>
                     <th>Read At</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($contacts as $contact)
+                @foreach ($notifications as $notification)
                     <tr>
                         {{-- Username --}}
-                        <td class="text-truncate">{{ $contact->user->name }}</td>
-
-                        {{-- Title --}}
-                        <td class="text-truncate">{{ $contact->title }}</td>
-
-                        {{-- Reservation --}}
                         <td class="text-truncate">
-                            @if ($contact->reservation)
-                                <a href="{{ route('admin.reservations.index', ['reservation_id' => $contact->reservation->id]) }}">
-                                    View Reservation
-                                </a>
-                            @else
-                                -
-                            @endif
+                            <a href="{{ route('admin.users.index', ['user_id' => $notification->user->id]) }}">
+                                {{ $notification->user->name }}
+                            </a>
                         </td>
 
-                        {{-- Status --}}
+                        {{-- Title --}}
+                        <td class="text-truncate">{{ $notification->title }}</td>
+
+                        {{-- Message --}}
                         <td class="text-truncate">
-                            @if ($contact->contact_status === 'open')
-                                <span class="text-dark">Open</span>
-                            @elseif ($contact->contact_status === 'closed')
-                                <span class="text-success">Closed</span>
-                            @elseif ($contact->contact_status === 'canceled')
-                                <span class="text-danger">Canceled</span>
+                           {{ $notification->message }}
+                        </td>
+
+                        {{-- Type --}}
+                        <td class="text-truncate">
+                            @if ($notification->related_type === 'user')
+                                <span>User</span>
+                            @elseif ($notification->related_type === 'space')
+                                <span>Space</span>
+                            @elseif ($notification->related_type === 'contact')
+                                <span>Contact</span>
                             @endif
                         </td>
 
                         {{-- Created At --}}
-                        <td>{{ $contact->created_at->format('Y/n/j G:i') }}</td>
+                        <td>{{ $notification->created_at->format('Y/n/j G:i') }}</td>
 
                         {{-- Read At --}}
-                        <td>{{ $contact->read_at ? $contact->read_at->format('Y/n/j G:i') : 'Unread' }}</td>
+                        <td>{{ $notification->read_at ? $notification->read_at->format('Y/n/j G:i') : 'Unread' }}</td>
 
                         {{-- Actions (conditions kept; null-safe checks above guard display) --}}
                         <td>
@@ -205,28 +192,13 @@
                                     <button type="button"
                                             class="dropdown-item"
                                             data-bs-toggle="modal"
-                                            data-bs-target="#viewModal-{{ $contact->id }}">
+                                            data-bs-target="#viewModal-{{ $notification->id }}">
                                         <i class="fa-solid fa-eye"></i> View Full Message
                                     </button>
-                                    <form id="read-contact-form-{{ $contact->id }}"
-                                            action="{{ route('admin.contacts.read', $contact) }}"
-                                            method="POST"
-                                            class="d-none">
-                                        @csrf
-                                        @method('PATCH')
-                                    </form>
-                                    <form id="close-contact-form-{{ $contact->id }}"
-                                            action="{{ route('admin.contacts.close', $contact) }}"
-                                            method="POST"
-                                            class="d-none"
-                                            >
-                                        @csrf
-                                        @method('PATCH')
-                                    </form>
                                 </div>
                             </div>
                             {{-- Modals --}}
-                            @include('admin.contacts.modals.view', ['contact' => $contact])
+                            @include('admin.notifications.modals.view', ['notification' => $notification])
                         </td>
                     </tr>
                 @endforeach
@@ -237,14 +209,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <p class="mb-0">
-                    Showing {{ $contacts->firstItem() }} - {{ $contacts->lastItem() }} of
-                    {{ $contacts->total() }}
+                    Showing {{ $notifications->firstItem() }} - {{ $notifications->lastItem() }} of
+                    {{ $notifications->total() }}
                 </p>
             </div>
             <div class="col-md-4">
                 <form id="rowsPerPageForm"
                     method="GET"
-                    action="{{ route('admin.contacts.index') }}"
+                    action="{{ route('admin.notifications.index') }}"
                     class="d-flex align-items-center gap-2">
                     <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
                     @php $per = (int) request('rows_per_page', 20); @endphp
@@ -264,7 +236,7 @@
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">
-                {{ $contacts->withQueryString()->links() }}
+                {{ $notifications->withQueryString()->links() }}
             </div>
         </div>
     @endif

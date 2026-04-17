@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Notification extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUlids;
 
     protected $fillable = [
         'user_id',
@@ -24,18 +25,4 @@ class Notification extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function reservation()
-    {
-        return $this->belongsTo(Reservation::class);
-    }
-
-    public function markAsRead()
-    {
-        $this->update(['read_at' => now()]);
-    }
-
-    public function isRead()
-    {
-        return !is_null($this->read_at);
-    }
 }

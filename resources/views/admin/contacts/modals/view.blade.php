@@ -42,15 +42,33 @@
                     <p>This contact has been canceled by the user.</p>
                 @endif
                 @if($contact->read_at !== null && $contact->contact_status === 'open')
-                    <button type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">Keep it open.
-                    </button>
-                    <button type="button"
-                            class="btn btn-danger"
-                            onclick="document.getElementById('close-contact-form-{{ $contact->id }}').submit();">
-                            Mark as closed.
-                    </button>
+                    <form id="close-contact-form-{{ $contact->id }}"
+                        action="{{ route('admin.contacts.close', $contact) }}"
+                        method="POST"
+                        class="w-100">
+                        @csrf
+                        @method('PATCH')
+
+                        <textarea
+                            name="message"
+                            id="message-{{ $contact->id }}"
+                            class="form-control mb-3"
+                            placeholder="Enter your message here if needed."
+                        ></textarea>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal">
+                                Keep it open.
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                Mark as closed.
+                            </button>
+                        </div>
+                    </form>
                 @endif
             </div>
         </div>

@@ -27,18 +27,23 @@ class UsersController extends Controller
         $query = User::query()
                         ->where('is_admin', false);
 
-        // Filter by name
-        if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%' . $request->name . '%');
-        }
-        // Filter by email
-        if ($request->filled('email')) {
-            $query->where('email', 'LIKE', '%' . $request->email . '%');
-        }
-        // Filter by user_status
-        $userStatus = $request->input('user_status', 'all');
-        if($userStatus !== 'all') {
-            $query->where('user_status', $userStatus);
+        // Filter by user ID from admin's contact index page
+        if ($userId = trim((string)$request->input('user_id', ''))) {
+            $query->where('id', $userId);
+        } else {
+            // Filter by name
+            if ($request->filled('name')) {
+                $query->where('name', 'LIKE', '%' . $request->name . '%');
+            }
+            // Filter by email
+            if ($request->filled('email')) {
+                $query->where('email', 'LIKE', '%' . $request->email . '%');
+            }
+            // Filter by user_status
+            $userStatus = $request->input('user_status', 'all');
+            if($userStatus !== 'all') {
+                $query->where('user_status', $userStatus);
+            }
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);

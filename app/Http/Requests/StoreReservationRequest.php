@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\HalfHourTime;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -12,17 +13,11 @@ class StoreReservationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
-    }
-
-    public function timeValidator($datetime, $fail): void
-    {
-        $time_collection = explode(':', $datetime);
-
-        if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
-            $fail('The time must be in 30-minute increments.');
+        $user = $this->user();
+        if ($user && ($user->isBanned() || $user->isRestricted())) {
+            return false;
         }
-
+        return true;
     }
 
     public function withValidator($validator): void
@@ -62,18 +57,20 @@ class StoreReservationRequest extends FormRequest
             'start_at' => [
                 'required',
                 'date_format:H:i',
-                function ($attribute, $value, $fail) {
-                    $this->timeValidator($value, $fail);
-                },
+                // function ($attribute, $value, $fail) {
+                //     $this->timeValidator($value, $fail);
+                // },
+                new HalfHourTime
             ],
 
             'end_at' => [
                 'required',
                 'date_format:H:i',
                 'after:start_at',
-                function ($attribute, $value, $fail) {
-                    $this->timeValidator($value, $fail);
-                },
+                // function ($attribute, $value, $fail) {
+                //     $this->timeValidator($value, $fail);
+                // },
+                new HalfHourTime
             ],
 
             'quantity' => [

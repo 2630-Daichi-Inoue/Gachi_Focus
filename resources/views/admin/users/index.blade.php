@@ -122,6 +122,13 @@
                 </select>
             </div>
 
+            <!-- User ID from admin's contact index page -->
+            <input type="hidden"
+                    name="user_id"
+                    id="user_id"
+                    class="form-control form-control-sm border input-unified ps-4"
+                    value="{{ request('user_id') }}">
+
         </div>
     </form>
 
@@ -177,6 +184,12 @@
                                     <i class="fas fa-ellipsis"></i>
                                 </button>
                                 <div class="dropdown-menu">
+                                    {{-- Notifications --}}
+                                    <button type="button"
+                                            class="dropdown-item"
+                                            onclick="window.location='{{ route('admin.user-notifications.create', ['user' => $user]) }}'">
+                                        <i class="fa-solid fa-bell"></i> Notifications
+                                    </button>
                                     {{-- View --}}
                                     {{-- <button type="button" class="dropdown-item">
                                         <i class="fa-solid fa-eye"></i> View

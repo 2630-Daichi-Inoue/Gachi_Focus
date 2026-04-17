@@ -19,8 +19,7 @@ return new class extends Migration
                     ->primary();
             $table->foreignUlId('user_id')
                     ->constrained();
-            $table->string('type', 50);
-            $table->string('title', 100);
+            $table->string('title', 50);
             $table->text('message');
             $table->nullableUlidMorphs('related');
             $table->timestamp('read_at')

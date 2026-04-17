@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Contact;
+use App\Models\Notification;
 
 class ContactsController extends Controller
 {
@@ -82,7 +83,7 @@ class ContactsController extends Controller
                         ->with('status', 'Successfully marked as read.');
     }
 
-    public function close(Contact $contact)
+    public function close(Request $request, Contact $contact)
     {
         if ($contact->read_at === null) {
             return redirect()->route('admin.contacts.index')
@@ -94,12 +95,25 @@ class ContactsController extends Controller
                             ->with('error', 'This contact is not open anymore.');
         }
 
+        $request->validate([
+            'message' => ['nullable', 'string', 'max:1000'],
+        ]);
+
         # 1. Update the contact data in the contacts table
         $contact->update ([
             'contact_status' => 'closed',
         ]);
 
-        # 2. redirect to the index
+        # 2. Create a notification
+        Notification::create([
+            'user_id' => $contact->user_id,
+            'title' => 'Your contact has been closed.',
+            'message' => $request->input('message') ?: 'Your contact has already been closed. If you have any further questions or concerns, please feel free to reach out to us again.',
+            'related_type' => 'contact',
+            'related_id' => $contact->id,
+        ]);
+
+        # 3. redirect to the index
         return redirect()->route('admin.contacts.index')
                         ->with('status', 'Successfully marked as closed.');
     }

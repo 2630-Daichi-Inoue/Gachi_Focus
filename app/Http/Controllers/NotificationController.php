@@ -3,24 +3,25 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\CustomNotification;
+use App\Models\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
     public function index()
     {
 
-        $notifications = CustomNotification::where('receiver_id', auth()->id())
+        $notifications = Notification::where('receiver_id', Auth::id())
             ->orderByDesc('created_at')
             ->paginate(5);
 
-            return view('users.notification', compact('notifications'));
+        return view('users.notification', compact('notifications'));
     }
 
     // Add a read/unread feature
-    public function markAsRead(CustomNotification $notification)
+    public function markAsRead(Request $request, Notification $notification)
     {
-        if($notification->receiver_id !== auth()->id()){
+        if($notification->receiver_id !== Auth::id()){
             abort(403);
         }
 

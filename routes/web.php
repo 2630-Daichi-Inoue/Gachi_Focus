@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AmenitiesController;
 use App\Http\Controllers\Admin\ReviewsController;
 use \App\Http\Controllers\Admin\ContactsController;
 use \App\Http\Controllers\Admin\AnnouncementsController;
+use \App\Http\Controllers\Admin\NotificationsController;
 
 // User Controllers
 use App\Http\Controllers\SpaceController;
@@ -134,6 +135,28 @@ Route::middleware(['auth', 'admin'])
 
         Route::patch('/announcements/{announcement}/hide', [AnnouncementsController::class, 'hide'])
             ->name('announcements.hide');
+
+        // Admin Notifications Management
+        Route::get('/notifications', [NotificationsController::class, 'index'])
+            ->name('notifications.index');
+
+        Route::get('/space-notifications/{space}/create', [NotificationsController::class, 'create'])
+            ->name('space-notifications.create');
+
+        Route::post('/space-notifications/{space}', [NotificationsController::class, 'store'])
+            ->name('space-notifications.store');
+
+        Route::get('/user-notifications/{user}/create', [NotificationsController::class, 'create'])
+            ->name('user-notifications.create');
+
+        Route::post('/user-notifications/{user}', [NotificationsController::class, 'store'])
+            ->name('user-notifications.store');
+
+        Route::get('/contact-notifications/{contact}/create', [NotificationsController::class, 'create'])
+            ->name('contact-notifications.create');
+
+        Route::post('/contact-notifications/{contact}', [NotificationsController::class, 'store'])
+            ->name('contact-notifications.store');
 
     }
 );
