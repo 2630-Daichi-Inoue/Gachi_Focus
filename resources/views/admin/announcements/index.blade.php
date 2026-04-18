@@ -94,23 +94,23 @@
 
             <!-- Publishing Date(from) -->
             <div class="col-md-2">
-                <label for="publishedDate" class="form-label mb-1 large text-muted">Published Date(from)</label>
+                <label for="published_date" class="form-label mb-1 large text-muted">Published Date(from)</label>
                 <div class="position-relative">
                     <input type="date"
-                            name="publishedDate"
-                            id="publishedDate"
+                            name="published_date"
+                            id="published_date"
                             class="form-control form-control-sm border input-unified"
-                            value="{{ request('publishedDate') }}">
+                            value="{{ request('published_date') }}">
                 </div>
             </div>
 
             <!-- Status -->
             <div class="col-md-2">
-                <label for="isPublic" class="form-label mb-1 large text-muted">Status</label>
-                @php $isPublic = request('isPublic', 'all'); @endphp
+                <label for="is_public" class="form-label mb-1 large text-muted">Status</label>
+                @php $isPublic = request('is_public', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="isPublic"
-                            id="isPublic"
+                    <select name="is_public"
+                            id="is_public"
                             class="form-control form-control-m border text-dark input-unified">
                         <option value="all">All</option>
                         <option value="1" {{ $isPublic === '1' ? 'selected' : '' }}>Public</option>
@@ -216,9 +216,9 @@
                     method="GET"
                     action="{{ route('admin.announcements.index') }}"
                     class="d-flex align-items-center gap-2">
-                    <label for="rowsPerPage" class="mb-0 small text-muted">Rows per page:</label>
-                    @php $per = (int) request('rowsPerPage', 20); @endphp
-                    <select name="rowsPerPage" id="rowsPerPage"
+                    <label for="rows_per_page" class="mb-0 small text-muted">Rows per page:</label>
+                    @php $per = (int) request('rows_per_page', 20); @endphp
+                    <select name="rows_per_page" id="rows_per_page"
                             class="form-select form-select-sm  text-dark w-auto">
                         <option value="20" {{ $per === 20 ? 'selected' : '' }}>20</option>
                         <option value="50" {{ $per === 50 ? 'selected' : '' }}>50</option>
@@ -226,9 +226,9 @@
                     </select>
 
                     <!-- keep current filters when changing page size -->
-                    <input type="hidden" name="title" value="{{ request('title') }}">
-                    <input type="hidden" name="message" value="{{ request('message') }}">
-                    <input type="hidden" name="isPublic" value="{{ request('isPublic', 'all') }}">
+                    <input type="hidden" name="keyword" value="{{ request('keyword') }}">
+                    <input type="hidden" name="published_date" value="{{ request('published_date') }}">
+                    <input type="hidden" name="is_public" value="{{ request('is_public', 'all') }}">
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">
@@ -239,10 +239,10 @@
 @endsection
 
 @section('scripts')
-    <!-- instant apply JS for rowsPerPage -->
+    <!-- instant apply JS for rows_per_page -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const perSel = document.getElementById('rowsPerPage');
+            const perSel = document.getElementById('rows_per_page');
             const perForm = document.getElementById('rowsPerPageForm');
             perSel?.addEventListener('change', () => perForm?.submit());
         });

@@ -150,14 +150,14 @@ class Space extends Model
     */
     public function getOpenTimeForFormAttribute()
     {
-        $open_time = $this->attributes['open_time'] ?? null;
-        return Carbon::createFromFormat('H:i:s', $open_time)->format('H:i');
+        $openTime = $this->attributes['open_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $openTime)->format('H:i');
     }
 
     public function getCloseTimeForFormAttribute()
     {
-        $close_time = $this->attributes['close_time'] ?? null;
-        return Carbon::createFromFormat('H:i:s', $close_time)->format('H:i');
+        $closeTime = $this->attributes['close_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $closeTime)->format('H:i');
     }
 
     public function getFullAddressAttribute(): string

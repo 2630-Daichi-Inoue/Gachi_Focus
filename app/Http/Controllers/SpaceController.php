@@ -23,7 +23,7 @@ class SpaceController extends Controller
             'name' => ['nullable','string','max:50'],
             'prefecture' => ['nullable', Rule::in($prefectureList)],
             'city' => ['nullable','string','max:50'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'rows_per_page' => ['nullable', 'integer', 'in:1,2,3,4,5']
         ]);
 
         $query = Space::query()
@@ -58,10 +58,10 @@ class SpaceController extends Controller
         }
 
         // Default: rating high → low
-        $this->applySort($query, $request->input('sort', 'rating_high_to_low'));
+        $this->applySort($query, $request->input('sort', 'favorite_first'));
 
         $spaces = $query
-                    ->paginate(6)
+                    ->paginate($request->input('rows_per_page', 3) * 3)
                     ->withQueryString();
 
         $prefectures = Space::where('is_public', true)
@@ -82,7 +82,7 @@ class SpaceController extends Controller
                 'prefecture' => $request->prefecture,
                 'city'       => $request->city,
                 'max_price'  => $request->max_price,
-                'sort'       => $request->input('sort', 'rating_high_to_low'),
+                'sort'       => $request->input('sort', 'favorite_first'),
             ]
         ]);
     }
@@ -128,7 +128,7 @@ class SpaceController extends Controller
                 $q->latest('created_at');
                 break;
 
-            case 'favoriteFirst':
+            case 'favorite_first':
                 $q->orderByRaw("CASE WHEN spaces.id IN (SELECT space_id FROM favorites WHERE user_id = ?) THEN 0 ELSE 1 END", [Auth::id()])
                     ->orderByRaw('COALESCE(public_reviews_avg_rating,0) DESC')
                     ->orderBy('public_reviews_count', 'desc')
@@ -183,7 +183,7 @@ class SpaceController extends Controller
                             ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
         }
 
-        $sort_list = [
+        $sortList = [
             'rating_high_to_low',
             'rating_low_to_high',
             'newest',
@@ -191,7 +191,7 @@ class SpaceController extends Controller
 
         $request->validate([
             'stars' => ['nullable', 'in:all,1,2,3,4,5'],
-            'sort' => ['nullable', Rule::in($sort_list)],
+            'sort' => ['nullable', Rule::in($sortList)],
             'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 

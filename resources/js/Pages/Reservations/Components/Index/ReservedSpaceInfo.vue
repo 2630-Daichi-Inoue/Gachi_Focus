@@ -35,11 +35,11 @@ const props = defineProps({
             <!-- Google Map Link -->
             <div class="mb-2">
                 <i class="fa-solid fa-location-dot mt-2"></i>
-                <Link :href="`https://www.google.com/maps?q=${encodeURIComponent(reservation.space.full_address)}`"
+                <a :href="`https://www.google.com/maps?q=${encodeURIComponent(reservation.space.full_address)}`"
                     target="_blank"
                     class="font-medium text-blue-600 hover:underline">
                     View on Google Map >
-                </Link>
+                </a>
             </div>
 
         </div>

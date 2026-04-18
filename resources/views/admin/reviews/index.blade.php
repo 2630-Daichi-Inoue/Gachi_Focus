@@ -84,25 +84,25 @@
         <div class="row mb-2 align-items-stretch">
             <!-- Username -->
             <div class="col-md-2">
-                <label for="userName" class="form-label mb-1 large text-muted">Username</label>
+                <label for="user_name" class="form-label mb-1 large text-muted">Username</label>
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
-                    <input type="search" name="userName" id="userName"
+                    <input type="search" name="user_name" id="user_name"
                         class="form-control form-control-sm border ps-4 input-unified"
                         placeholder="Search by username."
-                        value="{{ request('userName') }}">
+                        value="{{ request('user_name') }}">
                 </div>
             </div>
 
             <!-- Space name -->
             <div class="col-md-2">
-                <label for="spaceName" class="form-label mb-1 large text-muted">Space name</label>
+                <label for="space_name" class="form-label mb-1 large text-muted">Space name</label>
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
-                    <input type="search" name="spaceName" id="spaceName"
+                    <input type="search" name="space_name" id="space_name"
                         class="form-control form-control-sm border ps-4 input-unified"
                         placeholder="Search by space name."
-                        value="{{ request('spaceName') }}">
+                        value="{{ request('space_name') }}">
                 </div>
             </div>
 
@@ -138,11 +138,11 @@
 
             <!-- Status -->
             <div class="col-md-2">
-                <label for="isPublic" class="form-label mb-1 large text-muted">Status</label>
-                @php $isPublic = request('isPublic', 'all'); @endphp
+                <label for="is_public" class="form-label mb-1 large text-muted">Status</label>
+                @php $isPublic = request('is_public', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="isPublic"
-                            id="isPublic"
+                    <select name="is_public"
+                            id="is_public"
                             class="form-control form-control-m border text-dark input-unified">
                         <option value="all">All</option>
                         <option value="1" {{ $isPublic === '1' ? 'selected' : '' }}>Public</option>
@@ -283,11 +283,11 @@
                     </select>
 
                     <!-- keep current filters when changing page size -->
-                    <input type="hidden" name="userName" value="{{ request('userName') }}">
-                    <input type="hidden" name="spaceName" value="{{ request('spaceName') }}">
+                    <input type="hidden" name="user_name" value="{{ request('user_name') }}">
+                    <input type="hidden" name="space_name" value="{{ request('space_name') }}">
                     <input type="hidden" name="rating" value="{{ request('rating', 'all') }}">
                     <input type="hidden" name="keyword" value="{{ request('keyword') }}">
-                    <input type="hidden" name="isPublic" value="{{ request('isPublic', 'all') }}">
+                    <input type="hidden" name="is_public" value="{{ request('is_public', 'all') }}">
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">

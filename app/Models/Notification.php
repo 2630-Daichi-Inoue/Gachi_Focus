@@ -10,6 +10,10 @@ class Notification extends Model
 {
     use HasFactory, HasUlids;
 
+    protected $casts = [
+        'read_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'user_id',
         'type',

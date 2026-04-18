@@ -44,101 +44,60 @@ Route::middleware(['auth', 'admin'])
             ->name('dashboard');
 
         // Admin Spaces Management
-        Route::get('/spaces', [SpacesController::class, 'index'])
-            ->name('spaces.index');
-
-        Route::get('/spaces/register', [SpacesController::class, 'register'])
-            ->name('spaces.register');
-
-        Route::post('/spaces', [SpacesController::class, 'store'])
-            ->name('spaces.store');
-
-        Route::get('/spaces/{space}/edit', [SpacesController::class, 'edit'])
-            ->withTrashed()
-            ->name('spaces.edit');
-
-        Route::patch('/spaces/{space}', [SpacesController::class, 'update'])
-            ->withTrashed()
-            ->name('spaces.update');
-
-        Route::patch('/spaces/{space}/hide', [SpacesController::class, 'hide'])
-            ->withTrashed()
-            ->name('spaces.hide');
-
-        Route::patch('/spaces/{space}/show', [SpacesController::class, 'show'])
-            ->withTrashed()
-            ->name('spaces.show');
-
-        Route::delete('/spaces/{space}', [SpacesController::class, 'destroy'])
-            ->name('spaces.destroy');
+        Route::prefix('spaces')->name('spaces.')->controller(SpacesController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/register', 'register')->name('register');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{space}/edit', 'edit')->withTrashed()->name('edit');
+            Route::patch('/{space}', 'update')->withTrashed()->name('update');
+            Route::patch('/{space}/hide', 'hide')->withTrashed()->name('hide');
+            Route::patch('/{space}/show', 'show')->withTrashed()->name('show');
+            Route::delete('/{space}', 'destroy')->name('destroy');
+        });
 
         // Admin Amenities Management
-        Route::get('/amenities', [AmenitiesController::class, 'index'])
-            ->name('amenities.index');
-
-        Route::post('/amenities', [AmenitiesController::class, 'store'])
-            ->name('amenities.store');
-
-        Route::patch('/amenities/{amenity}', [AmenitiesController::class, 'update'])
-            ->name('amenities.update');
-
-        Route::delete('/amenities/{amenity}', [AmenitiesController::class, 'destroy'])
-            ->name('amenities.destroy');
+        Route::prefix('amenities')->name('amenities.')->controller(AmenitiesController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::patch('/{amenity}', 'update')->name('update');
+            Route::delete('/{amenity}', 'destroy')->name('destroy');
+        });
 
         // Admin Reservations Management
-        Route::get('/reservations', [ReservationsController::class, 'index'])
-            ->name('reservations.index');
-
-        Route::patch('/reservations/{reservation}/cancel', [ReservationsController::class, 'cancel'])
-            ->name('reservations.cancel');
+        Route::prefix('reservations')->name('reservations.')->controller(ReservationsController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::patch('/{reservation}/cancel', 'cancel')->name('cancel');
+        });
 
         // Admin Users Management
-        Route::get('/users', [UsersController::class, 'index'])
-            ->name('users.index');
-
-        Route::patch('/users/{user}/restrict', [UsersController::class, 'restrict'])
-            ->name('users.restrict');
-
-        Route::patch('/users/{user}/activate', [UsersController::class, 'activate'])
-            ->name('users.activate');
-
-        Route::patch('/users/{user}/ban', [UsersController::class, 'ban'])
-            ->name('users.ban');
+        Route::prefix('users')->name('users.')->controller(UsersController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::patch('/{user}/restrict', 'restrict')->name('restrict');
+            Route::patch('/{user}/activate', 'activate')->name('activate');
+            Route::patch('/{user}/ban', 'ban')->name('ban');
+        });
 
         // Admin Reviews Management
-        Route::get('/reviews', [ReviewsController::class, 'index'])
-            ->name('reviews.index');
-
-        Route::patch('/reviews/{review}/hide', [ReviewsController::class, 'hide'])
-            ->withTrashed()
-            ->name('reviews.hide');
-
-        Route::patch('/reviews/{review}/show', [ReviewsController::class, 'show'])
-            ->withTrashed()
-            ->name('reviews.show');
+        Route::prefix('reviews')->name('reviews.')->controller(ReviewsController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::patch('/{review}/hide', 'hide')->withTrashed()->name('hide');
+            Route::patch('/{review}/show', 'show')->withTrashed()->name('show');
+        });
 
         // Admin Contacts Management
-        Route::get('/contacts', [ContactsController::class, 'index'])
-            ->name('contacts.index');
-
-        Route::patch('/contacts/{contact}/read', [ContactsController::class, 'read'])
-            ->name('contacts.read');
-
-        Route::patch('/contacts/{contact}/close', [ContactsController::class, 'close'])
-            ->name('contacts.close');
+        Route::prefix('contacts')->name('contacts.')->controller(ContactsController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::patch('/{contact}/read', 'read')->name('read');
+            Route::patch('/{contact}/close', 'close')->name('close');
+        });
 
         // Admin Announcements Management
-        Route::get('/announcements', [AnnouncementsController::class, 'index'])
-            ->name('announcements.index');
-
-        Route::get('/announcements/create', [AnnouncementsController::class, 'create'])
-            ->name('announcements.create');
-
-        Route::post('/announcements', [AnnouncementsController::class, 'store'])
-            ->name('announcements.store');
-
-        Route::patch('/announcements/{announcement}/hide', [AnnouncementsController::class, 'hide'])
-            ->name('announcements.hide');
+        Route::prefix('announcements')->name('announcements.')->controller(AnnouncementsController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::patch('/{announcement}/hide', 'hide')->name('hide');
+        });
 
         // Admin Notifications Management
         Route::get('/notifications', [NotificationsController::class, 'index'])
@@ -167,73 +126,68 @@ Route::middleware(['auth', 'admin'])
 
 Route::middleware('auth')->group(function () {
 
-    // User Spaces Routes
-    Route::get('/spaces', [SpaceController::class, 'index'])
-            ->name('spaces.index');
-    Route::get('/spaces/{space}', [SpaceController::class, 'show'])
-            ->name('spaces.show');
-    Route::get('/spaces/{space}/reviews', [SpaceController::class, 'reviewIndex'])
-            ->name('spaces.reviewIndex');
+    // Profile
+    Route::prefix('profile')->name('profile.')->controller(ProfileController::class)->group(function () {
+        Route::get('/', 'edit')->name('edit');
+        Route::patch('/', 'update')->name('update');
+        Route::delete('/', 'destroy')->name('destroy');
+    });
 
-    // User Reservation-making Routes
-    Route::get('/spaces/{space}/reservations/create', [ReservationController::class, 'create'])
-            ->name('reservations.create');
-    Route::get('/spaces/{space}/reservations/payment', [ReservationController::class, 'payment'])
-            ->name('reservations.payment');
-    Route::post('/spaces/{space}/reservations', [ReservationController::class, 'store'])
-            ->name('reservations.store');
+    // Spaces
+    Route::prefix('spaces')->group(function () {
+        Route::controller(SpaceController::class)->group(function () {
+            Route::get('/', 'index')->name('spaces.index');
+            Route::get('/{space}', 'show')->name('spaces.show');
+            Route::get('/{space}/reviews', 'reviewIndex')->name('spaces.reviewIndex');
+        });
 
-    // User Reservation Management Routes
-    Route::get('/reservations', [ReservationController::class, 'index'])
-            ->name('reservations.index');
-    Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])
-            ->name('reservations.cancel');
+        Route::prefix('{space}')->group(function () {
+            Route::prefix('reservations')->name('reservations.')->controller(ReservationController::class)->group(function () {
+                Route::get('/create', 'create')->name('create');
+                Route::get('/payment', 'payment')->name('payment');
+                Route::post('/', 'store')->name('store');
+            });
 
-    // User Review Routes
-    Route::get('/reservations/{reservation}/reviews', [ReviewController::class, 'index'])
-            ->name('reviews.index');
-    Route::get('/reservations/{reservation}/reviews/create', [ReviewController::class, 'createOrEdit'])
-            ->name('reviews.create');
-    Route::post('/reservations/{reservation}/reviews', [ReviewController::class, 'store'])
-            ->name('reviews.store');
-    Route::get('/reservations/{reservation}/reviews/edit', [ReviewController::class, 'createOrEdit'])
-            ->name('reviews.edit');
-    Route::patch('/reservations/{reservation}/reviews', [ReviewController::class, 'update'])
-            ->name('reviews.update');
-    Route::delete('/reservations/{reservation}/reviews', [ReviewController::class, 'destroy'])
-            ->name('reviews.destroy');
+            Route::prefix('favorite')->name('favorites.')->controller(FavoriteController::class)->group(function () {
+                Route::post('/', 'store')->name('store');
+                Route::delete('/', 'destroy')->name('destroy');
+            });
+        });
+    });
 
-    // User Contact Routes
-    Route::get('/contacts', [ContactController::class, 'index'])
-            ->name('contacts.index');
-    Route::get('/contacts/create', [ContactController::class, 'create'])
-            ->name('contacts.create');
-    Route::post('/contacts', [ContactController::class, 'store'])
-            ->name('contacts.store');
-    Route::patch('/contacts/{contact}/cancel', [ContactController::class, 'cancel'])
-            ->name('contacts.cancel');
+    // Reservations
+    Route::prefix('reservations')->group(function () {
+        Route::controller(ReservationController::class)->group(function () {
+            Route::get('/', 'index')->name('reservations.index');
+            Route::patch('/{reservation}/cancel', 'cancel')->name('reservations.cancel');
+        });
 
-    // User Announcement Routes
-    Route::get('/announcements', [AnnouncementController::class, 'index'])
-            ->name('announcements.index');
+        Route::prefix('{reservation}/reviews')->name('reviews.')->controller(ReviewController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'createOrEdit')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/edit', 'createOrEdit')->name('edit');
+            Route::patch('/', 'update')->name('update');
+            Route::delete('/', 'destroy')->name('destroy');
+        });
+    });
 
-    // User Notification Routes
-    Route::get('/notifications', [NotificationController::class, 'index'])
-            ->name('notifications.index');
-    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])
-            ->name('notifications.read');
+    // Contacts
+    Route::prefix('contacts')->name('contacts.')->controller(ContactController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::patch('/{contact}/cancel', 'cancel')->name('cancel');
+    });
 
-    // User Favorite Routes
-    Route::post('/spaces/{space}/favorite', [FavoriteController::class, 'store'])
-            ->name('favorites.store');
-    Route::delete('/spaces/{space}/favorite', [FavoriteController::class, 'destroy'])
-            ->name('favorites.destroy');
-});
+    // Announcements
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Notifications
+    Route::prefix('notifications')->name('notifications.')->controller(NotificationController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::patch('/{notification}/read', 'read')->name('read');
+    });
 });
 
 require __DIR__.'/auth.php';

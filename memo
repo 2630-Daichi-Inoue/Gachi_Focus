@@ -2,26 +2,36 @@ Improvement points
 1.FormatPrice func. and formatTime func. to be put on the same place.
 2.Developing user's reservations sorting: upcoming to past and past to upcoming.
 3.Developing view space page's contact link.
+   →done.
 4.Two or more reservations for the same space and overlapping time zones.
+   →done.
 5.Gap between stars on review page
 6.Unify the naming rule for variables and methods with camel case.
 7.Modify filtering functions with sending 'all' value.
-8.Rows per page for resercations, spaces, and reviews index.
+8.Rows per page for reservations, spaces, and reviews index.
+   →done.
 9.Separation of filtering box and sorting one for space, reservation, and review index.
-10.Making messages on admin's management screens deletable or disapper in a few seconds.
+   →done.
+10.Making messages on admin's management screens deletable or disappear in a few seconds.
 11.Delete unnecessary files e.g. users' blade files, other unused files.
-12.Writing comments on codes for better understanging.
-13.Argument of sorting functions whether it shoud be Builder.
+12.Writing comments on codes for better understanding.
+13.Argument of sorting functions whether it should be Builder.
 14.One liner for vue files if they can be made.
 15.Holding the same status when sorting for vue files.
+   →done.
 16.Position of sorting box.
-17.Replace fill with update in contorollers unless there are any reasons to use fill.
+   →done.
+17.Replace fill with update in controllers unless there are any reasons to use fill.
 18.Simplify backend-checking-result statement in admin's controllers.
 19.Simplify routes for both admin and users using by prefix and name.
+   →done.
 20.Error messages on data submitting pages to be commented out.
 21.Change names of variables with '*_at' into '*ed_at.'
-22.Add 'expired_at' to annucement feature for letting admin manage announcements more easily.
+22.Add 'expired_at' to annoucement feature for letting admin manage announcements more easily.
 23.New badge, pinning, and clickable card for  for user's announcement index.
+24.Not to put "Update Review" button if the review's deleted_at is not null.
+25.Unify 403 error message to "You are not authorized to..."
+26.Developing user's own review page.
 
 Check later
 1.Usage of page in PaymentFrom.vue.

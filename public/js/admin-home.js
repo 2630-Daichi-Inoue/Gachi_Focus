@@ -1,208 +1,163 @@
-// 1.Load Chart.js
-// 2.Add <canvas>
-// 3.Get context (getContext("2d"))
-// 4.Define data (labels & datasets)
-// 5.Set options (legend, tooltip, scales)
-// 6.Create chart with new Chart(ctx, { ... })
-// 7.Use chart.update() to refresh data
-// 8.Customize design with colors and options
-
-// Run this after the entire DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  // Get canvas context for Chart.js
-  const ctx = document.getElementById("salesChart").getContext("2d");
-  const chartMode = document.getElementById("chartMode");
+  const views       = ["week", "month", "year"];
+  let index         = 0;
+  let currentView   = views[index];
 
-  // Define colors for each region
-  const regionColors = {
-    Asia: "#6FD6D6",
-    Europe: "#A48CF2",
-    "North America": "#6EA8FF",
-    "South America": "#EBCB7F",
-    Africa: "#B9845A",
-    Oceania: "#8CD9B2",
-  };
-
-  const lineColor = "#E2D8FF";
-  // Modes for chart view 
-  const views = ["year", "month", "week"];
-  let index = 0;
-  let currentView = views[index];
-
-  // Mapping between month number and short English name
   const monthMap = {
-    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
-    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec"
+    1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
+    7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec",
   };
 
-  //  Build bar datasets by region 
-  function buildRegionDatasets(view) {
-    const regionData = salesDataSets[view].regions;
-    const labels = salesDataSets[view].labels;
-    const datasets = {};
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
-    // Initialize all regions with zero values
-    Object.keys(regionColors).forEach(r => {
-      datasets[r] = { total: Array(labels.length).fill(0) };
-    });
-
-    // Fill in data for each region
-    Object.keys(regionData).forEach(region => {
-      const values = regionData[region];
-
-      labels.forEach((lbl, i) => {
-        let val = 0;
-        // ---- Weekly mode ----
-        if (view === "week") {
-          val = parseFloat(values[lbl]) || 0;
-          // ---- Monthly mode ----
-        } else if (view === "month") {
-          const monthIndex = Number(Object.entries(monthMap).find(([num, m]) => m === lbl)?.[0]);
-          for (let m = 1; m <= 12; m++) {
-            if (values[m] === undefined) {
-              values[m] = 0;
-            }
-          }
-          val = parseFloat(values[monthIndex]) || 0;
-        } else {
-          // ---- Yearly mode ----
-          val = values[lbl] ?? values[Number(lbl)] ?? 0;
-        }
-
-        if (datasets[region]) {
-          datasets[region].total[i] += val;
-        }
-      });
-    });
-
-    // Return bar datasets for Chart.js
-    return Object.keys(regionColors).map(region => ({
-      type: "bar",
-      label: region,
-      data: datasets[region].total,
-      backgroundColor: regionColors[region],
-      borderRadius: 6,
-      yAxisID: "y1",  // right axis
-      barPercentage: 0.7,
-      categoryPercentage: 0.8
-    }));
+  function prefColor(i, total) {
+    const hue = Math.round((i / Math.max(total, 1)) * 300);
+    return `hsl(${hue}, 55%, 62%)`;
   }
 
-  // Build full chart datasets
-  function buildDatasets(view) {
-    const labels = salesDataSets[view].labels;
-    const totals = salesDataSets[view].total.map(v => Number(v) || 0);
-    const barDatasets = buildRegionDatasets(view);
-
-    // Combine total sales line + region bars
-    const datasets = [
-      {
-        type: "line",
-        label: "Total Sales ($)",
-        data: totals,
-        borderColor: lineColor,
-        backgroundColor: lineColor,
-        tension: 0.4,
-        borderWidth: 3,
-        pointRadius: 0,
-        yAxisID: "y",
-        xAxisID: "x"
-      },
-      ...barDatasets
-    ];
-
-    return { labels, datasets };
+  // Aggregate prefecture totals for the current view (sum across the time axis)
+  function prefectureAggregated(view) {
+    const prefData = salesDataSets[view].prefectures;
+    return Object.entries(prefData)
+      .map(([pref, values]) => ({
+        pref,
+        total: Object.values(values).reduce((sum, v) => sum + (Number(v) || 0), 0),
+      }))
+      .sort((a, b) => a.pref.localeCompare(b.pref));
   }
 
-  // Create initial chart
-  const chart = new Chart(ctx, {
-    data: buildDatasets(currentView),
+  // ── Line chart (total sales over time) ───────────────────────────────────
+
+  const lineCtx   = document.getElementById("salesChart").getContext("2d");
+  const lineChart = new Chart(lineCtx, {
+    type: "line",
+    data: lineDataFor(currentView),
     options: {
-      responsive: true,
+      responsive:          true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: "bottom",
-          labels: { color: "#555", boxWidth: 12 }
-        },
+        legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(20,20,30,0.9)",
-          titleColor: "#fff",
-          bodyColor: "#eee",
-          borderColor: "rgba(150,150,255,0.3)",
-          borderWidth: 1,
           callbacks: {
-            title: (context) => `Region: ${context[0].dataset.label}`,
-            label: (context) => {
-              const region = context.dataset.label;
-              const label = context.label; // Year/Month/Week label
-              const value = context.parsed.y ?? 0;
-              const countries = salesDataSets[currentView].countries?.[region] || {};
-              let details = [];
-
-              //  country-wise detail in tooltip
-              if (currentView === "month") {
-                const monthIndex = Object.entries(monthMap).find(([num, m]) => m === label)?.[0];
-                Object.entries(countries).forEach(([country, data]) => {
-                  const val = parseFloat(data[monthIndex]) || 0;
-                  if (val > 0) details.push(`${country}: $${val}`);
-                });
-              } else {
-                Object.entries(countries).forEach(([country, data]) => {
-                  const val = parseFloat(data[label]) || 0;
-                  if (val > 0) details.push(`${country}: $${val}`);
-                });
-              }
-
-              return details.length
-                ? `${region} ▶ ${details.join(" | ")} | Total: $${value.toLocaleString()}`
-                : `${region} Total: $${value.toLocaleString()}`;
-            }
-          }
-        }
+            label: (ctx) => `¥${(ctx.parsed.y ?? 0).toLocaleString()}`,
+          },
+        },
       },
       scales: {
-        // Left Y-axis (line)
         y: {
           beginAtZero: true,
-          grid: { color: "rgba(0,0,0,0.05)" },
-          ticks: { color: "#666" }
+          ticks: { color: "#666", callback: (v) => `¥${v.toLocaleString()}` },
+          grid:  { color: "rgba(0,0,0,0.05)" },
         },
-        // Right Y-axis (bars)
-        y1: {
-          beginAtZero: true,
-          position: "right",
-          grid: { drawOnChartArea: false },
-          ticks: { color: "#666" }
-        },
-        // X-axis
         x: {
-          type: "category",
-          offset: true,
           ticks: { color: "#666" },
-          grid: { color: "rgba(0,0,0,0.03)" },
-          align: "center"
-        }
-      }
-    }
+          grid:  { color: "rgba(0,0,0,0.03)" },
+        },
+      },
+    },
   });
 
-  // Chart mode switch
-  function updateChart() {
-    currentView = views[index];
-    const { labels, datasets } = buildDatasets(currentView);
-    chart.data.labels = labels;
-    chart.data.datasets = datasets;
-    chart.update("none");
-    chartMode.innerText = currentView.charAt(0).toUpperCase() + currentView.slice(1);
+  function lineDataFor(view) {
+    const labels = salesDataSets[view].labels;
+    const totals = salesDataSets[view].total.map((v) => Number(v) || 0);
+    return {
+      labels,
+      datasets: [{
+        data:            totals,
+        borderColor:     "#8B7CF6",
+        backgroundColor: "rgba(139,124,246,0.15)",
+        fill:            true,
+        tension:         0.4,
+        borderWidth:     3,
+        pointRadius:     4,
+        pointBackgroundColor: "#8B7CF6",
+      }],
+    };
   }
 
-  document.getElementById("leftBar").addEventListener("click", () => {
-    index = (index - 1 + views.length) % views.length;
-    updateChart();
+  // ── Prefecture bar chart (alphabetical, horizontal) ───────────────────────
+
+  const prefCtx = document.getElementById("prefectureChart").getContext("2d");
+
+  function prefDataFor(view) {
+    const entries = prefectureAggregated(view);
+    const colors  = entries.map((_, i) => prefColor(i, entries.length));
+    return {
+      labels: entries.map((e) => e.pref),
+      datasets: [{
+        data:            entries.map((e) => e.total),
+        backgroundColor: colors,
+        borderRadius:    4,
+      }],
+    };
+  }
+
+  function prefChartHeight(view) {
+    const count = Object.keys(salesDataSets[view].prefectures).length;
+    return Math.max(count * 32, 120);
+  }
+
+  const prefChart = new Chart(prefCtx, {
+    type: "bar",
+    data: prefDataFor(currentView),
+    options: {
+      indexAxis:           "y",
+      responsive:          true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `¥${(ctx.parsed.x ?? 0).toLocaleString()}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { color: "#666", callback: (v) => `¥${v.toLocaleString()}` },
+          grid:  { color: "rgba(0,0,0,0.05)" },
+        },
+        y: {
+          ticks: { color: "#444", font: { size: 12 } },
+          grid:  { display: false },
+        },
+      },
+    },
   });
-  document.getElementById("rightBar").addEventListener("click", () => {
+
+  // Set initial height
+  document.getElementById("prefChartWrap").style.height = prefChartHeight(currentView) + "px";
+
+  // ── Toggle logic ──────────────────────────────────────────────────────────
+
+  function updateCharts() {
+    currentView = views[index];
+    const label = currentView.charAt(0).toUpperCase() + currentView.slice(1);
+    document.getElementById("chartMode").innerText    = label;
+    document.getElementById("prefChartMode").innerText = label;
+
+    // Update line chart
+    const ld = lineDataFor(currentView);
+    lineChart.data.labels   = ld.labels;
+    lineChart.data.datasets = ld.datasets;
+    lineChart.update("none");
+
+    // Update prefecture chart
+    const pd = prefDataFor(currentView);
+    prefChart.data.labels   = pd.labels;
+    prefChart.data.datasets = pd.datasets;
+    document.getElementById("prefChartWrap").style.height = prefChartHeight(currentView) + "px";
+    prefChart.resize();
+    prefChart.update("none");
+  }
+
+  document.getElementById("btnPrev").addEventListener("click", () => {
+    index = (index - 1 + views.length) % views.length;
+    updateCharts();
+  });
+  document.getElementById("btnNext").addEventListener("click", () => {
     index = (index + 1) % views.length;
-    updateChart();
+    updateCharts();
   });
 });

@@ -17,8 +17,8 @@ class UpdateSpaceRequest extends FormRequest
 
     private function timeValidation($datetime, $fail): void
     {
-        $time_collection = explode(':', $datetime);
-        if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
+        $timeCollection = explode(':', $datetime);
+        if ($timeCollection[1] !== '00' && $timeCollection[1] !== '30') {
             $fail('The time must be in 30-minute increments.');
         }
     }

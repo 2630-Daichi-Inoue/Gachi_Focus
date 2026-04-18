@@ -138,7 +138,7 @@ class ReviewController extends Controller
                         ->first();
 
         if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to review this reservation.');
+            abort(403, 'You are not authorized to update this review.');
         }
 
         if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->end_at)->isFuture()) {

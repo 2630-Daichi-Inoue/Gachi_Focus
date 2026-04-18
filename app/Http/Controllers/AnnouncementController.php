@@ -17,7 +17,7 @@ class AnnouncementController extends Controller
         $request->validate([
             'keyword'       => ['nullable', 'string', 'max:50'],
             'sort'          => ['nullable', 'in:datePresentToPast,datePastToPresent'],
-            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100']
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
         $query = Announcement::query()
@@ -30,7 +30,7 @@ class AnnouncementController extends Controller
                   ->orWhere('message', 'like', '%' . $request->input('keyword') . '%');
         }
 
-        $rowsPerPage = (int)$request->input('rowsPerPage', 20);
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
         $this->applySort($query, $request->input('sort', 'datePresentToPast'));
@@ -44,7 +44,7 @@ class AnnouncementController extends Controller
             'filters' => [
                 'keyword'     => $request->input('keyword', ''),
                 'sort'        => $request->input('sort', 'datePresentToPast'),
-                'rowsPerPage' => $rowsPerPage,
+                'rows_per_page' => $rowsPerPage,
             ]
         ]);
     }

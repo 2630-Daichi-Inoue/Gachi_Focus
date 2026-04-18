@@ -18,7 +18,7 @@ class NotificationsController extends Controller
         $request->validate([
             'keyword'        => ['nullable', 'string', 'max:50'],
             'type'           => ['nullable', 'string', 'in:all,user,space,contact'],
-            'readStatus'     => ['nullable', 'in:all,1,0'],
+            'read_status'    => ['nullable', 'in:all,1,0'],
             'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
@@ -47,8 +47,8 @@ class NotificationsController extends Controller
         }
 
         // Filter by read status
-        if ($request->filled('readStatus') && $request->readStatus !== 'all') {
-            if ($request->readStatus === '1') {
+        if ($request->filled('read_status') && $request->read_status !== 'all') {
+            if ($request->read_status === '1') {
                 $query->whereNotNull('read_at');
             } else {
                 $query->whereNull('read_at');

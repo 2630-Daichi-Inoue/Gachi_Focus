@@ -105,15 +105,16 @@ const deleteReview = () => {
                     class="flex items-center justify-center md:w-1/3 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                 Go Back
             </Link>
-            <button v-if="props.review"
+            <button v-if="review && review.deleted_at === null"
                     type="button"
                     @click="showDeleteModal = true"
                     class="flex items-center justify-center md:w-1/3 text-red-500 font-bold text-3xl border border-red-500 rounded transition hover:bg-red-200">
                 Delete Review
             </button>
-            <button type="submit"
+            <button v-if="review && review.deleted_at === null"
+                    type="submit"
                     class="flex items-center justify-center md:w-1/3 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
-                {{ props.review ? 'Update Review' : 'Submit Review' }}
+                {{ review ? 'Update Review' : 'Submit Review' }}
             </button>
         </div>
     </form>

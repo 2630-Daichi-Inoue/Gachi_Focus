@@ -84,13 +84,13 @@
         <div class="row mb-2 align-items-stretch">
             <!-- Username -->
             <div class="col-md-2">
-                <label for="userName" class="form-label mb-1 large text-muted">Username</label>
+                <label for="user_name" class="form-label mb-1 large text-muted">Username</label>
                 <div class="position-relative">
                     <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-1 text-muted"></i>
-                    <input type="search" name="userName" id="userName"
+                    <input type="search" name="user_name" id="user_name"
                         class="form-control form-control-sm border ps-4 input-unified"
                         placeholder="Search by username."
-                        value="{{ request('userName') }}">
+                        value="{{ request('user_name') }}">
                 </div>
             </div>
 
@@ -108,11 +108,11 @@
 
             <!-- Contact Status -->
             <div class="col-md-2">
-                <label for="contactStatus" class="form-label mb-1 large text-muted">Contact Status</label>
-                @php $contactStatus = request('contactStatus', 'all'); @endphp
+                <label for="contact_status" class="form-label mb-1 large text-muted">Contact Status</label>
+                @php $contactStatus = request('contact_status', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="contactStatus"
-                            id="contactStatus"
+                    <select name="contact_status"
+                            id="contact_status"
                             class="form-control form-control-m border text-dark input-unified">
                         <option value="all">All</option>
                         <option value="open" {{ $contactStatus === 'open' ? 'selected' : '' }}>Open</option>
@@ -124,11 +124,11 @@
 
             <!-- Read Status -->
             <div class="col-md-2">
-                <label for="readStatus" class="form-label mb-1 large text-muted">Read Status</label>
-                @php $readStatus = request('readStatus', 'all'); @endphp
+                <label for="read_status" class="form-label mb-1 large text-muted">Read Status</label>
+                @php $readStatus = request('read_status', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="readStatus"
-                            id="readStatus"
+                    <select name="read_status"
+                            id="read_status"
                             class="form-control form-control-m border text-dark input-unified">
                         <option value="all">All</option>
                         <option value="1" {{ $readStatus === '1' ? 'selected' : '' }}>Read</option>
@@ -256,11 +256,10 @@
                     </select>
 
                     <!-- keep current filters when changing page size -->
-                    <input type="hidden" name="userName" value="{{ request('userName') }}">
-                    <input type="hidden" name="spaceName" value="{{ request('spaceName') }}">
-                    <input type="hidden" name="rating" value="{{ request('rating', 'all') }}">
+                    <input type="hidden" name="user_name" value="{{ request('user_name') }}">
                     <input type="hidden" name="keyword" value="{{ request('keyword') }}">
-                    <input type="hidden" name="isPublic" value="{{ request('isPublic', 'all') }}">
+                    <input type="hidden" name="contact_status" value="{{ request('contact_status', 'all') }}">
+                    <input type="hidden" name="read_status" value="{{ request('read_status', 'all') }}">
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">

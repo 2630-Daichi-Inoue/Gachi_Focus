@@ -8,9 +8,9 @@ class StoreAnnouncementRequest extends FormRequest
 {
     public function timeValidator($datetime, $fail): void
     {
-        $time_collection = explode(':', $datetime);
+        $timeCollection = explode(':', $datetime);
 
-        if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
+        if ($timeCollection[1] !== '00' && $timeCollection[1] !== '30') {
             $fail('The time must be in 30-minute increments.');
         }
 
@@ -31,12 +31,12 @@ class StoreAnnouncementRequest extends FormRequest
                 'string',
                 'max:1000'
             ],
-            'publishedDate' => [
+            'published_date' => [
                 'required',
                 'date_format:Y-m-d',
                 'after_or_equal:today',
             ],
-            'publishedTime' => [
+            'published_time' => [
                 'required',
                 'date_format:H:i',
                 function ($attribute, $value, $fail) {

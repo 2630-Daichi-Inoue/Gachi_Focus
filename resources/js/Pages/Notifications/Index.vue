@@ -1,5 +1,5 @@
 <script setup>
-import {reactive, watch, computed} from 'vue'
+import {reactive, watch} from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import NotificationInfo from './Components/Index/NotificationInfo.vue'
@@ -12,8 +12,9 @@ const props = defineProps({
 
 const form = reactive({
     keyword: props.filters.keyword ?? '',
-    newOnly: props.filters.newOnly ?? false,
+    new_only: props.filters.new_only ?? false,
     sort: props.filters.sort ?? 'datePresentToPast',
+    rows_per_page: props.filters.rows_per_page ?? 20,
 })
 
 const search = () => {
@@ -23,23 +24,16 @@ const search = () => {
     })
 }
 
-watch(() => form.sort, () => {
-    router.get(route('notifications.index'), {
-        keyword: props.filters.keyword ?? '',
-        newOnly: form.newOnly ?? false,
-        sort: form.sort,
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-    })
-})
-
 const clearFilters = () => {
     form.keyword = ''
-    form.newOnly = false
+    form.new_only = false
     form.sort = 'datePresentToPast'
+    form.rows_per_page = 20
     search()
 }
+
+watch(() => form.sort, () => { search() })
+watch(() => form.rows_per_page, () => { search() })
 
 </script>
 
@@ -58,7 +52,7 @@ const clearFilters = () => {
                     <!-- Checkbox for read/unread notifications -->
                     <div class="flex items-center gap-2 col-span-1">
                         <input v-model="form.keyword" type="text" placeholder="Search by keyword." class="border rounded px-3 py-2" />
-                        <input type="checkbox" id="newOnly" v-model="form.newOnly" class="h-4 w-4 text-sky-600 border-gray-300 rounded">
+                        <input type="checkbox" id="newOnly" v-model="form.new_only" class="h-4 w-4 text-sky-600 border-gray-300 rounded">
                         <label for="newOnly" class="text-sm text-gray-700">New</label>
                     </div>
 
@@ -110,9 +104,19 @@ const clearFilters = () => {
 
             <!-- Footer -->
             <div class="flex justify-between items-center mt-6" v-if="notifications.data.length > 0">
-                <p class="text-sm text-gray-500">
-                    Showing {{ notifications.from }} to {{ notifications.to }} of {{ notifications.total }} results
-                </p>
+                <div class="flex items-center gap-3">
+                    <p class="text-sm text-gray-500">
+                        Showing {{ notifications.from }} to {{ notifications.to }} of {{ notifications.total }} results
+                    </p>
+                    <div class="flex items-center gap-1">
+                        <label class="text-sm text-gray-500">Rows:</label>
+                        <select v-model="form.rows_per_page" class="border rounded pl-2 pr-7 py-1 text-sm">
+                            <option :value="20">20</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="flex gap-1">
                     <template v-for="link in notifications.links" :key="link.url ?? link.label">
                         <button

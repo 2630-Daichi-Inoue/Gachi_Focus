@@ -1,5 +1,5 @@
 <script setup>
-import {reactive, watch, computed} from 'vue'
+import {reactive, watch} from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import AnnouncementInfo from './Components/Index/AnnouncementInfo.vue'
@@ -13,6 +13,7 @@ const props = defineProps({
 const form = reactive({
     keyword: props.filters.keyword ?? '',
     sort: props.filters.sort ?? 'datePresentToPast',
+    rows_per_page: props.filters.rows_per_page ?? 20,
 })
 
 const search = () => {
@@ -22,21 +23,15 @@ const search = () => {
     })
 }
 
-watch(() => form.sort, () => {
-    router.get(route('announcements.index'), {
-        keyword: props.filters.keyword ?? '',
-        sort: form.sort,
-    }, {
-        preserveState: true,
-        preserveScroll: true,
-    })
-})
-
 const clearFilters = () => {
     form.keyword = ''
     form.sort = 'datePresentToPast'
+    form.rows_per_page = 20
     search()
 }
+
+watch(() => form.sort, () => { search() })
+watch(() => form.rows_per_page, () => { search() })
 
 </script>
 
@@ -54,18 +49,22 @@ const clearFilters = () => {
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                     <input v-model="form.keyword" type="text" placeholder="Search by keyword." class="border rounded px-3 py-2" />
 
-                    <select v-model="form.sort" class="border rounded px-3 py-2">
-                        <option value="datePresentToPast">Date: Present → Past</option>
-                        <option value="datePastToPresent">Date: Past → Present</option>
-                    </select>
-
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 col-span-1">
                         <button type="button" @click="clearFilters" class="border rounded px-3 py-2">
                             Clear Filters
                         </button>
                         <button type="submit" class="bg-slate-600 text-white rounded px-3 py-2">
                             Search
                         </button>
+                    </div>
+
+                    <div class="col-span-1"></div>
+
+                    <div class="flex justify-end col-span-1">
+                        <select v-model="form.sort" class="border rounded px-3 py-2 w-full">
+                            <option value="datePresentToPast">Date: Present → Past</option>
+                            <option value="datePastToPresent">Date: Past → Present</option>
+                        </select>
                     </div>
                 </div>
             </form>
@@ -97,9 +96,19 @@ const clearFilters = () => {
 
             <!-- Footer -->
             <div class="flex justify-between items-center mt-6" v-if="announcements.data.length > 0">
-                <p class="text-sm text-gray-500">
-                    Showing {{ announcements.from }} to {{ announcements.to }} of {{ announcements.total }} results
-                </p>
+                <div class="flex items-center gap-3">
+                    <p class="text-sm text-gray-500">
+                        Showing {{ announcements.from }} to {{ announcements.to }} of {{ announcements.total }} results
+                    </p>
+                    <div class="flex items-center gap-1">
+                        <label class="text-sm text-gray-500">Rows:</label>
+                        <select v-model="form.rows_per_page" class="border rounded pl-2 pr-7 py-1 text-sm">
+                            <option :value="20">20</option>
+                            <option :value="50">50</option>
+                            <option :value="100">100</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="flex gap-1">
                     <template v-for="link in announcements.links" :key="link.url ?? link.label">
                         <button

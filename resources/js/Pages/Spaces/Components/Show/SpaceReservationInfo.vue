@@ -38,11 +38,12 @@ const formatTime = (timeStr) => {
     <div class="mb-2">
         <p>
             <i class="fa-solid fa-location-dot mt-2 mr-2"></i>
-            <Link :href="`https://www.google.com/maps?q=${encodeURIComponent(space.full_address)}`"
+            <a :href="`https://www.google.com/maps?q=${encodeURIComponent(space.full_address)}`"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="font-medium text-blue-600 hover:underline">
                 View on Google Map >
-            </Link>
+            </a>
         </p>
     </div>
 

@@ -38,28 +38,28 @@
 
         <div class="row mb-3">
             <div class="col-md-2">
-                <label for="publishedDate" class="form-label fw-bold">
+                <label for="published_date" class="form-label fw-bold">
                     Published Date <span class="text-danger">※</span>
                 </label>
-                <input type="date" name="publishedDate" id="publishedDate" class="form-control input-unified " value="{{ old('publishedDate', date('Y-m-d', strtotime('+1 day'))) }}" min="{{ date('Y-m-d') }}">
+                <input type="date" name="published_date" id="published_date" class="form-control input-unified " value="{{ old('published_date', date('Y-m-d', strtotime('+1 day'))) }}" min="{{ date('Y-m-d') }}">
                 {{-- Error --}}
-                @error('publishedDate')
+                @error('published_date')
                     <p class="text-danger small">{{ $message }}</p>
                 @enderror
             </div>
             <div class="col-md-2">
-                <label for="publishedTime" class="form-label fw-bold">
+                <label for="published_time" class="form-label fw-bold">
                     Published Time <span class="text-danger">※</span>
                 </label>
-                <input type="time" step="1800" name="publishedTime" id="publishedTime" class="form-control input-unified " value="{{ old('publishedTime', '06:00') }}" min="00:00" max="23:30">
+                <input type="time" step="1800" name="published_time" id="published_time" class="form-control input-unified " value="{{ old('published_time', '06:00') }}" min="00:00" max="23:30">
                 {{-- Error --}}
-                @error('publishedTime')
+                @error('published_time')
                     <p class="text-danger small">{{ $message }}</p>
                 @enderror
             </div>
         </div>
 
-        <input type="hidden" name="isPublic" value="1">
+        <input type="hidden" name="is_public" value="1">
 
         <!-- Create button -->
         <button type="submit" class="btn text-white fw-bold px-5" style="background-color: #757B9D">

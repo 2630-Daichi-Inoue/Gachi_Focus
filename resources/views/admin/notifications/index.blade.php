@@ -112,11 +112,11 @@
 
             <!-- Read Status -->
             <div class="col-md-2">
-                <label for="readStatus" class="form-label mb-1 large text-muted">Read Status</label>
-                @php $readStatus = request('readStatus', 'all'); @endphp
+                <label for="read_status" class="form-label mb-1 large text-muted">Read Status</label>
+                @php $readStatus = request('read_status', 'all'); @endphp
                 <div class="position-relative">
-                    <select name="readStatus"
-                            id="readStatus"
+                    <select name="read_status"
+                            id="read_status"
                             class="form-control form-control-m border text-dark input-unified">
                         <option value="all" {{ $readStatus === 'all' ? 'selected' : '' }}>All</option>
                         <option value="1" {{ $readStatus === '1' ? 'selected' : '' }}>Read</option>
@@ -228,11 +228,9 @@
                     </select>
 
                     <!-- keep current filters when changing page size -->
-                    <input type="hidden" name="userName" value="{{ request('userName') }}">
-                    <input type="hidden" name="spaceName" value="{{ request('spaceName') }}">
-                    <input type="hidden" name="rating" value="{{ request('rating', 'all') }}">
                     <input type="hidden" name="keyword" value="{{ request('keyword') }}">
-                    <input type="hidden" name="isPublic" value="{{ request('isPublic', 'all') }}">
+                    <input type="hidden" name="type" value="{{ request('type', 'all') }}">
+                    <input type="hidden" name="read_status" value="{{ request('read_status', 'all') }}">
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">

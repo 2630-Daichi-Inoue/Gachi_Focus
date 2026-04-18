@@ -15,13 +15,13 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         $data = $request->merge([
-            'newOnly'       => $request->boolean('newOnly'),
+            'new_only'      => $request->boolean('new_only'),
         ]);
         $data->validate([
             'keyword'       => ['nullable', 'string', 'max:50'],
-            'newOnly'       => ['nullable', 'boolean'],
+            'new_only'      => ['nullable', 'boolean'],
             'sort'          => ['nullable', 'in:datePresentToPast,datePastToPresent'],
-            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100']
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
         $query = Notification::query()
@@ -34,11 +34,11 @@ class NotificationController extends Controller
         }
 
         // Filter by read/unread status
-        if($data['newOnly']) {
+        if($data['new_only']) {
             $query->whereNull('read_at');
         }
 
-        $rowsPerPage = (int)($data['rowsPerPage'] ?? 20);
+        $rowsPerPage = (int)($data['rows_per_page'] ?? 20);
 
         // Default: date present → past
         $this->applySort($query, $data['sort'] ?? 'datePresentToPast');
@@ -50,10 +50,10 @@ class NotificationController extends Controller
         return Inertia::render('Notifications/Index', [
             'notifications' => $notifications,
             'filters' => [
-                'keyword'     => $data['keyword'] ?? '',
-                'newOnly'     => $data['newOnly'] ?? false,
-                'sort'        => $data['sort'] ?? 'datePresentToPast',
-                'rowsPerPage' => $rowsPerPage,
+                'keyword'      => $data['keyword'] ?? '',
+                'new_only'     => $data['new_only'] ?? false,
+                'sort'         => $data['sort'] ?? 'datePresentToPast',
+                'rows_per_page' => $rowsPerPage,
             ]
         ]);
     }

@@ -19,9 +19,9 @@ class HalfHourTime implements ValidationRule
             return;
         }
 
-        $time_collection = explode(':', $value);
+        $timeCollection = explode(':', $value);
 
-        if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
+        if ($timeCollection[1] !== '00' && $timeCollection[1] !== '30') {
             $fail('The :attribute must be in 30-minute increments.');
         }
     }

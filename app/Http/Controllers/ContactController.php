@@ -19,20 +19,20 @@ class ContactController extends Controller
         $sortList = ['datePresentToPast', 'datePastToPresent'];
 
         $request->validate([
-            'contactStatus' => ['nullable', Rule::in(array_merge(['all'], $contactStatusList))],
-            'sort'          => ['nullable', Rule::in($sortList)],
-            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100']
+            'contact_status' => ['nullable', Rule::in(array_merge(['all'], $contactStatusList))],
+            'sort'           => ['nullable', Rule::in($sortList)],
+            'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
         $query = Contact::query()
                             ->where('user_id', Auth::id());
 
         // Filter by contact_status
-        if($request->input('contactStatus', 'all')!== 'all') {
-            $query->where('contact_status', $request->input('contactStatus'));
+        if($request->input('contact_status', 'all')!== 'all') {
+            $query->where('contact_status', $request->input('contact_status'));
         }
 
-        $rowsPerPage = (int)$request->input('rowsPerPage', 20);
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
         $this->applySort($query, $request->input('sort', 'datePresentToPast'));
@@ -44,9 +44,9 @@ class ContactController extends Controller
         return Inertia::render('Contacts/Index', [
             'contacts' => $contacts,
             'filters' => [
-                'contactStatus' => $request->input('contactStatus', 'all'),
-                'sort' => $request->input('sort', 'datePresentToPast'),
-                'rowsPerPage' => $rowsPerPage,
+                'contact_status' => $request->input('contact_status', 'all'),
+                'sort'           => $request->input('sort', 'datePresentToPast'),
+                'rows_per_page'  => $rowsPerPage,
             ]
         ]);
     }

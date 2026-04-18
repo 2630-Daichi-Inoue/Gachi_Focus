@@ -7,6 +7,7 @@ import PaymentForm from './Components/Payment/PaymentForm.vue'
 const props = defineProps({
     space: Object,
     reservationData: Object,
+    conflictingReservations: Array,
 })
 
 </script>
@@ -28,7 +29,8 @@ const props = defineProps({
             <div class="w-full md:w-1/2">
                 <PaymentForm
                             :space="space"
-                            :reservationData="reservationData" />
+                            :reservationData="reservationData"
+                            :conflictingReservations="conflictingReservations" />
             </div>
         </div>
     </AuthenticatedLayout>

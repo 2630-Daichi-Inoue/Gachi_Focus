@@ -17,8 +17,8 @@ class AnnouncementsController extends Controller
     {
         $request->validate([
             'keyword'        => ['nullable', 'string', 'max:50'],
-            'publishedDate' => ['nullable', 'date'],
-            'isPublic'       => ['nullable', 'in:all,1,0'],
+            'published_date' => ['nullable', 'date'],
+            'is_public'      => ['nullable', 'in:all,1,0'],
         ]);
 
         $query = Announcement::query();
@@ -29,15 +29,15 @@ class AnnouncementsController extends Controller
                   ->orWhere('message', 'like', "%{$request->keyword}%");
         }
         // Filter by is_public status
-        if ($request->filled('isPublic') && $request->isPublic !== 'all') {
-            $query->where('is_public', $request->boolean('isPublic'));
+        if ($request->filled('is_public') && $request->is_public !== 'all') {
+            $query->where('is_public', $request->boolean('is_public'));
         }
         // Filter by publishing date
-        if ($from = $request->input('publishedDate')) {
+        if ($from = $request->input('published_date')) {
             $query->where('published_at', '>=', "{$from} 00:00:00");
         }
 
-        $rowsPerPage = (int)$request->input('rowsPerPage', 20);
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         $announcements = $query
                     ->latest()
@@ -63,13 +63,13 @@ class AnnouncementsController extends Controller
         $data = $request->validated();
 
         $publishedAt = null;
-        if (!empty($data['publishedDate']) && !empty($data['publishedTime'])) {
-            $publishedAt = Carbon::parse("{$data['publishedDate']} {$data['publishedTime']}");
+        if (!empty($data['published_date']) && !empty($data['published_time'])) {
+            $publishedAt = Carbon::parse("{$data['published_date']} {$data['published_time']}");
         }
 
         if ($publishedAt && $publishedAt->lt(now())) {
             return back()->withErrors([
-                'publishedDate' => 'Published date and time must be in the future.'
+                'published_date' => 'Published date and time must be in the future.'
             ])->withInput();
         }
 
@@ -78,7 +78,7 @@ class AnnouncementsController extends Controller
             'title'         => $data['title'],
             'message'       => $data['message'],
             'published_at'  => $publishedAt,
-            'is_public'     => $data['isPublic'] ?? true,
+            'is_public'     => $data['is_public'] ?? true,
         ]);
 
         # 3. Redirect back to the announcement list with a success message

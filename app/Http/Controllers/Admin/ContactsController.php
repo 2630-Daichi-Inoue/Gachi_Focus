@@ -15,25 +15,25 @@ class ContactsController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'userName'      => ['nullable', 'string', 'max:50'],
-            'contactStatus' => ['nullable', 'in:all,open,closed,canceled'],
-            'keyword'       => ['nullable', 'string', 'max:50'],
-            'readStatus'    => ['nullable', 'in:all,1,0'],
-            'rowsPerPage'   => ['nullable', 'integer', 'in:20,50,100'],
+            'user_name'      => ['nullable', 'string', 'max:50'],
+            'contact_status' => ['nullable', 'in:all,open,closed,canceled'],
+            'keyword'        => ['nullable', 'string', 'max:50'],
+            'read_status'    => ['nullable', 'in:all,1,0'],
+            'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Contact::query()
                         ->with('user');
 
         // Filter by username
-        if ($request->filled('userName')) {
+        if ($request->filled('user_name')) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->userName . '%');
+                $q->where('name', 'LIKE', '%' . $request->user_name . '%');
             });
         }
         // Filter by contact status
-        if ($request->filled('contactStatus') && $request->contactStatus !== 'all') {
-            $query->where('contact_status', $request->contactStatus);
+        if ($request->filled('contact_status') && $request->contact_status !== 'all') {
+            $query->where('contact_status', $request->contact_status);
         }
         // Filter by keyword in title or message
         if ($request->filled('keyword')) {
@@ -41,15 +41,15 @@ class ContactsController extends Controller
                   ->orWhere('message', 'LIKE', '%' . $request->keyword . '%');
         }
         // Filter by read status
-        if ($request->filled('readStatus') && $request->readStatus !== 'all') {
-            if ($request->readStatus === '1') {
+        if ($request->filled('read_status') && $request->read_status !== 'all') {
+            if ($request->read_status === '1') {
                 $query->whereNotNull('read_at');
             } else {
                 $query->whereNull('read_at');
             }
         }
 
-        $rowsPerPage = (int)$request->input('rowsPerPage', 20);
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         $contacts = $query
                     ->latest()

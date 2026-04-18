@@ -279,7 +279,7 @@
                     <!-- keep current filters when changing page size -->
                     <input type="hidden" name="name" value="{{ request('name') }}">
                     <input type="hidden" name="email" value="{{ request('email') }}">
-                    <input type="hidden" name="status" value="{{ request('status', 'all') }}">
+                    <input type="hidden" name="user_status" value="{{ request('user_status', 'all') }}">
                 </form>
             </div>
             <div class="col-md-2 d-flex justify-content-end">

@@ -20,13 +20,13 @@ class ReservationController extends Controller
      */
     public function index(Request $request)
     {
-        $reservation_status_list = ['booked', 'canceled'];
-        $sort_list = ['date_future_to_past', 'date_past_to_future'];
+        $reservationStatusList = ['booked', 'canceled'];
+        $sortList = ['date_future_to_past', 'date_past_to_future'];
 
         $request->validate([
             'name'               => ['nullable','string','max:50'],
-            'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservation_status_list))],
-            'sort'               => ['nullable', Rule::in($sort_list)],
+            'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservationStatusList))],
+            'sort'               => ['nullable', Rule::in($sortList)],
             'rows_per_page'      => ['nullable', 'integer', 'in:20,50,100']
         ]);
 
@@ -172,11 +172,20 @@ class ReservationController extends Controller
             ]);
         }
 
-        $unit_price_yen = Carbon::parse($data['date'])->isWeekend()
+        $conflictingReservations = Reservation::query()
+            ->where('user_id', Auth::id())
+            ->where('reservation_status', 'booked')
+            ->where('end_at', '>', now())
+            ->where('start_at', '<', $newEndAt)
+            ->where('end_at', '>', $newStartAt)
+            ->with('space:id,name')
+            ->get(['id', 'space_id', 'start_at', 'end_at']);
+
+        $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
         ? $checkedSpace->weekend_price_yen
         : $checkedSpace->weekday_price_yen;
 
-        $slot_count = $newStartAt->diffInMinutes($newEndAt) / 30;
+        $slotCount = $newStartAt->diffInMinutes($newEndAt) / 30;
 
         return Inertia::render('Reservations/Payment', [
             'space' => $checkedSpace,
@@ -185,8 +194,9 @@ class ReservationController extends Controller
                 'start_at' => $data['start_at'],
                 'end_at' => $data['end_at'],
                 'quantity' => $data['quantity'],
-                'total_price_yen' => $unit_price_yen * $data['quantity'] * $slot_count,
+                'total_price_yen' => $unitPriceYen * $data['quantity'] * $slotCount,
             ],
+            'conflictingReservations' => $conflictingReservations,
         ]);
     }
 
@@ -217,11 +227,11 @@ class ReservationController extends Controller
                 ]);
             }
 
-            $unit_price_yen = Carbon::parse($data['date'])->isWeekend()
+            $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
             ? $checkedSpace->weekend_price_yen
             : $checkedSpace->weekday_price_yen;
 
-            $slot_count = $newStartAt->diffInMinutes($newEndAt) / 30;
+            $slotCount = $newStartAt->diffInMinutes($newEndAt) / 30;
 
             return Reservation::create([
                 'user_id'            => Auth::id(),
@@ -230,9 +240,9 @@ class ReservationController extends Controller
                 'start_at'           => $newStartAt,
                 'end_at'             => $newEndAt,
                 'quantity'           => $data['quantity'],
-                'slot_count'         => $slot_count,
-                'unit_price_yen'     => $unit_price_yen,
-                'total_price_yen'    => $unit_price_yen * $data['quantity'] * $slot_count,
+                'slot_count'         => $slotCount,
+                'unit_price_yen'     => $unitPriceYen,
+                'total_price_yen'    => $unitPriceYen * $data['quantity'] * $slotCount,
             ]);
         });
 
