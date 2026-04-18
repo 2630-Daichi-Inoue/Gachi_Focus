@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Auth;
 
 class Space extends Model
 {
@@ -71,7 +72,7 @@ class Space extends Model
         return $this->morphMany(Notification::class, 'related');
     }
 
-    public function favoritedUsers()
+    public function users()
     {
         return $this->belongsToMany(
             User::class,
@@ -121,6 +122,18 @@ class Space extends Model
 
         return $startTime >= $this->open_time
             && $endTime <= $this->close_time;
+    }
+
+    public function isFavorite(): bool
+    {
+        $isFavorite = Favorite::where('space_id', $this->id)
+                                ->where('user_id', Auth::id())
+                                ->exists();
+        if ($isFavorite) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function getUnitPriceForDate(CarbonInterface $date): int

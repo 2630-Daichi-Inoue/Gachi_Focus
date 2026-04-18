@@ -46,7 +46,6 @@ class AmenitiesController extends Controller
     public function update(Request $request, Amenity $amenity)
     {
         $data = $request->validate([
-            // 'name' => ['required','string','max:100','unique:amenities,name,'.$amenity->id],
             'name' => ['required',
                         'string',
                         'max:100',

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Space;
-use App\Models\Review;
+use App\Models\Favorite;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class SpaceController extends Controller
 {
@@ -69,8 +70,12 @@ class SpaceController extends Controller
                             ->orderBy('prefecture')
                             ->pluck('prefecture');
 
+        $favoriteSpaceIds = Favorite::where('user_id', Auth::id())
+                                    ->pluck('space_id');
+
         return Inertia::render('Spaces/Index', [
             'spaces' => $spaces,
+            'favoriteSpaceIds' => $favoriteSpaceIds,
             'prefectures' => $prefectures,
             'filters' => [
                 'name'       => $request->name,
@@ -123,6 +128,13 @@ class SpaceController extends Controller
                 $q->latest('created_at');
                 break;
 
+            case 'favoriteFirst':
+                $q->orderByRaw("CASE WHEN spaces.id IN (SELECT space_id FROM favorites WHERE user_id = ?) THEN 0 ELSE 1 END", [Auth::id()])
+                    ->orderByRaw('COALESCE(public_reviews_avg_rating,0) DESC')
+                    ->orderBy('public_reviews_count', 'desc')
+                    ->latest('created_at');
+                break;
+
             default:
                 $q->orderByRaw('COALESCE(public_reviews_avg_rating,0) DESC')
                     ->orderBy('public_reviews_count', 'desc')
@@ -132,13 +144,14 @@ class SpaceController extends Controller
 
     public function show(Space $space)
     {
-
         if (!$space->is_public) {
             return redirect()->route('spaces.index')
                             ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
         }
 
         $space->load('amenities');
+
+        $isFavorite = $space->isFavorite();
 
         $reviews = $space->reviews()
                             ->where('is_public', true)
@@ -153,6 +166,7 @@ class SpaceController extends Controller
 
         return Inertia::render('Spaces/Show', [
             'space' => $space,
+            'isFavorite' => $isFavorite,
             'reviewInfo' => [
                 'reviews'       => $reviews,
                 'reviewCount'   => $reviewCount,

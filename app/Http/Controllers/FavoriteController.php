@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Favorite;
 use Illuminate\Http\Request;
+use App\Models\Space;
+use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
 {
@@ -26,9 +28,13 @@ class FavoriteController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Space $space)
     {
-        //
+        Favorite::firstOrCreate([
+            'user_id' => Auth::id(),
+            'space_id' => $space->id,
+        ]);
+        return back()->with('ok', 'Added to favorites. Thank you!');
     }
 
     /**
@@ -58,8 +64,9 @@ class FavoriteController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Favorite $favorite)
+    public function destroy(Space $space)
     {
-        //
+        Favorite::where('user_id', Auth::id())->where('space_id', $space->id)->delete();
+        return back()->with('ok', 'Removed from favorites.');
     }
 }

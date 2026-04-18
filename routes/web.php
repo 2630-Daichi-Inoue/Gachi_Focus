@@ -20,6 +20,10 @@ use \App\Http\Controllers\Admin\NotificationsController;
 use App\Http\Controllers\SpaceController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FavoriteController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -200,24 +204,30 @@ Route::middleware('auth')->group(function () {
             ->name('reviews.destroy');
 
     // User Contact Routes
-    Route::get('/contacts', [\App\Http\Controllers\ContactController::class, 'index'])
+    Route::get('/contacts', [ContactController::class, 'index'])
             ->name('contacts.index');
-    Route::get('/contacts/create', [\App\Http\Controllers\ContactController::class, 'create'])
+    Route::get('/contacts/create', [ContactController::class, 'create'])
             ->name('contacts.create');
-    Route::post('/contacts', [\App\Http\Controllers\ContactController::class, 'store'])
+    Route::post('/contacts', [ContactController::class, 'store'])
             ->name('contacts.store');
-    Route::patch('/contacts/{contact}/cancel', [\App\Http\Controllers\ContactController::class, 'cancel'])
+    Route::patch('/contacts/{contact}/cancel', [ContactController::class, 'cancel'])
             ->name('contacts.cancel');
 
     // User Announcement Routes
-    Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])
+    Route::get('/announcements', [AnnouncementController::class, 'index'])
             ->name('announcements.index');
 
     // User Notification Routes
-    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
+    Route::get('/notifications', [NotificationController::class, 'index'])
             ->name('notifications.index');
-    Route::patch('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'read'])
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])
             ->name('notifications.read');
+
+    // User Favorite Routes
+    Route::post('/spaces/{space}/favorite', [FavoriteController::class, 'store'])
+            ->name('favorites.store');
+    Route::delete('/spaces/{space}/favorite', [FavoriteController::class, 'destroy'])
+            ->name('favorites.destroy');
 });
 
 Route::middleware('auth')->group(function () {

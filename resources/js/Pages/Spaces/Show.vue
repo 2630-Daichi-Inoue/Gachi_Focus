@@ -6,6 +6,7 @@ import SpaceDetail from './Components/Show/SpaceDetail.vue'
 import SpaceReservationInfo from './Components/Show/SpaceReservationInfo.vue'
 defineProps({
     space: Object,
+    isFavorite: Boolean,
     reviewInfo: Object,
 })
 </script>
@@ -21,6 +22,7 @@ defineProps({
 
             <div>
                 <SpaceDetail :space="space"
+                            :isFavorite="isFavorite"
                             :reviewInfo="reviewInfo"
                 />
             </div>

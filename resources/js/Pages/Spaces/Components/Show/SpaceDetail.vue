@@ -1,20 +1,63 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
+import { Link, router } from '@inertiajs/vue3'
 
-defineProps({
+const props = defineProps({
     space: Object,
+    isFavorite: Boolean,
     reviewInfo: Object,
 })
+
+const favorited = ref(props.isFavorite)
+const isBouncing = ref(false)
+const isSubmitting = ref(false)
+
+const toggleFavorite = () => {
+    if (isBouncing.value || isSubmitting.value) return
+
+    isBouncing.value = true
+    isSubmitting.value = true
+    setTimeout(() => { isBouncing.value = false }, 300)
+
+    if (favorited.value) {
+        router.delete(route('favorites.destroy', props.space.id), {
+            preserveState: true,
+            onSuccess: () => { favorited.value = false },
+            onFinish: () => { isSubmitting.value = false },
+        })
+    } else {
+        router.post(route('favorites.store', props.space.id), {}, {
+            preserveState: true,
+            onSuccess: () => { favorited.value = true },
+            onFinish: () => { isSubmitting.value = false },
+        })
+    }
+}
+
 </script>
 
 <template>
 <div class="space-y-6">
     <!-- Title + Rating -->
     <div>
-        <div class="mb-2">
-            <h1 class="text-4xl font-bold">
+        <div class="mb-2 flex items-center gap-4">
+            <span class="text-3xl font-bold">
                 {{ space.name }}
-            </h1>
+            </span>
+            <button
+                @click="toggleFavorite"
+                :aria-label="favorited ? 'Remove from favorites' : 'Add to favorites'"
+                :title="favorited ? 'Remove from favorites' : 'Add to favorites'"
+                :disabled="isBouncing || isSubmitting"
+                :class="[
+                    'transition-transform',
+                    isBouncing ? 'scale-150' : 'scale-100',
+                    isSubmitting ? 'opacity-50' : ''
+                ]"
+                style="transition-duration: 300ms;">
+                <i v-if="favorited" class="fa-solid fa-star text-xl text-yellow-500"></i>
+                <i v-else class="fa-regular fa-star text-xl"></i>
+            </button>
         </div>
 
         <div class="mb-2">
@@ -58,7 +101,6 @@ defineProps({
         <div class="mb-2">
             <h2 class="text-2xl font-bold">Amenities</h2>
             <div v-if="space.amenities.length > 0">
-                <p class="text-2xl font-bold mb-2">Amenities</p>
                 <div class="flex flex-wrap gap-2 mb-2">
                     <div
                         v-for="amenity in space.amenities"

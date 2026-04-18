@@ -8,6 +8,7 @@ import SpaceCardFooter from './Components/Index/SpaceCardFooter.vue'
 
 const props = defineProps({
     spaces: Object,
+    favoriteSpaceIds: Array,
     prefectures: Array,
     filters: Object,
 })
@@ -59,6 +60,7 @@ watch(() => form.sort, () => {
                     <input v-model="form.city" type="text" placeholder="City" class="border rounded px-3 py-2" />
                     <!-- <input v-model="form.address_line" type="text" placeholder="Address Line" class="border rounded px-3 py-2" /> -->
                     <select v-model="form.sort" class="border rounded px-3 py-2">
+                        <option value="favoriteFirst">Favorite First</option>
                         <option value="rating_high_to_low">Rating: High → Low</option>
                         <option value="price_high_to_low">Price: High → Low</option>
                         <option value="price_low_to_high">Price: Low → High</option>
@@ -91,7 +93,7 @@ watch(() => form.sort, () => {
                     class="md:w-full mb-4"
                 >
                     <div class="h-full flex flex-col">
-                        <SpaceCardTitle :space="space" />
+                        <SpaceCardTitle :space="space" :isFavorite="favoriteSpaceIds.includes(space.id)" />
                         <SpaceCardBody :space="space" />
                         <SpaceCardFooter :space="space" />
                     </div>
