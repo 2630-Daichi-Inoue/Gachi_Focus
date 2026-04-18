@@ -51,9 +51,32 @@
                 <label for="published_time" class="form-label fw-bold">
                     Published Time <span class="text-danger">※</span>
                 </label>
-                <input type="time" step="1800" name="published_time" id="published_time" class="form-control input-unified " value="{{ old('published_time', '06:00') }}" min="00:00" max="23:30">
+                <input type="time" step="1800" name="published_time" id="published_time" class="form-control input-unified " value="{{ old('published_time', '06:00') }}" min="00:00" max="23:59">
                 {{-- Error --}}
                 @error('published_time')
+                    <p class="text-danger small">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-2">
+                <label for="expired_date" class="form-label fw-bold">
+                    Expired Date
+                </label>
+                <input type="date" name="expired_date" id="expired_date" class="form-control input-unified " value="{{ old('expired_date', '') }}" min="{{ date('Y-m-d') }}">
+                {{-- Error --}}
+                @error('expired_date')
+                    <p class="text-danger small">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="col-md-2">
+                <label for="expired_time" class="form-label fw-bold">
+                    Expired Time
+                </label>
+                <input type="time" step="1800" name="expired_time" id="expired_time" class="form-control input-unified " value="{{ old('expired_time', '') }}" min="00:00" max="23:59">
+                {{-- Error --}}
+                @error('expired_time')
                     <p class="text-danger small">{{ $message }}</p>
                 @enderror
             </div>
@@ -66,11 +89,6 @@
             Create
         </button>
 
-        {{-- @if ($errors->any())
-            @foreach ($errors->all() as $error)
-                <div>{{ $error }}</div>
-            @endforeach
-        @endif --}}
     </form>
 
 @endsection

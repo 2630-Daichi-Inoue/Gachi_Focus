@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('is_public')
                     ->default(true);
             $table->timestamp('published_at');
+            $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
     }

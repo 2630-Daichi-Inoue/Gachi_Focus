@@ -21,8 +21,12 @@ class AnnouncementController extends Controller
         ]);
 
         $query = Announcement::query()
-                            ->where('published_at', '<=', now())
-                            ->where('is_public', true);
+                                    ->where('is_public', true)
+                                    ->where('published_at', '<=', now())
+                                    ->where(function ($q) {
+                                        $q->where('expired_at', '>', now())
+                                          ->orWhereNull('expired_at');
+                                    });
 
         // Filter by keyword
         if($request->input('keyword')) {

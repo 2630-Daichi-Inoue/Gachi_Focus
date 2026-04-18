@@ -15,6 +15,7 @@ class Announcement extends Model
         'message',
         'is_public',
         'published_at',
+        'expired_at',
     ];
 
     protected $casts = [

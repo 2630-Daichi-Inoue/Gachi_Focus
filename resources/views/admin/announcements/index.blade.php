@@ -22,10 +22,11 @@
 
     /* Column widths (sum approx 100%) */
     .table-fixed th:nth-child(1), .table-fixed td:nth-child(1) { width: 15%; }  /* Title */
-    .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 50%; }  /* Message */
+    .table-fixed th:nth-child(2), .table-fixed td:nth-child(2) { width: 35%; }  /* Message */
     .table-fixed th:nth-child(3), .table-fixed td:nth-child(3) { width: 15%; }  /* Published At */
-    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 10%; }  /* Is Public */
-    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 10%; }  /* Action */
+    .table-fixed th:nth-child(4), .table-fixed td:nth-child(4) { width: 15%; }  /* Expired At */
+    .table-fixed th:nth-child(5), .table-fixed td:nth-child(5) { width: 10%; }  /* Is Public */
+    .table-fixed th:nth-child(6), .table-fixed td:nth-child(6) { width: 10%; }  /* Action */
 </style>
 
 @section('content')
@@ -133,6 +134,7 @@
                     <th>Title</th>
                     <th>Message</th>
                     <th>Published At</th>
+                    <th>Expired At</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
@@ -149,6 +151,11 @@
                         {{-- Published At --}}
                         <td class="text-truncate">
                             {{ \Carbon\Carbon::parse($announcement->published_at)->format('Y/n/j G:i') }}
+                        </td>
+
+                        {{-- Expired At --}}
+                        <td class="text-truncate">
+                            {{ \Carbon\Carbon::parse($announcement->expired_at)->format('Y/n/j G:i') }}
                         </td>
 
                         {{-- Status --}}

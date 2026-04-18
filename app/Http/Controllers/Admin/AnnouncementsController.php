@@ -67,9 +67,20 @@ class AnnouncementsController extends Controller
             $publishedAt = Carbon::parse("{$data['published_date']} {$data['published_time']}");
         }
 
+        $expiredAt = null;
+        if (!empty($data['expired_date']) && !empty($data['expired_time'])) {
+            $expiredAt = Carbon::parse("{$data['expired_date']} {$data['expired_time']}");
+        }
+
         if ($publishedAt && $publishedAt->lt(now())) {
             return back()->withErrors([
                 'published_date' => 'Published date and time must be in the future.'
+            ])->withInput();
+        }
+
+        if ($expiredAt && $publishedAt && $expiredAt->lte($publishedAt)) {
+            return back()->withErrors([
+                'expired_date' => 'Expired date and time must be after the published date and time.'
             ])->withInput();
         }
 
@@ -78,6 +89,7 @@ class AnnouncementsController extends Controller
             'title'         => $data['title'],
             'message'       => $data['message'],
             'published_at'  => $publishedAt,
+            'expired_at'    => $expiredAt,
             'is_public'     => $data['is_public'] ?? true,
         ]);
 

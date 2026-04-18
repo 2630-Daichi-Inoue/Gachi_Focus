@@ -15,14 +15,6 @@ class StoreSpaceRequest extends FormRequest
         return $this->user()?->isAdmin() ?? false;
     }
 
-    // private function timeValidation($datetime, $fail): void
-    // {
-    //     $time_collection = explode(':', $datetime);
-    //     if ($time_collection[1] !== '00' && $time_collection[1] !== '30') {
-    //         $fail('The time must be in 30-minute increments.');
-    //     }
-    // }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -65,9 +57,6 @@ class StoreSpaceRequest extends FormRequest
             'open_time' => [
                 'required',
                 'date_format:H:i',
-                // function ($attribute, $value, $fail) {
-                //     $this->timeValidation($value, $fail);
-                // },
                 new HalfHourTime,
             ],
 
@@ -75,9 +64,6 @@ class StoreSpaceRequest extends FormRequest
                 'required',
                 'date_format:H:i',
                 'after:open_time',
-                // function ($attribute, $value, $fail) {
-                //     $this->timeValidation($value, $fail);
-                // },
                 new HalfHourTime,
             ],
 
