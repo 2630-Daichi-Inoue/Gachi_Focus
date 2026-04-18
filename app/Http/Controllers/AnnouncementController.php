@@ -79,7 +79,7 @@ class AnnouncementController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store()
     {
         // Nothing goes here since only admin can create announcements, and the form is handled in the admin panel.
     }
@@ -87,15 +87,15 @@ class AnnouncementController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Announcement $announcement)
+    public function show()
     {
-        //
+        // Nothing goes here since users view announcement details in a modal on the index page, and there is no separate page for announcement details.
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Announcement $announcement)
+    public function edit()
     {
         // Nothing goes here since only admin can edit announcements, and the form is handled in the admin panel.
     }
@@ -103,7 +103,7 @@ class AnnouncementController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Announcement $announcement)
+    public function update()
     {
         // Nothing goes here since only admin can update announcements, and the form is handled in the admin panel.
     }
@@ -111,7 +111,7 @@ class AnnouncementController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Announcement $announcement)
+    public function destroy()
     {
         // Nothing goes here since only admin can delete announcements, and the form is handled in the admin panel.
     }

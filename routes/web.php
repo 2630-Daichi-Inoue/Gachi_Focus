@@ -212,6 +212,12 @@ Route::middleware('auth')->group(function () {
     // User Announcement Routes
     Route::get('/announcements', [\App\Http\Controllers\AnnouncementController::class, 'index'])
             ->name('announcements.index');
+
+    // User Notification Routes
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
+            ->name('notifications.index');
+    Route::patch('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'read'])
+            ->name('notifications.read');
 });
 
 Route::middleware('auth')->group(function () {

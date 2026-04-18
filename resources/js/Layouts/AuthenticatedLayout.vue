@@ -97,6 +97,12 @@ watch(
                                 >
                                     Announcements
                                 </NavLink>
+                                <NavLink
+                                    :href="route('notifications.index')"
+                                    :active="route().current('notifications.index')"
+                                >
+                                    Notifications
+                                </NavLink>
 
                             </div>
                         </div>
