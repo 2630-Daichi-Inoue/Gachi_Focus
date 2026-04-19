@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Register space')
+@section('title', 'Create space')
 
 <style>
     .input-unified {
@@ -180,16 +180,11 @@
 
         <input type="hidden" name="is_public" value="1">
 
-        <!-- register button -->
+        <!-- create button -->
         <button type="submit" class="btn text-white fw-bold px-5" style="background-color: #757B9D">
-            Register
+            Create
         </button>
 
-        {{-- @if ($errors->any())
-            @foreach ($errors->all() as $error)
-                <div>{{ $error }}</div>
-            @endforeach
-        @endif --}}
     </form>
 
 @endsection

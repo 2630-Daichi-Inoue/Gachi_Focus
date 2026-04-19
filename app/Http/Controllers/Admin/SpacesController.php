@@ -70,13 +70,13 @@ class SpacesController extends Controller
         return view('admin.spaces.index', compact('spaces', 'prefectures', 'rowsPerPage'));
     }
 
-    public function register()
+    public function create()
     {
         $amenities = Amenity::orderBy('name')
                             ->select('id','name')
                             ->get();
 
-        return view('admin.spaces.register', compact('amenities'));
+        return view('admin.spaces.create', compact('amenities'));
     }
 
     public function store(StoreSpaceRequest $request)
@@ -106,7 +106,7 @@ class SpacesController extends Controller
         $space->amenities()->sync($data['amenities'] ?? []);
 
         # 4. Redirect back to the spaces list with a success message
-        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully registered.');
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully created.');
     }
 
     public function edit(Space $space)

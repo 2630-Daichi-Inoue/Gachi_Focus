@@ -46,7 +46,7 @@ Route::middleware(['auth', 'admin'])
         // Admin Spaces Management
         Route::prefix('spaces')->name('spaces.')->controller(SpacesController::class)->group(function () {
             Route::get('/', 'index')->name('index');
-            Route::get('/register', 'register')->name('register');
+            Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');
             Route::get('/{space}/edit', 'edit')->withTrashed()->name('edit');
             Route::patch('/{space}', 'update')->withTrashed()->name('update');

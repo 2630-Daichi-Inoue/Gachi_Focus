@@ -37,6 +37,7 @@ Improvement points
    →done.
 23.New badge, pinning, and clickable card for user's announcement index.
 24.Not to put "Update Review" button if the review's deleted_at is not null.
+   →done.
 25.Unify 403 error message to "You are not authorized to..."
    →done.
 26.Developing user's own review page.
