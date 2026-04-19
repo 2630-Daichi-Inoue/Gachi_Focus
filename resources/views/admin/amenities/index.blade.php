@@ -11,8 +11,8 @@
       </div>
 
       {{-- flash success --}}
-      @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+      @if(session('ok'))
+        <div class="alert alert-success">{{ session('ok') }}</div>
       @endif
 
       {{-- validation summary (optional) --}}

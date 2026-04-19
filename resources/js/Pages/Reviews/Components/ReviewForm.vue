@@ -1,5 +1,5 @@
 <script setup>
-import { Link, router, usePage } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import { reactive, computed, ref } from 'vue'
 import Vue3StarRating from 'vue3-star-ratings'
 import DeleteReviewModal from './DeleteReviewModal.vue'
@@ -8,8 +8,6 @@ const props = defineProps({
     reservation: Object,
     review: Object,
 })
-
-const page = usePage()
 
 const form = reactive({
     rating: Math.round(Number(props.review?.rating ?? 1)),
@@ -102,20 +100,23 @@ const deleteReview = () => {
 
         <div class="flex flex-col md:flex-row gap-4">
             <Link :href="route('reservations.index')"
-                    class="flex items-center justify-center md:w-1/3 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
+                    :class="review ? 'md:w-1/3' : 'md:w-1/2'"
+                    class="flex items-center justify-center text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                 Go Back
             </Link>
-            <button v-if="review && review.deleted_at === null"
-                    type="button"
-                    @click="showDeleteModal = true"
-                    class="flex items-center justify-center md:w-1/3 text-red-500 font-bold text-3xl border border-red-500 rounded transition hover:bg-red-200">
-                Delete Review
-            </button>
-            <button v-if="review && review.deleted_at === null"
-                    type="submit"
-                    class="flex items-center justify-center md:w-1/3 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
-                {{ review ? 'Update Review' : 'Submit Review' }}
-            </button>
+            <template v-if="!review?.deleted_at">
+                <button v-if="review"
+                        type="button"
+                        @click="showDeleteModal = true"
+                        class="flex items-center justify-center md:w-1/3 text-red-500 font-bold text-3xl border border-red-500 rounded transition hover:bg-red-200">
+                    Delete Review
+                </button>
+                <button type="submit"
+                        :class="review ? 'md:w-1/3' : 'md:w-1/2'"
+                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
+                    {{ review ? 'Update Review' : 'Submit Review' }}
+                </button>
+            </template>
         </div>
     </form>
     <Transition name="modal-fade">

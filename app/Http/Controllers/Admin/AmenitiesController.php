@@ -30,7 +30,7 @@ class AmenitiesController extends Controller
         ]);
 
         Amenity::create($data);
-        return back()->with('success','Successfully added.');
+        return back()->with('ok','Successfully added.');
     }
 
     public function show()
@@ -53,12 +53,12 @@ class AmenitiesController extends Controller
         ]);
 
         $amenity->update($data);
-        return back()->with('success','Successfully updated.');
+        return back()->with('ok','Successfully updated.');
     }
 
     public function destroy(Amenity $amenity)
     {
         $amenity->forceDelete();
-        return back()->with('success','Successfully deleted.');
+        return back()->with('ok','Successfully deleted.');
     }
 }

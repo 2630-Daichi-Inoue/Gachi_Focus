@@ -124,7 +124,7 @@ class ReviewController extends Controller
             'is_public'         => true,
         ]);
 
-        return redirect()->route('spaces.show', $reservation->space_id)
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
                         ->with('ok', 'Thank you for your review!');
     }
 
@@ -154,7 +154,7 @@ class ReviewController extends Controller
             'comment'     => $data['comment'],
         ]);
 
-        return redirect()->route('reservations.index')
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
                         ->with('ok', 'Your review has been updated!');
     }
 
@@ -183,7 +183,7 @@ class ReviewController extends Controller
 
         $review->delete();
 
-        return redirect()->route('reservations.index')
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
                         ->with('ok', 'Your review has been deleted.');
     }
 }

@@ -26,7 +26,7 @@ class PaymentController extends Controller
     // 2) Prevent double payment
     $status = $reservation->payment_status ?? 'unpaid';
     if ($status === 'paid') {
-        return back()->with('success', 'This reservation is already paid.');
+        return back()->with('ok', 'This reservation is already paid.');
     }
 
     // 3) Prepare amount and currency (server-side only)

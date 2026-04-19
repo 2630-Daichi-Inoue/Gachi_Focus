@@ -51,25 +51,30 @@ watch(() => form.sort, () => {
                 <div v-if="reviewInfo.reviewCount > 0">
                     <form @submit.prevent="search" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
-                            <select v-model="form.stars" name="stars" id="stars" class="border rounded px-3 py-2">
+                            <select v-model="form.stars" name="stars" id="stars" class="border rounded px-3 py-2 h-10">
                                 <option value="all">Select Stars</option>
                                 <option v-for="star in [5, 4, 3, 2, 1]" :key="star" :value="star">
                                     {{ '★'.repeat(star) }}
                                 </option>
                             </select>
-                            <select v-model="form.sort" class="border rounded px-3 py-2">
-                                <option value="rating_high_to_low">Rating: High → Low</option>
-                                <option value="rating_low_to_high">Rating: Low → High</option>
-                                <option value="newest">Newest First</option>
-                            </select>
 
-                            <div class="flex gap-2">
-                                <button type="button" @click="clearFilters" class="border rounded px-3 py-2">
+                            <div class="flex gap-2 col-span-1 items-center">
+                                <button type="button" @click="clearFilters" class="border rounded px-3 h-10 whitespace-nowrap">
                                     Clear Filters
                                 </button>
-                                <button type="submit" class="bg-slate-600 text-white rounded px-3 py-2">
+                                <button type="submit" class="bg-slate-600 text-white rounded px-3 h-10 whitespace-nowrap">
                                     Search
                                 </button>
+                            </div>
+
+                            <div class="col-span-3"></div>
+
+                            <div class="flex justify-end col-span-1">
+                                <select v-model="form.sort" class="border rounded px-3 py-2 h-10 w-full">
+                                    <option value="rating_high_to_low">Rating: High → Low</option>
+                                    <option value="rating_low_to_high">Rating: Low → High</option>
+                                    <option value="newest">Newest First</option>
+                                </select>
                             </div>
                         </div>
                     </form>

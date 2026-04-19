@@ -5,9 +5,9 @@
 @section('content')
     <div class="container mt-5">
 
-        @if (session('success'))
+        @if (session('ok'))
             <div class="alert alert-success text-center fw-semibold" style="border-radius:10px;">
-                {{ session('success') }}
+                {{ session('ok') }}
             </div>
         @endif
 
