@@ -15,9 +15,11 @@ Improvement points
 9.Separation of filtering box and sorting one for space, reservation, and review index.
    →done.
 10.Making messages on admin's management screens deletable or disappear in a few seconds.
+   →done.
 11.Delete unnecessary files e.g. users' blade files, other unused files.
 12.Writing comments on codes for better understanding.
 13.Argument of sorting functions whether it should be Builder.
+   →done.
 14.One liner for vue files if they can be made.
 15.Holding the same status when sorting for vue files.
    →done.

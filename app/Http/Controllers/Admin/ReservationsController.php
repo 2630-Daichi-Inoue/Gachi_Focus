@@ -84,7 +84,7 @@ class ReservationsController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.reservations.index')
-                        ->with('status', 'Successfully canceled.');
+                        ->with('ok', 'Successfully canceled.');
     }
 
 }

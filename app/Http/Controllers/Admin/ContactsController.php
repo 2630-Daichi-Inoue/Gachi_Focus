@@ -80,7 +80,7 @@ class ContactsController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.contacts.index')
-                        ->with('status', 'Successfully marked as read.');
+                        ->with('ok', 'Successfully marked as read.');
     }
 
     public function close(Request $request, Contact $contact)
@@ -115,7 +115,7 @@ class ContactsController extends Controller
 
         # 3. redirect to the index
         return redirect()->route('admin.contacts.index')
-                        ->with('status', 'Successfully marked as closed.');
+                        ->with('ok', 'Successfully marked as closed.');
     }
 
     /**

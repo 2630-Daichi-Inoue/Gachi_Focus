@@ -155,7 +155,11 @@
 
                         {{-- Expired At --}}
                         <td class="text-truncate">
-                            {{ \Carbon\Carbon::parse($announcement->expired_at)->format('Y/n/j G:i') }}
+                            @if ($announcement->expired_at)
+                                {{ \Carbon\Carbon::parse($announcement->expired_at)->format('Y/n/j G:i') }}
+                            @else
+                                <span class="text-muted">No expiration</span>
+                            @endif
                         </td>
 
                         {{-- Status --}}

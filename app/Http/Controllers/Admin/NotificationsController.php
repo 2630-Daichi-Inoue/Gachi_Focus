@@ -97,7 +97,7 @@ class NotificationsController extends Controller
             return view('admin.notifications.users.create', compact('user', 'message'));
         } else {
             return redirect()->route('admin.dashboard')
-                            ->with('status', 'Invalid notification type or target.');
+                            ->with('ok', 'Invalid notification type or target.');
         }
     }
 
@@ -138,6 +138,6 @@ class NotificationsController extends Controller
         }
 
         return redirect()->route('admin.dashboard')
-                        ->with('status', 'A notification has been successfully sent.');
+                        ->with('ok', 'A notification has been successfully sent.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreContactRequest;
 use App\Models\Contact;
@@ -51,7 +52,7 @@ class ContactController extends Controller
         ]);
     }
 
-    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    private function applySort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'datePresentToPast') {
             case 'datePresentToPast':

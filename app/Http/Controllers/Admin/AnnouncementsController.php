@@ -84,6 +84,8 @@ class AnnouncementsController extends Controller
             ])->withInput();
         }
 
+        // dd($expiredAt);
+
         # 2. Save announcement data to announcements table
         Announcement::create([
             'title'         => $data['title'],
@@ -112,7 +114,7 @@ class AnnouncementsController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.announcements.index')
-                        ->with('status', 'Successfully hidden.');
+                        ->with('ok', 'Successfully hidden.');
     }
 
     /**

@@ -51,7 +51,7 @@
                 <label for="published_time" class="form-label fw-bold">
                     Published Time <span class="text-danger">※</span>
                 </label>
-                <input type="time" step="1800" name="published_time" id="published_time" class="form-control input-unified " value="{{ old('published_time', '06:00') }}" min="00:00" max="23:59">
+                <input type="time" name="published_time" id="published_time" class="form-control input-unified " value="{{ old('published_time', '06:00') }}" min="00:00" max="23:59">
                 {{-- Error --}}
                 @error('published_time')
                     <p class="text-danger small">{{ $message }}</p>
@@ -74,7 +74,7 @@
                 <label for="expired_time" class="form-label fw-bold">
                     Expired Time
                 </label>
-                <input type="time" step="1800" name="expired_time" id="expired_time" class="form-control input-unified " value="{{ old('expired_time', '') }}" min="00:00" max="23:59">
+                <input type="time" name="expired_time" id="expired_time" class="form-control input-unified " value="{{ old('expired_time', '') }}" min="00:00" max="23:59">
                 {{-- Error --}}
                 @error('expired_time')
                     <p class="text-danger small">{{ $message }}</p>

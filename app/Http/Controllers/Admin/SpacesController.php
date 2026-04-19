@@ -106,7 +106,7 @@ class SpacesController extends Controller
         $space->amenities()->sync($data['amenities'] ?? []);
 
         # 4. Redirect back to the spaces list with a success message
-        return redirect()->route('admin.spaces.index')->with('status', 'Successfully registered.');
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully registered.');
     }
 
     public function edit(Space $space)
@@ -175,7 +175,7 @@ class SpacesController extends Controller
         $space->amenities()->sync($data['amenities'] ?? []);
 
         # 4. redirect to the index
-        return redirect()->route('admin.spaces.index')->with('status', 'Successfully updated.');
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully updated.');
     }
 
     public function hide(Space $space)
@@ -194,7 +194,7 @@ class SpacesController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.spaces.index')
-                        ->with('status', 'Successfully hidden.');
+                        ->with('ok', 'Successfully hidden.');
     }
 
     public function show(Space $space)
@@ -212,12 +212,12 @@ class SpacesController extends Controller
         $space->save();
 
         # 2. redirect to the index
-        return redirect()->route('admin.spaces.index')->with('status', 'Successfully shown.');
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully shown.');
     }
 
     public function destroy(Space $space)
     {
         $space->delete();
-        return redirect()->route('admin.spaces.index')->with('status', 'Successfully deleted.');
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully deleted.');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Space;
@@ -73,7 +74,7 @@ class ReservationController extends Controller
         ]);
     }
 
-    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    private function applySort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'date_future_to_past') {
             case 'date_future_to_past':

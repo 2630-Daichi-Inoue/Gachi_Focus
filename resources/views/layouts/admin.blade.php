@@ -288,16 +288,7 @@
         <main class="py-4">
             <div class="container-xxl">
 
-                @if (session('status'))
-                <div class="container p-3">
-                    <div class="alert alert-success text-center mb-0">
-                    {{-- flash message --}}
-                    {{ session('status') }}
-                    </div>
-                </div>
-
-                @endif
-                 {{-- page content --}}
+                {{-- page content --}}
                 @yield('content')
             </div>
         </main>

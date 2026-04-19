@@ -75,7 +75,7 @@ class ReviewsController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.reviews.index')
-                        ->with('status', 'Successfully hidden.');
+                        ->with('ok', 'Successfully hidden.');
     }
 
     public function show(Review $review)
@@ -93,7 +93,7 @@ class ReviewsController extends Controller
         $review->save();
 
         # 2. redirect to the index
-        return redirect()->route('admin.reviews.index')->with('status', 'Successfully shown.');
+        return redirect()->route('admin.reviews.index')->with('ok', 'Successfully shown.');
     }
 
 }

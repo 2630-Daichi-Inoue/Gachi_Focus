@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -53,7 +54,7 @@ class AnnouncementController extends Controller
         ]);
     }
 
-    public function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    private function applySort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'datePresentToPast') {
             case 'datePresentToPast':

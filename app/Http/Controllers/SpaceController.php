@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Space;
 use App\Models\Favorite;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ class SpaceController extends Controller
         ]);
     }
 
-    private function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
+    private function applySort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'rating_high_to_low') {
             case 'rating_high_to_low':

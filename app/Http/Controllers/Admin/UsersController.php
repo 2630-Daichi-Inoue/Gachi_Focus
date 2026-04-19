@@ -72,7 +72,7 @@ class UsersController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.users.index')
-                        ->with('status', 'Successfully restricted.');
+                        ->with('ok', 'Successfully restricted.');
     }
 
     # Activate User
@@ -92,7 +92,7 @@ class UsersController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.users.index')
-                        ->with('status', 'Successfully activated.');
+                        ->with('ok', 'Successfully activated.');
     }
 
     # Ban User
@@ -112,6 +112,6 @@ class UsersController extends Controller
 
         # 2. redirect to the index
         return redirect()->route('admin.users.index')
-                        ->with('status', 'Successfully banned.');
+                        ->with('ok', 'Successfully banned.');
     }
 }
