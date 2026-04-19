@@ -81,7 +81,7 @@ class ContactController extends Controller
             $reservation = Reservation::findOrFail($reservationId);
 
             if ($reservation->user_id !== Auth::id()) {
-                abort(403, 'You cannot contact us about a reservation that does not belong to you.');
+                abort(403, 'You are not authorized to create a contact for this reservation.');
             }
 
             return Inertia::render('Contacts/Create', [
@@ -121,7 +121,7 @@ class ContactController extends Controller
     public function cancel(Contact $contact)
     {
         if ($contact->user_id !== Auth::id()) {
-            abort(403, 'You cannot cancel a contact that does not belong to you.');
+            abort(403, 'You are not authorized to cancel this contact.');
         }
 
         if ($contact->contact_status === 'closed') {

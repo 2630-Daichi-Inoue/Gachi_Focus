@@ -24,16 +24,16 @@ class StoreReservationRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $date = $this->input('date');
-            $startAt = $this->input('start_at');
+            $startedAt = $this->input('started_at');
 
-            if (!$date || !$startAt) {
+            if (!$date || !$startedAt) {
                 return;
             }
 
-            $start = Carbon::parse($date . ' ' . $startAt);
+            $start = Carbon::parse($date . ' ' . $startedAt);
 
             if (Carbon::parse($date)->isToday() && $start->lte(now())) {
-                $validator->errors()->add('start_at', 'Start time must be in the future.');
+                $validator->errors()->add('started_at', 'Start time must be in the future.');
             }
         });
     }
@@ -54,7 +54,7 @@ class StoreReservationRequest extends FormRequest
                 'after_or_equal:today',
             ],
 
-            'start_at' => [
+            'started_at' => [
                 'required',
                 'date_format:H:i',
                 // function ($attribute, $value, $fail) {
@@ -63,10 +63,10 @@ class StoreReservationRequest extends FormRequest
                 new HalfHourTime
             ],
 
-            'end_at' => [
+            'ended_at' => [
                 'required',
                 'date_format:H:i',
-                'after:start_at',
+                'after:started_at',
                 // function ($attribute, $value, $fail) {
                 //     $this->timeValidator($value, $fail);
                 // },

@@ -81,7 +81,7 @@ class NotificationController extends Controller
     {
         // Ensure the notification belongs to the authenticated user
         if ($notification->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'You are not authorized to read this notification.');
         }
 
         $notification->update([

@@ -115,10 +115,10 @@ class Space extends Model
         return $this->is_public && is_null($this->deleted_at);
     }
 
-    public function isWithinBusinessHours(CarbonInterface $startAt, CarbonInterface $endAt): bool
+    public function isWithinBusinessHours(CarbonInterface $startedAt, CarbonInterface $endedAt): bool
     {
-        $startTime = $startAt->format('H:i:s');
-        $endTime = $endAt->format('H:i:s');
+        $startTime = $startedAt->format('H:i:s');
+        $endTime = $endedAt->format('H:i:s');
 
         return $startTime >= $this->open_time
             && $endTime <= $this->close_time;

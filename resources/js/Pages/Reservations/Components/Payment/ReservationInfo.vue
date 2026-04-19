@@ -22,7 +22,7 @@ const formatPrice = (price) => {
         <p class="font-bold text-2xl mb-2">{{ space.full_address }}</p>
 
         <h1 class="text-2xl text-gray-500">Date & Time</h1>
-        <p class="font-bold text-2xl mb-2">{{ reservationData.date }} {{ reservationData.start_at }} - {{ reservationData.end_at }}</p>
+        <p class="font-bold text-2xl mb-2">{{ reservationData.date }} {{ reservationData.started_at }} - {{ reservationData.ended_at }}</p>
 
         <h1 class="text-2xl text-gray-500">Quantity</h1>
         <p class="font-bold text-2xl mb-2">{{ reservationData.quantity }}</p>

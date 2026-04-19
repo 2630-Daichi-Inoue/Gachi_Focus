@@ -8,7 +8,7 @@ import ReservationForm from './Components/Create/ReservationForm.vue'
 const props = defineProps({
     space: Object,
     startCandidates: Array,
-    lastStartAt: String,
+    lastStartedAt: String,
     date: String,
 })
 

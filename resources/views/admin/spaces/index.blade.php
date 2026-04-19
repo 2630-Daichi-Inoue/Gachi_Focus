@@ -101,7 +101,7 @@
                             id="prefecture"
                             name="prefecture"
                             class="form-control form-control-m border text-dark input-unified">
-                        <option value="">All</option>
+                        <option value="all">All</option>
 
                         @foreach ($prefectures as $prefecture)
                             <option value="{{ $prefecture }}" {{ request('prefecture') === $prefecture ? 'selected' : '' }}>

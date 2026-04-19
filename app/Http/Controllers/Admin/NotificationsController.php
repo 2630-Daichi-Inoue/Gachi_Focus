@@ -73,7 +73,7 @@ class NotificationsController extends Controller
 
             $targetReservations = Reservation::where('space_id', $space->id)
                                                 ->where('reservation_status', 'booked')
-                                                ->where('start_at', '>=', Carbon::createFromFormat("Y-m-d H:i:s", "$today"))
+                                                ->where('started_at', '>=', Carbon::createFromFormat("Y-m-d H:i:s", "$today"))
                                                 ->get();
 
             $targetUsers = $targetReservations->pluck('user_id')->unique()->values();

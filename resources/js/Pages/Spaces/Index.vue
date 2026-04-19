@@ -15,7 +15,7 @@ const props = defineProps({
 
 const form = reactive({
     name: props.filters.name ?? '',
-    prefecture: props.filters.prefecture ?? '',
+    prefecture: props.filters.prefecture ?? 'all',
     city: props.filters.city ?? '',
     address_line: props.filters.address_line ?? '',
     max_price: props.filters.max_price ?? '',
@@ -32,7 +32,7 @@ const search = () => {
 
 const clearFilters = () => {
     form.name = ''
-    form.prefecture = ''
+    form.prefecture = 'all'
     form.city = ''
     form.address_line = ''
     form.max_price = ''
@@ -55,7 +55,7 @@ watch(() => form.rows_per_page, () => { search() })
                 <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
                     <input v-model="form.name" type="text" placeholder="Name" class="border rounded px-3 py-2" />
                     <select v-model="form.prefecture" name="prefecture" id="prefecture" class="border rounded px-3 py-2">
-                        <option value="">Select Prefecture</option>
+                        <option value="all">Select Prefecture</option>
                         <option v-for="prefecture in prefectures" :key="prefecture" :value="prefecture">{{ prefecture }}</option>
                     </select>
                     <input v-model="form.city" type="text" placeholder="City" class="border rounded px-3 py-2" />

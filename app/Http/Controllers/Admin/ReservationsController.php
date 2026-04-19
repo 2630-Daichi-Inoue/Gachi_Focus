@@ -47,10 +47,10 @@ class ReservationsController extends Controller
             }
             // Filter by date range
             if ($from = $request->input('date_from')) {
-                $query->where('end_at', '>=', "{$from} 00:00:00");
+                $query->where('ended_at', '>=', "{$from} 00:00:00");
             }
             if ($to = $request->input('date_to')) {
-                $query->where('start_at', '<=', "{$to} 23:59:59");
+                $query->where('started_at', '<=', "{$to} 23:59:59");
             }
             // Filter by status
             $status = $request->input('status', 'all');
@@ -62,7 +62,7 @@ class ReservationsController extends Controller
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         $reservations = $query
-                        ->orderBy('start_at', 'asc')
+                        ->orderBy('started_at', 'asc')
                         ->paginate($rowsPerPage);
 
         return view('admin.reservations.index', compact('reservations'));
@@ -70,7 +70,7 @@ class ReservationsController extends Controller
 
     public function cancel(Reservation $reservation)
     {
-        if ($reservation->end_at < now()) {
+        if ($reservation->ended_at < now()) {
             return redirect()->route('admin.reservations.index')
                 ->with('error', 'The reservation has already ended.');
         }

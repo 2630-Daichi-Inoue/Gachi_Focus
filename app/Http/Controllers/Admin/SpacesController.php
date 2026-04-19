@@ -40,7 +40,7 @@ class SpacesController extends Controller
             $query->where('name', 'LIKE', '%' . $request->name . '%');
         }
         // Filter by prefecture
-        if ($request->filled('prefecture')) {
+        if ($request->filled('prefecture') && $request->prefecture !== 'all') {
             $query->where('prefecture', $request->prefecture);
         }
         // Filter by city

@@ -80,7 +80,7 @@ class ReviewController extends Controller
             abort(403, 'You are not authorized to review this reservation.');
         }
 
-        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->end_at)->isFuture()) {
+        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
             return back()->with('error', 'You can review only completed reservations.');
         }
 
@@ -141,7 +141,7 @@ class ReviewController extends Controller
             abort(403, 'You are not authorized to update this review.');
         }
 
-        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->end_at)->isFuture()) {
+        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
             return back()->with('error', 'You can review only completed reservations.');
         }
 
@@ -149,10 +149,10 @@ class ReviewController extends Controller
             return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
-        $review->fill([
+        $review->update([
             'rating'      => $data['rating'],
             'comment'     => $data['comment'],
-        ])->save();
+        ]);
 
         return redirect()->route('reservations.index')
                         ->with('ok', 'Your review has been updated!');
@@ -177,9 +177,9 @@ class ReviewController extends Controller
             return redirect()->route('reservations.index')->with('error', 'You have already deleted your review for this reservation.');
         }
 
-        $review->fill([
+        $review->update([
             'is_public' => false,
-        ])->save();
+        ]);
 
         $review->delete();
 

@@ -33,7 +33,7 @@ const isCanceled = computed(() => {
 
 const isCompleted = computed(() => {
     const now = new Date();
-    return props.reservation.reservation_status === 'booked' && new Date(props.reservation.end_at) < now;
+    return props.reservation.reservation_status === 'booked' && new Date(props.reservation.ended_at) < now;
 });
 
 const canCancel = computed(() => {
@@ -41,8 +41,8 @@ const canCancel = computed(() => {
         return false;
     }
     const now = new Date();
-    const startAt = new Date(props.reservation.start_at);
-    return props.reservation.reservation_status === 'booked' && startAt - now > 60 * 60 * 1000; // 1 hour in milliseconds
+    const startedAt = new Date(props.reservation.started_at);
+    return props.reservation.reservation_status === 'booked' && startedAt - now > 60 * 60 * 1000; // 1 hour in milliseconds
 });
 
 const showCancelReservationModal = ref(false);

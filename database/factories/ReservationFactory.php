@@ -39,8 +39,8 @@ class ReservationFactory extends Factory
             // Candidates for reservation start time (every 30 min slot between open and close)
             $startCandidates = [];
             $cursorOpenTime = $openTime->copy();
-            $lastStartAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
-            while ($cursorOpenTime->lte($lastStartAt)) {
+            $lastStartedAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
+            while ($cursorOpenTime->lte($lastStartedAt)) {
                 $startCandidates[] = $cursorOpenTime->copy();
                 $cursorOpenTime->addMinutes(30);
             }
@@ -49,24 +49,24 @@ class ReservationFactory extends Factory
             $quantity = fake()->numberBetween(1, min(5, $space->capacity));
 
             // Pick a random start time from candidates
-            $startAt = fake()->randomElement($startCandidates)->copy();
+            $startedAt = fake()->randomElement($startCandidates)->copy();
 
             // Max slots based on reservation's start time and space's close time
-            $maxSlots = (int) ($startAt->diffInMinutes($closeTime) / 30);
+            $maxSlots = (int) ($startedAt->diffInMinutes($closeTime) / 30);
 
             // Randomly determine slot count (1 to max possible)
             $slotCount = fake()->numberBetween(1, min(16, $maxSlots));
 
             // Calculate end time based on start time and slot count
-            $endAt = $startAt->copy()->addMinutes($slotCount * 30);
+            $endedAt = $startedAt->copy()->addMinutes($slotCount * 30);
 
             // Determine unit price based on whether the reservation date is a weekend
-            $unitPrice = in_array($startAt->format('N'), [6, 7]) ? $space->weekend_price_yen : $space->weekday_price_yen;
+            $unitPrice = in_array($startedAt->format('N'), [6, 7]) ? $space->weekend_price_yen : $space->weekday_price_yen;
 
             return [
                 'space_id' => $space->id,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
+                'started_at' => $startedAt,
+                'ended_at' => $endedAt,
                 'quantity' => $quantity,
                 'slot_count' => $slotCount,
                 'unit_price_yen' => $unitPrice,

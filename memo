@@ -8,6 +8,7 @@ Improvement points
 5.Gap between stars on review page
 6.Unify the naming rule for variables and methods with camel case.
 7.Modify filtering functions with sending 'all' value.
+   →done.
 8.Rows per page for reservations, spaces, and reviews index.
    →done.
 9.Separation of filtering box and sorting one for space, reservation, and review index.
@@ -22,15 +23,19 @@ Improvement points
 16.Position of sorting box.
    →done.
 17.Replace fill with update in controllers unless there are any reasons to use fill.
+   →done.
 18.Simplify backend-checking-result statement in admin's controllers.
 19.Simplify routes for both admin and users using by prefix and name.
    →done.
 20.Error messages on data submitting pages to be commented out.
 21.Change names of variables with '*_at' into '*ed_at.'
+   →done.
 22.Add 'expired_at' to annoucement feature for letting admin manage announcements more easily.
-23.New badge, pinning, and clickable card for  for user's announcement index.
+   →done.
+23.New badge, pinning, and clickable card for user's announcement index.
 24.Not to put "Update Review" button if the review's deleted_at is not null.
 25.Unify 403 error message to "You are not authorized to..."
+   →done.
 26.Developing user's own review page.
 
 Check later

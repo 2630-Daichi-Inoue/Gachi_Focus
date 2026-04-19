@@ -28,8 +28,8 @@ const payment = () => {
     if (!props.reservationData) return
     router.post(route('reservations.store', props.space.id), {
         date: props.reservationData.date,
-        start_at: props.reservationData.start_at,
-        end_at: props.reservationData.end_at,
+        started_at: props.reservationData.started_at,
+        ended_at: props.reservationData.ended_at,
         quantity: props.reservationData.quantity,
     })
 }
@@ -55,7 +55,7 @@ const payment = () => {
             <p class="font-semibold text-yellow-800">You already have reservations that overlap with this time slot:</p>
             <ul class="space-y-1">
                 <li v-for="r in conflictingReservations" :key="r.id" class="text-yellow-800 text-sm">
-                    · {{ r.space.name }}: {{ formatTime(r.start_at) }} – {{ formatTime(r.end_at) }}
+                    · {{ r.space.name }}: {{ formatTime(r.started_at) }} – {{ formatTime(r.ended_at) }}
                 </li>
             </ul>
             <label class="flex items-center gap-2 cursor-pointer select-none">
@@ -72,8 +72,8 @@ const payment = () => {
             <Link :href="route('reservations.create', {
                         space: space.id,
                         date: reservationData.date,
-                        start_at: reservationData.start_at,
-                        end_at: reservationData.end_at,
+                        started_at: reservationData.started_at,
+                        ended_at: reservationData.ended_at,
                         quantity: reservationData.quantity,
                     })"
                     class="flex items-center justify-center md:w-1/4 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">

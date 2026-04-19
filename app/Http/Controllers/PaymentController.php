@@ -20,7 +20,7 @@ class PaymentController extends Controller
 {
     // 1) Ensure the reservation belongs to the current user
     if (Auth::check() && $reservation->user_id && $reservation->user_id !== Auth::id()) {
-        abort(403);
+        abort(403, 'You are not authorized to access this reservation.');
     }
 
     // 2) Prevent double payment

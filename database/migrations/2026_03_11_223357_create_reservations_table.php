@@ -23,8 +23,8 @@ return new class extends Migration
                     ->constrained();
             $table->string('reservation_status')
                     ->default('booked'); // 'booked', 'canceled'
-            $table->datetime('start_at');
-            $table->datetime('end_at'); // end_at = start_at + 30 minutes * slot_count, end_at <= spaces.close_time
+            $table->datetime('started_at');
+            $table->datetime('ended_at'); // ended_at = started_at + 30 minutes * slot_count, ended_at <= spaces.close_time
             $table->unsignedTinyInteger('quantity'); // quantity >= 1
             $table->unsignedTinyInteger('slot_count'); // 1 <= slot_count <= 16(eight hours at most)
             $table->unsignedInteger('unit_price_yen');
@@ -33,9 +33,9 @@ return new class extends Migration
                     ->nullable();
             $table->timestamps();
 
-            $table->index(['space_id', 'start_at']);
-            $table->index(['space_id', 'end_at']);
-            $table->index(['user_id', 'start_at']);
+            $table->index(['space_id', 'started_at']);
+            $table->index(['space_id', 'ended_at']);
+            $table->index(['user_id', 'started_at']);
         });
     }
 

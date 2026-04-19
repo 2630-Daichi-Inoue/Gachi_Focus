@@ -182,8 +182,8 @@
                         <td class="text-truncate">{{ $reservation->space->name }}</td>
 
                         {{-- Start / End (safe formatting) --}}
-                        <td>{{ \Carbon\Carbon::parse($reservation->start_at)->format('Y/n/j G:i') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($reservation->end_at)->format('Y/n/j G:i') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->started_at)->format('Y/n/j G:i') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($reservation->ended_at)->format('Y/n/j G:i') }}</td>
 
                         {{-- Quantity --}}
                         <td>{{ $reservation->quantity }}</td>
@@ -193,9 +193,9 @@
 
                         {{-- Status --}}
                         <td>
-                            @if($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
+                            @if($reservation->reservation_status === 'booked' && $reservation->ended_at >= now())
                                 <span class="text-dark">Booked</span>
-                            @elseif($reservation->reservation_status === 'booked' && $reservation->end_at < now())
+                            @elseif($reservation->reservation_status === 'booked' && $reservation->ended_at < now())
                                 <span class="text-success">Done</span>
                             @elseif($reservation->reservation_status === 'canceled')
                                 <span class="text-danger">Canceled</span>
@@ -215,7 +215,7 @@
                                     </button> --}}
 
                                     {{-- Booked -> Cancel --}}
-                                    @if ($reservation->reservation_status === 'booked' && $reservation->end_at >= now())
+                                    @if ($reservation->reservation_status === 'booked' && $reservation->ended_at >= now())
                                         <button type="button"
                                                 class="dropdown-item text-danger"
                                                 data-bs-toggle="modal"

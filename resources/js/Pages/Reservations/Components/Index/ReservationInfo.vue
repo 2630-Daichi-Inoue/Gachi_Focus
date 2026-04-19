@@ -31,7 +31,7 @@ const formatTime = (dateStr) => {
 
 const formatStatus = (status) => {
     const now = new Date();
-    if(status === 'booked' && new Date(props.reservation.end_at) < now) {
+    if(status === 'booked' && new Date(props.reservation.ended_at) < now) {
         return 'Completed';
     }
     if(status === 'booked') {
@@ -48,13 +48,13 @@ const formatStatus = (status) => {
 <template>
     <div class="flex flex-row items-center justify-around md:gap-4 w-full">
         <div class="flex flex-col gap-1">
-            <p>{{ formatDate(reservation.start_at) }}</p>
-            <p>{{ formatTime(reservation.start_at) }} - {{ formatTime(reservation.end_at) }}</p>
+            <p>{{ formatDate(reservation.started_at) }}</p>
+            <p>{{ formatTime(reservation.started_at) }} - {{ formatTime(reservation.ended_at) }}</p>
             <p>{{ formatPrice(reservation.total_price_yen) }}</p>
             <p>{{ reservation.quantity }} people</p>
         </div>
         <div class="md:flex md:justify-end">
-            <div v-if="reservation.reservation_status === 'booked' && new Date(reservation.end_at) >= new Date()">
+            <div v-if="reservation.reservation_status === 'booked' && new Date(reservation.ended_at) >= new Date()">
                  <p class="bg-sky-500 text-sky-900 text-xl px-2 py-1 rounded-full w-auto">
                     {{ formatStatus(reservation.reservation_status) }}
                  </p>
@@ -64,7 +64,7 @@ const formatStatus = (status) => {
                     {{ formatStatus(reservation.reservation_status) }}
                 </p>
             </div>
-            <div v-if="reservation.reservation_status === 'booked' && new Date(reservation.end_at) < new Date()">
+            <div v-if="reservation.reservation_status === 'booked' && new Date(reservation.ended_at) < new Date()">
                 <p class="bg-green-500 text-green-900 text-xl px-2 py-1 rounded-full w-auto">
                     {{ formatStatus(reservation.reservation_status) }}
                 </p>

@@ -17,16 +17,16 @@ class AdminDashboardController extends Controller
         $reservations = Reservation::booked()->with('space:id,prefecture')->get();
 
         $summary = [
-            'today' => $reservations->filter(fn($r) => $r->start_at->isSameDay($today))->sum('total_price_yen'),
-            'week'  => $reservations->filter(fn($r) => $r->start_at->betweenIncluded($startOfWeek, $endOfWeek))->sum('total_price_yen'),
-            'month' => $reservations->filter(fn($r) => $r->start_at->isSameMonth($today))->sum('total_price_yen'),
-            'year'  => $reservations->filter(fn($r) => $r->start_at->isSameYear($today))->sum('total_price_yen'),
+            'today' => $reservations->filter(fn($r) => $r->started_at->isSameDay($today))->sum('total_price_yen'),
+            'week'  => $reservations->filter(fn($r) => $r->started_at->betweenIncluded($startOfWeek, $endOfWeek))->sum('total_price_yen'),
+            'month' => $reservations->filter(fn($r) => $r->started_at->isSameMonth($today))->sum('total_price_yen'),
+            'year'  => $reservations->filter(fn($r) => $r->started_at->isSameYear($today))->sum('total_price_yen'),
         ];
 
         $salesYear             = [];
         $salesByPrefectureYear = [];
         foreach (range($today->year - 4, $today->year) as $year) {
-            $filtered         = $reservations->filter(fn($r) => $r->start_at->year === $year);
+            $filtered         = $reservations->filter(fn($r) => $r->started_at->year === $year);
             $salesYear[$year] = $filtered->sum('total_price_yen');
             foreach ($filtered as $r) {
                 $pref = $r->space->prefecture ?? 'Unknown';
@@ -37,7 +37,7 @@ class AdminDashboardController extends Controller
         $salesMonth             = [];
         $salesByPrefectureMonth = [];
         foreach (range(1, 12) as $month) {
-            $filtered           = $reservations->filter(fn($r) => $r->start_at->year === $today->year && $r->start_at->month === $month);
+            $filtered           = $reservations->filter(fn($r) => $r->started_at->year === $today->year && $r->started_at->month === $month);
             $salesMonth[$month] = $filtered->sum('total_price_yen');
             foreach ($filtered as $r) {
                 $pref = $r->space->prefecture ?? 'Unknown';
@@ -48,8 +48,8 @@ class AdminDashboardController extends Controller
         $weekDays              = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $salesWeek             = array_fill_keys($weekDays, 0);
         $salesByPrefectureWeek = [];
-        foreach ($reservations->filter(fn($r) => $r->start_at->betweenIncluded($startOfWeek, $endOfWeek)) as $r) {
-            $day             = $r->start_at->format('D');
+        foreach ($reservations->filter(fn($r) => $r->started_at->betweenIncluded($startOfWeek, $endOfWeek)) as $r) {
+            $day = $r->started_at->format('D');
             $salesWeek[$day] += $r->total_price_yen;
             $pref = $r->space->prefecture ?? 'Unknown';
             $salesByPrefectureWeek[$pref][$day] = ($salesByPrefectureWeek[$pref][$day] ?? 0) + $r->total_price_yen;

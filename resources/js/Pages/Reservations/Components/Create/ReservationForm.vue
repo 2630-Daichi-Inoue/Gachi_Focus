@@ -12,8 +12,8 @@ const page = usePage()
 
 const form = reactive({
     date: props.date ?? '',
-    startAt: null,
-    endAt: null,
+    startedAt: null,
+    endedAt: null,
     quantity: 1,
 })
 
@@ -23,14 +23,14 @@ const toMinutes = (time) => {
 }
 
 const endCandidates = computed(() => {
-    if (!form.startAt) {
+    if (!form.startedAt) {
         return []
     }
 
-    const startMinutes = toMinutes(form.startAt)
+    const startMinutes = toMinutes(form.startedAt)
 
     const allPossibleEndCandidates = [
-        ...props.startCandidates.filter(candidate => candidate > form.startAt),
+        ...props.startCandidates.filter(candidate => candidate > form.startedAt),
         formatTime(props.space.close_time),
     ]
 
@@ -45,8 +45,8 @@ const formatTime = (time) => {
     return time.split(':').slice(0, 2).join(':')
 }
 
-watch(() => form.startAt, () => {
-    form.endAt = null
+watch(() => form.startedAt, () => {
+    form.endedAt = null
 })
 
 const emit = defineEmits(['update:date'])
@@ -56,8 +56,8 @@ const isValidDateString = (value) => {
 }
 
 watch(() => form.date, (newDate) => {
-    form.startAt = null
-    form.endAt = null
+    form.startedAt = null
+    form.endedAt = null
 
     if (!newDate) return
     if (!isValidDateString(newDate)) return
@@ -82,8 +82,8 @@ const isWeekend = computed(() => {
 })
 
 const slotCount = computed(() => {
-    if (!form.startAt || !form.endAt) return 0
-    return (toMinutes(form.endAt) - toMinutes(form.startAt)) / 30
+    if (!form.startedAt || !form.endedAt) return 0
+    return (toMinutes(form.endedAt) - toMinutes(form.startedAt)) / 30
 })
 
 const pricePerHalfHour = computed(() => {
@@ -93,7 +93,7 @@ const pricePerHalfHour = computed(() => {
 })
 
 const totalPrice = computed(() => {
-    if (!form.date || !form.startAt || !form.endAt || !form.quantity) {
+    if (!form.date || !form.startedAt || !form.endedAt || !form.quantity) {
         return 0
     }
 
@@ -103,8 +103,8 @@ const totalPrice = computed(() => {
 const goToPayment = () => {
     router.get(route('reservations.payment', props.space.id), {
         date: form.date,
-        start_at: form.startAt,
-        end_at: form.endAt,
+        started_at: form.startedAt,
+        ended_at: form.endedAt,
         quantity: form.quantity,
         total_price: totalPrice.value,
     })
@@ -146,14 +146,14 @@ const startCandidatesExist = computed(() => {
                 </p>
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
                     <div class="flex flex-col">
-                        <label for="start_at" class="form-label">Start At</label>
-                        <select v-model="form.startAt" name="start_at" id="start_at" class="border rounded">
+                        <label for="started_at" class="form-label">Start At</label>
+                        <select v-model="form.startedAt" name="started_at" id="started_at" class="border rounded">
                             <option v-for="candidate in startCandidates" :key="candidate" :value="candidate">{{ candidate }}</option>
                         </select>
                     </div>
                     <div class="flex flex-col">
-                        <label for="end_at" class="form-label">End At</label>
-                        <select v-model="form.endAt" name="end_at" id="end_at" class="border rounded" :disabled="!form.startAt">
+                        <label for="ended_at" class="form-label">End At</label>
+                        <select v-model="form.endedAt" name="ended_at" id="ended_at" class="border rounded" :disabled="!form.startedAt">
                             <option v-for="candidate in endCandidates" :key="candidate" :value="candidate">
                                 {{ candidate }}
                             </option>
@@ -173,12 +173,12 @@ const startCandidatesExist = computed(() => {
                     </div>
                 </div>
 
-                <p v-if="page.props.errors.start_at" class="text-red-600 text-sm">
-                    {{ page.props.errors.start_at }}
+                <p v-if="page.props.errors.started_at" class="text-red-600 text-sm">
+                    {{ page.props.errors.started_at }}
                 </p>
 
-                <p v-if="page.props.errors.end_at" class="text-red-600 text-sm">
-                    {{ page.props.errors.end_at }}
+                <p v-if="page.props.errors.ended_at" class="text-red-600 text-sm">
+                    {{ page.props.errors.ended_at }}
                 </p>
 
                 <p v-if="page.props.errors.quantity" class="text-red-600 text-sm">

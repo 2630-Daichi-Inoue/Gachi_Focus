@@ -17,8 +17,8 @@ class Reservation extends Model
         'user_id',
         'space_id',
         'reservation_status',
-        'start_at',
-        'end_at',
+        'started_at',
+        'ended_at',
         'quantity',
         'slot_count',
         'unit_price_yen',
@@ -34,8 +34,8 @@ class Reservation extends Model
         'slot_count'        => 'integer',
         'unit_price_yen'    => 'integer',
         'total_price_yen'   => 'integer',
-        'start_at'          => 'datetime',
-        'end_at'            => 'datetime',
+        'started_at'        => 'datetime',
+        'ended_at'          => 'datetime',
         'canceled_at'       => 'datetime',
     ];
 
@@ -95,13 +95,13 @@ class Reservation extends Model
     public function scopeActive($query)
     {
         return $query->where('reservation_status', 'booked')
-                    ->where('end_at', '>', now());
+                    ->where('ended_at', '>', now());
     }
 
     public function scopePast($query)
     {
         return $query->where('reservation_status', 'booked')
-                    ->where('end_at', '<=', now());
+                    ->where('ended_at', '<=', now());
     }
 
     /*
@@ -126,19 +126,19 @@ class Reservation extends Model
     public function isActive(): bool
     {
         return $this->reservation_status === 'booked'
-            && $this->end_at->isFuture();
+            && $this->ended_at->isFuture();
     }
 
     public function isCancelable(): bool
     {
         return $this->reservation_status === 'booked'
-            && now()->lt($this->start_at->subHour());
+            && now()->lt($this->started_at->subHour());
     }
 
     public function isReviewable(): bool
     {
         return $this->reservation_status !== 'canceled'
-            && $this->end_at->isPast()
+            && $this->ended_at->isPast()
             && !$this->review;
     }
 }

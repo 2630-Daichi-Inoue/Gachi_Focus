@@ -46,7 +46,7 @@ class ReservationController extends Controller
             $query->where('reservation_status', $reservationStatus);
         }
 
-        // upcoming / past / cancelled can be implemented later if needed by checking start_at, end_at and reservation_status
+        // upcoming / past / cancelled can be implemented later if needed by checking started_at, ended_at and reservation_status
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
@@ -77,17 +77,17 @@ class ReservationController extends Controller
     {
         switch ($sort ?? 'date_future_to_past') {
             case 'date_future_to_past':
-                $q->orderBy('start_at', 'desc')
+                $q->orderBy('started_at', 'desc')
                     ->latest('id');
                 break;
 
             case 'date_past_to_future':
-                $q->orderBy('start_at', 'asc')
+                $q->orderBy('started_at', 'asc')
                     ->latest('id');
                 break;
 
             default:
-                $q->orderBy('start_at', 'desc')
+                $q->orderBy('started_at', 'desc')
                     ->latest('id');
         }
     }
@@ -110,7 +110,7 @@ class ReservationController extends Controller
         $closeTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->close_time}");
 
         $cursorOpenTime = $openTime->copy();
-        $lastStartAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
+        $lastStartedAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
 
         // If the reservation date is today, we need to adjust the cursorOpenTime to the next possible 30 min slot
         if(Carbon::parse($date)->isToday()) {
@@ -132,7 +132,7 @@ class ReservationController extends Controller
 
         // Candidates for reservation start time (every 30 min slot between open and close)
         $startCandidates = [];
-        while ($cursorOpenTime->lte($lastStartAt)) {
+        while ($cursorOpenTime->lte($lastStartedAt)) {
             $formattedCursorTime = $cursorOpenTime->format('H:i');
             $startCandidates[] = $formattedCursorTime;
             $cursorOpenTime->addMinutes(30);
@@ -141,7 +141,7 @@ class ReservationController extends Controller
         return Inertia::render('Reservations/Create', [
             'space' => $space,
             'startCandidates' => $startCandidates,
-            'lastStartAt' => $lastStartAt->format('H:i'),
+            'lastStartedAt' => $lastStartedAt->format('H:i'),
             'date' => $date,
         ]);
     }
@@ -154,16 +154,16 @@ class ReservationController extends Controller
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newStartAt  = Carbon::parse($data['date'] . ' ' . $data['start_at']);
-        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
+        $newStartedAt  = Carbon::parse($data['date'] . ' ' . $data['started_at']);
+        $newEndedAt    = Carbon::parse($data['date'] . ' ' . $data['ended_at']);
 
         $checkedSpace = Space::whereKey($space->id)->firstOrFail();
 
         $overlappingQuantity = Reservation::query()
                                             ->where('space_id', $checkedSpace->id)
                                             ->where('reservation_status', 'booked')
-                                            ->where('start_at', '<', $newEndAt)
-                                            ->where('end_at', '>', $newStartAt)
+                                            ->where('started_at', '<', $newEndedAt)
+                                            ->where('ended_at', '>', $newStartedAt)
                                             ->sum('quantity');
 
         if ($overlappingQuantity + $data['quantity'] > $checkedSpace->capacity) {
@@ -175,24 +175,24 @@ class ReservationController extends Controller
         $conflictingReservations = Reservation::query()
             ->where('user_id', Auth::id())
             ->where('reservation_status', 'booked')
-            ->where('end_at', '>', now())
-            ->where('start_at', '<', $newEndAt)
-            ->where('end_at', '>', $newStartAt)
+            ->where('ended_at', '>', now())
+            ->where('started_at', '<', $newEndedAt)
+            ->where('ended_at', '>', $newStartedAt)
             ->with('space:id,name')
-            ->get(['id', 'space_id', 'start_at', 'end_at']);
+            ->get(['id', 'space_id', 'started_at', 'ended_at']);
 
         $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
         ? $checkedSpace->weekend_price_yen
         : $checkedSpace->weekday_price_yen;
 
-        $slotCount = $newStartAt->diffInMinutes($newEndAt) / 30;
+        $slotCount = $newStartedAt->diffInMinutes($newEndedAt) / 30;
 
         return Inertia::render('Reservations/Payment', [
             'space' => $checkedSpace,
             'reservationData' => [
                 'date' => $data['date'],
-                'start_at' => $data['start_at'],
-                'end_at' => $data['end_at'],
+                'started_at' => $data['started_at'],
+                'ended_at' => $data['ended_at'],
                 'quantity' => $data['quantity'],
                 'total_price_yen' => $unitPriceYen * $data['quantity'] * $slotCount,
             ],
@@ -208,17 +208,17 @@ class ReservationController extends Controller
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newStartAt  = Carbon::parse($data['date'] . ' ' . $data['start_at']);
-        $newEndAt    = Carbon::parse($data['date'] . ' ' . $data['end_at']);
+        $newStartedAt  = Carbon::parse($data['date'] . ' ' . $data['started_at']);
+        $newEndedAt    = Carbon::parse($data['date'] . ' ' . $data['ended_at']);
 
-        $reservation = DB::transaction(function() use ($space, $data, $newStartAt, $newEndAt) {
+        $reservation = DB::transaction(function() use ($space, $data, $newStartedAt, $newEndedAt) {
             $checkedSpace = Space::whereKey($space->id)->lockForUpdate()->firstOrFail();
 
             $overlappingQuantity = Reservation::query()
                                     ->where('space_id', $checkedSpace->id)
                                     ->where('reservation_status', 'booked')
-                                    ->where('start_at', '<', $newEndAt)
-                                    ->where('end_at', '>', $newStartAt)
+                                    ->where('started_at', '<', $newEndedAt)
+                                    ->where('ended_at', '>', $newStartedAt)
                                     ->sum('quantity');
 
             if ($overlappingQuantity + $data['quantity'] > $checkedSpace->capacity) {
@@ -231,14 +231,14 @@ class ReservationController extends Controller
             ? $checkedSpace->weekend_price_yen
             : $checkedSpace->weekday_price_yen;
 
-            $slotCount = $newStartAt->diffInMinutes($newEndAt) / 30;
+            $slotCount = $newStartedAt->diffInMinutes($newEndedAt) / 30;
 
             return Reservation::create([
                 'user_id'            => Auth::id(),
                 'space_id'           => $checkedSpace->id,
                 'reservation_status' => 'booked',  // For MVP, reservation is booked immediately. In production, this should become pending_payment until payment succeeds.
-                'start_at'           => $newStartAt,
-                'end_at'             => $newEndAt,
+                'started_at'         => $newStartedAt,
+                'ended_at'           => $newEndedAt,
                 'quantity'           => $data['quantity'],
                 'slot_count'         => $slotCount,
                 'unit_price_yen'     => $unitPriceYen,
@@ -265,14 +265,14 @@ class ReservationController extends Controller
     public function cancel(Reservation $reservation)
     {
         if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+            abort(403, 'You are not authorized to cancel this reservation.');
         }
 
         if ($reservation->reservation_status === 'canceled') {
             return back()->with('error', 'This reservation has already been canceled.');
         }
 
-        if (Carbon::parse($reservation->start_at)->subHour()->lte(now())) {
+        if (Carbon::parse($reservation->started_at)->subHour()->lte(now())) {
             return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
         }
 

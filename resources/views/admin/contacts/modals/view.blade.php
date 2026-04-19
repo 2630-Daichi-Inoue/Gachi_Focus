@@ -13,7 +13,7 @@
                         <br>
                         Space: {{ $contact->reservation->space->name }}
                         <br>
-                        Date: {{ $contact->reservation->start_at->format('Y-m-d H:i') }} - {{ $contact->reservation->end_at->format('Y-m-d H:i') }}
+                        Date: {{ $contact->reservation->started_at->format('Y-m-d H:i') }} - {{ $contact->reservation->ended_at->format('Y-m-d H:i') }}
                     @endif
                 </h5>
                 <button type="button"
