@@ -63,14 +63,8 @@ class UsersController extends Controller
                 ->with('error', $user->name . ' has already been deleted.');
         }
 
-        # 1. Update the user data in the users table
-        $user->fill ([
-            'user_status' => 'restricted',
-        ]);
+        $user->update(['user_status' => 'restricted']);
 
-        $user->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully restricted.');
     }
@@ -83,14 +77,8 @@ class UsersController extends Controller
                 ->with('error', $user->name . ' has already been deleted.');
         }
 
-        # 1. Update the user data in the users table
-        $user->fill ([
-            'user_status' => 'active',
-        ]);
+        $user->update(['user_status' => 'active']);
 
-        $user->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully activated.');
     }
@@ -103,14 +91,8 @@ class UsersController extends Controller
                 ->with('error', $user->name . ' has already been deleted.');
         }
 
-        # 1. Update the user data in the users table
-        $user->fill ([
-            'user_status' => 'banned',
-        ]);
+        $user->update(['user_status' => 'banned']);
 
-        $user->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully banned.');
     }

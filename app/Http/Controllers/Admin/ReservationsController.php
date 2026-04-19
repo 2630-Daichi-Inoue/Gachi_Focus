@@ -75,14 +75,8 @@ class ReservationsController extends Controller
                 ->with('error', 'The reservation has already ended.');
         }
 
-        # 1. Update the reservation data in the reservations table
-        $reservation->fill ([
-            'reservation_status' => 'canceled',
-        ]);
+        $reservation->update(['reservation_status' => 'canceled']);
 
-        $reservation->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.reservations.index')
                         ->with('ok', 'Successfully canceled.');
     }

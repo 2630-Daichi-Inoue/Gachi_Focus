@@ -71,14 +71,8 @@ class ContactsController extends Controller
                             ->with('error', 'This contact is not open anymore.');
         }
 
-        # 1. Update the contact data in the contacts table
-        $contact->fill ([
-            'read_at' => now(),
-        ]);
+        $contact->update(['read_at' => now()]);
 
-        $contact->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.contacts.index')
                         ->with('ok', 'Successfully marked as read.');
     }

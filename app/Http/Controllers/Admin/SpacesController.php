@@ -145,7 +145,7 @@ class SpacesController extends Controller
         $data = $request->validated();
 
         # 2. Update the space data in the spaces table
-        $space->fill ([
+        $updateData = [
             'name'              => $data['name'],
             'prefecture'        => $data['prefecture'],
             'city'              => $data['city'],
@@ -156,20 +156,16 @@ class SpacesController extends Controller
             'weekend_price_yen' => $data['weekend_price_yen'],
             'weekday_price_yen' => $data['weekday_price_yen'],
             'description'       => $data['description'],
-        ]);
-        // if(isset($data['is_public'])) $space->is_public = $data['is_public'];
+        ];
 
-        // if the admin uploads a new image file
         if ($request->hasFile('image')) {
-            // （任意）古い画像を削除：DBが相対パス運用のときだけ
             if (!empty($space->image_path)) {
                 Storage::disk('public')->delete($space->image_path);
             }
-
-            $space->image_path = $request->file('image')->store('spaces', 'public');
+            $updateData['image_path'] = $request->file('image')->store('spaces', 'public');
         }
 
-        $space->save();
+        $space->update($updateData);
 
         # 3. Sync amenities to the pivot table
         $space->amenities()->sync($data['amenities'] ?? []);
@@ -185,14 +181,8 @@ class SpacesController extends Controller
                 ->with('error', $space->name . ' has already been deleted.');
         }
 
-        # 1. Update the space data in the spaces table
-        $space->fill ([
-            'is_public' => false,
-        ]);
+        $space->update(['is_public' => false]);
 
-        $space->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.spaces.index')
                         ->with('ok', 'Successfully hidden.');
     }
@@ -204,14 +194,8 @@ class SpacesController extends Controller
                 ->with('error', $space->name . ' has already been deleted.');
         }
 
-        # 1. Update the space data in the spaces table
-        $space->fill ([
-            'is_public' => true,
-        ]);
+        $space->update(['is_public' => true]);
 
-        $space->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully shown.');
     }
 

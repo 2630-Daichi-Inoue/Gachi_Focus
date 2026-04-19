@@ -66,14 +66,8 @@ class ReviewsController extends Controller
                 ->with('error', $review->id . ' has already been deleted.');
         }
 
-        # 1. Update the review data in the reviews table
-        $review->fill ([
-            'is_public' => false,
-        ]);
+        $review->update(['is_public' => false]);
 
-        $review->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.reviews.index')
                         ->with('ok', 'Successfully hidden.');
     }
@@ -85,14 +79,8 @@ class ReviewsController extends Controller
                 ->with('error', $review->id . ' has already been deleted.');
         }
 
-        # 1. Update the review data in the reviews table
-        $review->fill ([
-            'is_public' => true,
-        ]);
+        $review->update(['is_public' => true]);
 
-        $review->save();
-
-        # 2. redirect to the index
         return redirect()->route('admin.reviews.index')->with('ok', 'Successfully shown.');
     }
 
