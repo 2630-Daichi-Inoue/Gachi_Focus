@@ -1,18 +1,11 @@
 <script setup>
+import { formatDate } from '@/utils/formatters'
 
 const emit = defineEmits(['close']);
 
 const props = defineProps({
     announcement: Object,
 })
-
-const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${month}/${day}/${year}`;
-}
 
 </script>
 

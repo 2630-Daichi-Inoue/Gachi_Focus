@@ -1,20 +1,10 @@
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { formatPrice, formatTimeStr } from '@/utils/formatters'
 
 const props = defineProps({
     space: Object,
 })
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
-};
-
-const formatTime = (timeStr) => {
-    const [hour, minute] = timeStr.split(':');
-    const date = new Date();
-    date.setHours(hour);
-    date.setMinutes(minute);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
 
 </script>
 
@@ -51,7 +41,7 @@ const formatTime = (timeStr) => {
      <div>
         <div class="mb-2">
             <h1 class="font-medium text-xl">Opening Hours</h1>
-            <p>{{ formatTime(space.open_time) }} - {{ formatTime(space.close_time) }}</p>
+            <p>{{ formatTimeStr(space.open_time) }} - {{ formatTimeStr(space.close_time) }}</p>
         </div>
 
         <div class="flex flex-col gap-2 justify-normal mb-2">

@@ -1,14 +1,10 @@
 <script setup>
-import { computed } from 'vue'
+import { formatPrice } from '@/utils/formatters'
 
 const props = defineProps({
     space: Object,
     reservationData: Object,
 })
-
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
-};
 
 </script>
 

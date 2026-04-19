@@ -1,33 +1,9 @@
 <script setup>
+import { formatDate, formatPrice, formatTime } from '@/utils/formatters'
+
 const props = defineProps({
     reservation: Object,
 })
-
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
-}
-
-const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    return `${month}/${day}/${year}`;
-}
-
-const formatTime = (dateStr) => {
-    const getTimePart = (dateStr) => {
-        const date = new Date(dateStr);
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        return `${hours}:${minutes}`;
-    };
-    const [hour, minute] = getTimePart(dateStr).split(':');
-    const date = new Date();
-    date.setHours(hour);
-    date.setMinutes(minute);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
 
 const formatStatus = (status) => {
     const now = new Date();

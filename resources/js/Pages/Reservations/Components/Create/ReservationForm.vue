@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, computed, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
+import { formatPrice } from '@/utils/formatters'
 
 const props = defineProps({
     space: Object,
@@ -31,7 +32,7 @@ const endCandidates = computed(() => {
 
     const allPossibleEndCandidates = [
         ...props.startCandidates.filter(candidate => candidate > form.startedAt),
-        formatTime(props.space.close_time),
+        props.space.close_time.slice(0, 5),
     ]
 
     return allPossibleEndCandidates.filter(candidate => {
@@ -39,11 +40,6 @@ const endCandidates = computed(() => {
         return endMinutes - startMinutes <= 480
     })
 })
-
-const formatTime = (time) => {
-    if (!time) return ''
-    return time.split(':').slice(0, 2).join(':')
-}
 
 watch(() => form.startedAt, () => {
     form.endedAt = null
@@ -64,10 +60,6 @@ watch(() => form.date, (newDate) => {
 
     emit('update:date', newDate)
 })
-
-const formatPrice = (price) => {
-    return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(price);
-};
 
 const getDayOfWeek = (dateString) => {
     const [year, month, day] = dateString.split('-').map(Number)

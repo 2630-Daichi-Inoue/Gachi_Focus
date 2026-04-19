@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
+import { formatTime } from '@/utils/formatters'
 
 const props = defineProps({
     space: Object,
@@ -15,13 +16,6 @@ const page = usePage()
 const overlapConfirmed = ref(false)
 const hasConflicts = computed(() => props.conflictingReservations.length > 0)
 const canSubmit = computed(() => !hasConflicts.value || overlapConfirmed.value)
-
-const formatTime = (dateStr) => {
-    const date = new Date(dateStr)
-    const hours = date.getHours().toString().padStart(2, '0')
-    const minutes = date.getMinutes().toString().padStart(2, '0')
-    return `${hours}:${minutes}`
-}
 
 const payment = () => {
     alert('The button is a dummy for now. Stripe checkout session will be implemented in the future development. The reservation gets confirmed only after the payment is completed.')

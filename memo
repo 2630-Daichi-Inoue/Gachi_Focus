@@ -1,5 +1,6 @@
 Improvement points
 1.FormatPrice func. and formatTime func. to be put on the same place.
+   →done.
 2.Developing user's reservations sorting: upcoming to past and past to upcoming.
 3.Developing view space page's contact link.
    →done.
