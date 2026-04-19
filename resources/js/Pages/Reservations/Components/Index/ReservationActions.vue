@@ -8,12 +8,14 @@ const props = defineProps({
 })
 
 const getMessage = computed(() => {
-    const now = new Date();
     if (props.reservation.reservation_status === 'canceled') {
         return 'This reservation has been canceled.';
     }
     if (isCompleted.value && hasDeletedReview.value) {
         return 'You deleted your review for this reservation and cannot write a new one.';
+    }
+    if (isCompleted.value && hasActiveReview.value) {
+        return 'Thank you for your review.';
     }
     if (isCompleted.value) {
         return 'We\'d be glad if you could leave a review for this reservation. Thank you.';

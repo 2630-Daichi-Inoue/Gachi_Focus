@@ -83,6 +83,7 @@ const deleteReview = () => {
                             starColor="#fbbf24"
                             inactiveColor="#e0e0e0"
                             :show-rating="false"
+                            class="star-rating"
                 >
                 </Vue3StarRating>
             </div>
@@ -129,3 +130,10 @@ const deleteReview = () => {
     </Transition>
 </div>
 </template>
+
+<style scoped>
+.star-rating :deep(> div) {
+    display: flex;
+    gap: 6px;
+}
+</style>

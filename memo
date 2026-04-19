@@ -1,26 +1,31 @@
 Improvement points
-1.FormatPrice func. and formatTime func. to be put on the same place.
+
+/Developing user's reservations sorting: upcoming first.
+/Developing user's own review page.
+/Unify the naming rule for variables and methods with camel case.
+/Delete unnecessary files e.g. users' blade files, other unused files.
+/Writing comments on codes for better understanding.
+/One liner for vue files if they can be made.
+/New badge, pinning, and clickable card for user's announcement index.
+
+Gap between stars on review page
    →done.
-2.Developing user's reservations sorting: upcoming to past and past to upcoming.
-3.Developing view space page's contact link.
+FormatPrice func. and formatTime func. to be put on the same place.
    →done.
-4.Two or more reservations for the same space and overlapping time zones.
+Developing view space page's contact link.
    →done.
-5.Gap between stars on review page
-6.Unify the naming rule for variables and methods with camel case.
-7.Modify filtering functions with sending 'all' value.
+Two or more reservations for the same space and overlapping time zones.
    →done.
-8.Rows per page for reservations, spaces, and reviews index.
+Modify filtering functions with sending 'all' value.
    →done.
-9.Separation of filtering box and sorting one for space, reservation, and review index.
+Rows per page for reservations, spaces, and reviews index.
    →done.
-10.Making messages on admin's management screens deletable or disappear in a few seconds.
+Separation of filtering box and sorting one for space, reservation, and review index.
    →done.
-11.Delete unnecessary files e.g. users' blade files, other unused files.
-12.Writing comments on codes for better understanding.
-13.Argument of sorting functions whether it should be Builder.
+Making messages on admin's management screens deletable or disappear in a few seconds.
    →done.
-14.One liner for vue files if they can be made.
+Argument of sorting functions whether it should be Builder.
+   →done.
 15.Holding the same status when sorting for vue files.
    →done.
 16.Position of sorting box.
@@ -30,17 +35,16 @@ Improvement points
 18.Simplify backend-checking-result statement in admin's controllers.
 19.Simplify routes for both admin and users using by prefix and name.
    →done.
-20.Error messages on data submitting pages to be commented out.
-21.Change names of variables with '*_at' into '*ed_at.'
+Error messages on data submitting pages to be commented out.
    →done.
-22.Add 'expired_at' to annoucement feature for letting admin manage announcements more easily.
+Change names of variables with '*_at' into '*ed_at.'
    →done.
-23.New badge, pinning, and clickable card for user's announcement index.
-24.Not to put "Update Review" button if the review's deleted_at is not null.
+Add 'expired_at' to annoucement feature for letting admin manage announcements more easily.
    →done.
-25.Unify 403 error message to "You are not authorized to..."
+Not to put "Update Review" button if the review's deleted_at is not null.
    →done.
-26.Developing user's own review page.
+Unify 403 error message to "You are not authorized to..."
+   →done.
 
 Check later
 1.Usage of page in PaymentFrom.vue.
