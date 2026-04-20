@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignUlId('space_id')
                     ->constrained();
             $table->string('reservation_status')
-                    ->default('booked'); // 'booked', 'canceled'
+                    ->default('booked'); // booked, canceled, pending
             $table->datetime('started_at');
             $table->datetime('ended_at'); // ended_at = started_at + 30 minutes * slot_count, ended_at <= spaces.close_time
             $table->unsignedTinyInteger('quantity'); // quantity >= 1

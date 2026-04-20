@@ -43,6 +43,7 @@ class Reservation extends Model
      * Reservation status labels
      */
     public const RESERVATION_STATUS_MAP = [
+        'pending'  => 'Pending',
         'booked'   => 'Booked',
         'canceled' => 'Canceled',
     ];
@@ -67,6 +68,11 @@ class Reservation extends Model
         return $this->morphMany(Notification::class, 'related');
     }
 
+     public function payment()
+     {
+         return $this->hasOne(Payment::class);
+     }
+
      public function review()
      {
          return $this->hasOne(Review::class);
@@ -82,6 +88,11 @@ class Reservation extends Model
     | Scopes
     |--------------------------------------------------------------------------
     */
+    public function scopePending($query)
+    {
+        return $query->where('reservation_status', 'pending');
+    }
+
     public function scopeBooked($query)
     {
         return $query->where('reservation_status', 'booked');
@@ -117,8 +128,9 @@ class Reservation extends Model
     public function displayStatusLabel(): string
     {
         return match ($this->reservation_status) {
+            'pending'   => 'Pending',
             'booked'    => 'Booked',
-            'canceled' => 'Canceled',
+            'canceled'  => 'Canceled',
             default     => 'Unknown',
         };
     }
