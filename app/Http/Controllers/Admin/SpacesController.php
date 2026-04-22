@@ -6,185 +6,202 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use App\Models\Space;
-use App\Models\Category;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Amenity;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSpaceRequest;
+use App\Http\Requests\UpdateSpaceRequest;
+use Illuminate\Validation\Rule;
 
 class SpacesController extends Controller
 {
-    private $space;
-    private $category;
 
-    public function __construct(Space $space, Category $category)
+    public function index(Request $request)
     {
-        $this->space = $space;
-        $this->category = $category;
+
+        $prefectureList = array_merge(
+            config('constants.prefectures.Major Prefectures'),
+            config('constants.prefectures.Other Prefectures')
+        );
+
+        $request->validate([
+            'name' => ['nullable', 'string', 'max:50'],
+            'prefecture' => ['nullable', Rule::in($prefectureList)],
+            'city' => ['nullable', 'string', 'max:50'],
+            'address_line' => ['nullable', 'string', 'max:100'],
+            'is_public' => ['nullable', 'in:all,0,1'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
+        $query = Space::query();
+
+        // Filter by name
+        if ($request->filled('name')) {
+            $query->where('name', 'LIKE', '%' . $request->name . '%');
+        }
+        // Filter by prefecture
+        if ($request->filled('prefecture') && $request->prefecture !== 'all') {
+            $query->where('prefecture', $request->prefecture);
+        }
+        // Filter by city
+        if ($request->filled('city')) {
+            $query->where('city', 'LIKE', '%' . $request->city . '%');
+        }
+        // Filter by address_line
+        if ($request->filled('address_line')) {
+            $query->where('address_line', 'LIKE', '%' . $request->address_line . '%');
+        }
+        // Filter by is_public
+        if ($request->filled('is_public') && $request->is_public !== 'all') {
+            $query->where('is_public', $request->boolean('is_public'));
+        }
+
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+
+        $spaces = $query
+                    ->latest()
+                    ->paginate($rowsPerPage);
+
+        $prefectures = Space::select('prefecture')
+                            ->distinct()
+                            ->orderBy('prefecture')
+                            ->pluck('prefecture');
+
+        return view('admin.spaces.index', compact('spaces', 'prefectures', 'rowsPerPage'));
     }
 
-    public function index()
+    public function create()
     {
-        $home_spaces = \App\Models\Space::whereNull('deleted_at')
-            ->orderBy('created_at', 'desc')
-            ->paginate(9);
+        $amenities = Amenity::orderBy('name')
+                            ->select('id','name')
+                            ->get();
 
-        return view('users.home', compact('home_spaces'));
+        return view('admin.spaces.create', compact('amenities'));
     }
 
-    public function register()
+    public function store(StoreSpaceRequest $request)
     {
-        $all_categories = $this->category->all();
+        # 1. Validate all form data
+        $data = $request->validated();
+        // store the uploaded image (storage/app/public/spaces)
+        $imagePath = $request->file('image')->store('spaces', 'public');
 
-        return view('admin.spaces.register')
-            ->with('all_categories', $all_categories);
+        # 2. Save space data to spaces table
+        $space= Space::create([
+            'name'              => $data['name'],
+            'prefecture'        => $data['prefecture'],
+            'city'              => $data['city'],
+            'address_line'      => $data['address_line'],
+            'capacity'          => $data['capacity'],
+            'open_time'         => $data['open_time'],
+            'close_time'        => $data['close_time'],
+            'weekend_price_yen' => $data['weekend_price_yen'],
+            'weekday_price_yen' => $data['weekday_price_yen'],
+            'description'       => $data['description'],
+            'image_path'        => $imagePath,
+            'is_public'         => $data['is_public'] ?? true,
+        ]);
+
+        # 3. Sync amenities to the pivot table
+        $space->amenities()->sync($data['amenities'] ?? []);
+
+        # 4. Redirect back to the spaces list with a success message
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully created.');
     }
 
-    public function store(Request $request)
+    public function edit(Space $space)
     {
+        if ($space->trashed()) {
+            return redirect()
+                    ->route('admin.spaces.index')
+                    ->with('error', $space->name . ' has already been deleted.');
+        }
+
+        $space->load('amenities');
+
+        $amenities = Amenity::orderBy('name')
+                            ->select('id', 'name')
+                            ->get();
+
+        # Get all amenity IDs of the space.
+        $selectedAmenityIds = $space->amenities->pluck('id')->toArray();
+
+        return view('admin.spaces.edit', [
+                'space' => $space,
+                'amenities' => $amenities,
+                'selectedAmenityIds' => $selectedAmenityIds,
+            ]
+        );
+    }
+
+    public function update(UpdateSpaceRequest $request, Space $space)
+    {
+        if ($space->trashed()) {
+            return redirect()->route('admin.spaces.index')
+                ->with('error', $space->name . ' has already been deleted.');
+        }
 
         # 1. Validate all form data
-        $validated = $request->validate([
-            'name' => 'required|min:1|max:50',
-            'location_for_overview' => 'required|min:1|max:50',
-            'location_for_details' => 'required|min:1|max:100',
-            'min_capacity' => 'required|integer|min:1|max:99|lte:max_capacity',
-            'max_capacity' => 'required|integer|min:1|max:99|gte:min_capacity',
-            'area' => 'required|numeric|min:1|max:9999.99',
-            'weekday_price' => 'required|numeric|min:10|max:999999',
-            'weekend_price' => 'required|numeric|min:10|max:999999',
-            'description' => 'required|min:1|max:1000',
-            'category' => 'nullable|array',
-            'image' => 'required|image|mimes:jpeg,jpg,png,gif|max:1048'
-        ], [
-            'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
-            'min_capacity.lte' => 'The Capacity(min) must be less than or equal to Capacity(max).',
-            'max_capacity.required' => 'The capacity field is required.',
-            'min_capacity.required' => 'The capacity field is required.'
-        ]);
-        // 画像保存（storage/app/public/spaces）
-        $imagePath = $request->file('image')->store('spaces', 'public');
-        // => "spaces/xxxxx.jpg"
+        $data = $request->validated();
 
+        # 2. Update the space data in the spaces table
+        $updateData = [
+            'name'              => $data['name'],
+            'prefecture'        => $data['prefecture'],
+            'city'              => $data['city'],
+            'address_line'      => $data['address_line'],
+            'capacity'          => $data['capacity'],
+            'open_time'         => $data['open_time'],
+            'close_time'        => $data['close_time'],
+            'weekend_price_yen' => $data['weekend_price_yen'],
+            'weekday_price_yen' => $data['weekday_price_yen'],
+            'description'       => $data['description'],
+        ];
 
-        // 2) Save space（例外が出ないように丁寧に）
-        $this->space->fill([
-            'name' => $validated['name'],
-            'location_for_overview' => $validated['location_for_overview'],
-            'location_for_details'  => $validated['location_for_details'],
-            'min_capacity' => $validated['min_capacity'],
-            'max_capacity' => $validated['max_capacity'],
-            'area' => $validated['area'],
-            'weekday_price' => $validated['weekday_price'],
-            'weekend_price' => $validated['weekend_price'],
-            'description' => $validated['description'],
-            'image' => $imagePath,
-        ]);
-        $this->space->save();
-
-        # 3. save the categories to category_space table
-        // 3) categories（null安全 & 初期化）
-        $categoryIds = (array) $request->input('category', []);
-        if ($categoryIds) {
-            $category_space = array_map(fn($id) => ['category_id' => $id], $categoryIds);
-            $this->space->categorySpace()->createMany($category_space);
-        }
-
-        # 4. Go back to homepage
-        return redirect()->route('index');
-    }
-
-    public function edit($id)
-    {
-        $space = $this->space
-            ->withTrashed()
-            ->findOrFail($id);
-
-        $all_categories = $this->category->all();
-
-        # get all category IDs of the space, and save in an array.
-        $selected_categories = [];
-        foreach ($space->categorySpace as $category_space) {
-            $selected_categories[] = $category_space->category_id;
-        }
-
-        return view('admin.spaces.edit')
-            ->with('space', $space)
-            ->with('all_categories', $all_categories)
-            ->with('selected_categories', $selected_categories);
-    }
-
-    public function update(Request $request, $id)
-    {
-        #1. Validate the data
-        $request->validate([
-            'name' => 'required|min:1|max:50',
-            'location_for_overview' => 'required|min:1|max:50',
-            'location_for_details' => 'required|min:1|max:100',
-            'min_capacity' => 'required|integer|min:1|max:99|lte:max_capacity',
-            'max_capacity' => 'required|integer|min:1|max:99|gte:min_capacity',
-            'area' => 'required|numeric|min:1|max:9999.99',
-            'weekday_price' => 'required|numeric|min:10|max:999999',
-            'weekend_price' => 'required|numeric|min:10|max:999999',
-            'description' => 'required|min:1|max:1000',
-            'category' => 'nullable|array',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif|max:1048',
-        ], [
-            'max_capacity.gte' => 'The Capacity(max) must be greater than or equal to Capacity(min).',
-            'min_capacity.lte' => 'The Capacity(min) must be less than or equal to Capacity(max).',
-            'max_capacity.required' => 'The capacity field is required.',
-            'min_capacity.required' => 'The capacity field is required.'
-        ]);
-
-
-        # 2. Update the space
-        $space = $this->space->findOrFail($id);
-        $space->name = $request->name;
-        $space->location_for_overview = $request->location_for_overview;
-        $space->location_for_details = $request->location_for_details;
-        $space->min_capacity = $request->min_capacity;
-        $space->max_capacity = $request->max_capacity;
-        $space->area = $request->area;
-        $space->weekday_price = $request->weekday_price;
-        $space->weekend_price = $request->weekend_price;
-        $space->description = $request->description;
-
-        // if the admin uploaded image
         if ($request->hasFile('image')) {
-            // （任意）古い画像を削除：DBが相対パス運用のときだけ
-            if (!empty($space->image) && $space->image !== '0' && !str_starts_with($space->image, 'http')) {
-                Storage::disk('public')->delete($space->image);
+            if (!empty($space->image_path)) {
+                Storage::disk('public')->delete($space->image_path);
             }
-
-            $space->image = $request->file('image')->store('spaces', 'public');
+            $updateData['image_path'] = $request->file('image')->store('spaces', 'public');
         }
 
-        $space->save();
+        $space->update($updateData);
 
-        # 3. Delete all the recrods from category_space related to the space
-        $space->categorySpace()->delete();
+        # 3. Sync amenities to the pivot table
+        $space->amenities()->sync($data['amenities'] ?? []);
 
-        # 4. save the new categories to category_space table
-        foreach ($request->input('category', []) as $categoryId) {
-            $newCategories[] = ['category_id' => (int)$categoryId];
-        }
-        if (!empty($newCategories)) {
-            $space->categorySpace()->createMany($newCategories);
-        }
-
-        # 5, redirect to the index
-        return redirect()->route('index')->with('status', 'Space updated.');
+        # 4. redirect to the index
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully updated.');
     }
 
-    public function destroy($id)
+    public function hide(Space $space)
     {
-        $space = \App\Models\Space::withTrashed()->findOrFail($id);
-
         if ($space->trashed()) {
-            $space->restore();
-            // return redirect()->route('index')->with('status', 'Space deleted.');
-        } else {
-            $space->delete();
+            return redirect()->route('admin.spaces.index')
+                ->with('error', $space->name . ' has already been deleted.');
         }
-        return redirect()->route('index');
+
+        $space->update(['is_public' => false]);
+
+        return redirect()->route('admin.spaces.index')
+                        ->with('ok', 'Successfully hidden.');
+    }
+
+    public function show(Space $space)
+    {
+        if ($space->trashed()) {
+            return redirect()->route('admin.spaces.index')
+                ->with('error', $space->name . ' has already been deleted.');
+        }
+
+        $space->update(['is_public' => true]);
+
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully shown.');
+    }
+
+    public function destroy(Space $space)
+    {
+        $space->delete();
+        return redirect()->route('admin.spaces.index')->with('ok', 'Successfully deleted.');
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class LoginController extends Controller
 {
@@ -39,29 +40,29 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
-    /** 
+    /**
      * The authenticated field is changed "email" into "name".
-     * 
+     *
     */
 
     public function username()
     {
         return 'name';
     }
-    
+
 
     protected function authenticated(Request $request, $user)
     {
         if ($user->isAdmin()) {
-            return redirect()->route('admin.home');
+            return redirect()->route('admin.dashboard');
         }
 
-        return redirect('/');
+        return redirect('spaces.index');
     }
 
     protected function loggedOut(Request $request)
     {
         return redirect()->route('login');
     }
-     
+
 }

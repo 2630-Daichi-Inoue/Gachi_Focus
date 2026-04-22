@@ -3,101 +3,56 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Reservation extends Model
 {
-    use SoftDeletes;
+    use HasFactory, HasUlids;
 
     /**
-     * Mass-assignable attributes.
-     * NOTE: Keep keys aligned with DB columns and existing flows.
+     * Mass assignable attributes
      */
     protected $fillable = [
-        // Core reservation info
         'user_id',
-        'space_id',         // replaces legacy "room"
-        'room',             // keep temporarily for backward compatibility
-        'type',
-        'date',
-        'start_time',
-        'end_time',
-        'adults',
-        'facilities',
-        'total_price',
-        'status',
-
-        // Payment-related
-        'payment_status',     // unpaid|paid|canceled|refunded
-        'payment_intent_id',  // Stripe pi_xxx
-        'amount_paid',        // integer (JPY: yen)
-        'paid_at',            // timestamp
-        'currency',           // ISO 4217
-        'payment_region',     // JP, US, EU, etc.
+        'space_id',
+        'reservation_status',
+        'started_at',
+        'ended_at',
+        'quantity',
+        'slot_count',
+        'unit_price_yen',
+        'total_price_yen',
+        'canceled_at',
     ];
 
     /**
      * Attribute casting.
      */
     protected $casts = [
-        'facilities' => 'array',
-        'date'       => 'date',
-        'start_time' => 'datetime',
-        'end_time'   => 'datetime',
-        'paid_at'    => 'datetime',
+        'quantity'          => 'integer',
+        'slot_count'        => 'integer',
+        'unit_price_yen'    => 'integer',
+        'total_price_yen'   => 'integer',
+        'started_at'        => 'datetime',
+        'ended_at'          => 'datetime',
+        'canceled_at'       => 'datetime',
     ];
 
     /**
-     * ---- Constants for filters/labels (controller-safe) ----
-     *
-     * These two are used by admin controllers like:
-     *   array_keys(Reservation::STATUS_MAP)
-     *   array_keys(Reservation::PAYMENT_MAP)
-     * Do NOT change the keys unless DB values are migrated accordingly.
+     * Reservation status labels
      */
-    public const STATUS_MAP = [
-        'pending'   => 'Pending',
-        'confirmed' => 'Confirmed',
-        'completed' => 'Completed',
-        'canceled'  => 'Canceled',
-    ];
-
-    public const PAYMENT_MAP = [
-        'unpaid'   => 'Unpaid',
-        'paid'     => 'Paid',
-        'refunded' => 'Refunded',
+    public const RESERVATION_STATUS_MAP = [
+        'pending'  => 'Pending',
+        'booked'   => 'Booked',
         'canceled' => 'Canceled',
     ];
 
-    /**
-     * ---- UI presentation map (kept separate to avoid breaking logic) ----
-     * This preserves your original icon/class mapping by display label.
-     * Use when rendering badges:
-     *   $label = $reservation->displayStatusLabel();
-     *   $badge = Reservation::PAYMENT_UI_MAP[$label] ?? null;
-     */
-    public const PAYMENT_UI_MAP = [
-        'Paid' => [
-            'icon'  => 'fa-solid fa-circle-check',
-            'class' => 'text-success fw-light',
-        ],
-        'Unpaid' => [
-            'icon'  => 'fa-solid fa-circle-xmark',
-            'class' => 'text-danger fw-light',
-        ],
-        'Refunded' => [
-            'icon'  => 'fa-solid fa-arrow-rotate-left',
-            'class' => 'text-primary fw-light',
-        ],
-        'Refund Pending' => [
-            'icon'  => 'fa-solid fa-hourglass-start',
-            'class' => 'text-warning fw-light',
-        ],
-    ];
-
-    /**
-     * Relationships
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Relations
+    |--------------------------------------------------------------------------
+    */
     public function user()
     {
         return $this->belongsTo(User::class)->withTrashed();
@@ -108,34 +63,94 @@ class Reservation extends Model
         return $this->belongsTo(Space::class)->withTrashed();
     }
 
-    public function payment()
+     public function notifications()
     {
-        return $this->hasOne(Payment::class)->withTrashed();
+        return $this->morphMany(Notification::class, 'related');
     }
 
-    /**
-     * Helpers
-     */
-    public function isPaid(): bool
+     public function payment()
+     {
+         return $this->hasOne(Payment::class);
+     }
+
+     public function review()
+     {
+         return $this->hasOne(Review::class);
+     }
+
+     public function contacts()
+     {
+         return $this->hasMany(Contact::class);
+     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+    public function scopePending($query)
     {
-        return $this->payment_status === 'paid';
+        return $query->where('reservation_status', 'pending');
     }
 
-    public function displayAmount(): int
+    public function scopeBooked($query)
     {
-        // amount_paid has priority; fallback to rounded total_price
-        return (int) ($this->amount_paid ?? round($this->total_price ?? 0));
+        return $query->where('reservation_status', 'booked');
+    }
+
+    public function scopeCanceled($query)
+    {
+        return $query->where('reservation_status', 'canceled');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('reservation_status', 'booked')
+                    ->where('ended_at', '>', now());
+    }
+
+    public function scopePast($query)
+    {
+        return $query->where('reservation_status', 'booked')
+                    ->where('ended_at', '<=', now());
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public function amount(): int
+    {
+        return $this->total_price_yen ?? 0;
     }
 
     public function displayStatusLabel(): string
     {
-        // Normalize DB values to display labels used across UI
-        return match ($this->payment_status) {
-            'paid'      => 'Paid',
-            'refunded'  => 'Refunded',
-            'unpaid'    => 'Unpaid',
-            'canceled'  => 'Unpaid',   // treat canceled as unpaid in UI
-            default     => 'Unpaid',
+        return match ($this->reservation_status) {
+            'pending'   => 'Pending',
+            'booked'    => 'Booked',
+            'canceled'  => 'Canceled',
+            default     => 'Unknown',
         };
+    }
+
+    public function isActive(): bool
+    {
+        return $this->reservation_status === 'booked'
+            && $this->ended_at->isFuture();
+    }
+
+    public function isCancelable(): bool
+    {
+        return $this->reservation_status === 'booked'
+            && now()->lt($this->started_at->subHour());
+    }
+
+    public function isReviewable(): bool
+    {
+        return $this->reservation_status !== 'canceled'
+            && $this->ended_at->isPast()
+            && !$this->review;
     }
 }

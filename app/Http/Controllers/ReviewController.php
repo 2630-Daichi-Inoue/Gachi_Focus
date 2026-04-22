@@ -4,189 +4,186 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Reservation;
-use App\Models\Space;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\StoreReviewRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ReviewController extends Controller
 {
-    public function index(Request $request, $spaceId)
+    // public function index(Request $request, $spaceId)
+    // {
+    //     $query = Review::where('space_id', $spaceId);
+
+    //     // --- Search ---
+    //     if ($request->filled('search')) {
+    //         $search = $request->search;
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('comment', 'like', "%{$search}%")
+    //                 ->orWhereHas('user', function ($q2) use ($search) {
+    //                     $q2->where('name', 'like', "%{$search}%");
+    //                 });
+    //         });
+    //     }
+
+    //     // --- Sort by filter ---
+    //     if ($request->get('sort') === 'with') {
+    //         $query->whereNotNull('photo');
+    //     }
+
+    //     switch ($request->get('sort')) {
+    //         case 'highest':
+    //             $query->orderByDesc('rating');
+    //             break;
+    //         case 'lowest':
+    //             $query->orderBy('rating');
+    //             break;
+    //         case 'oldest':
+    //             $query->oldest();
+    //             break;
+    //         default:
+    //             $query->latest();
+    //             break;
+    //     }
+
+    //     $reviews = $query->get();
+
+    //     // --- Calculate averages ---
+    //     $averageRating = round($reviews->avg(function ($r) {
+    //         return ($r->cleanliness + $r->conditions + $r->facilities) / 3;
+    //     }) ?? 0, 1);
+
+    //     $cleanliness = round($reviews->avg('cleanliness') ?? 0, 1);
+    //     $conditions  = round($reviews->avg('conditions') ?? 0, 1);
+    //     $facilities  = round($reviews->avg('facilities') ?? 0, 1);
+
+    //     return view('reviews.index', compact(
+    //         'space',
+    //         'reviews',
+    //         'averageRating',
+    //         'cleanliness',
+    //         'conditions',
+    //         'facilities'
+    //     ));
+    // }
+
+    public function createOrEdit(Reservation $reservation)
     {
-        $space = Space::findOrFail($spaceId);
-        $query = Review::with('user')->where('space_id', $spaceId);
+        $review = Review::where('user_id', Auth::id())
+                        ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
+                        ->first();
 
-        // --- Search ---
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('comment', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    });
-            });
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to review this reservation.');
         }
 
-        // --- Sort by filter ---
-        if ($request->get('sort') === 'with') {
-            $query->whereNotNull('photo');
+        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
+            return back()->with('error', 'You can review only completed reservations.');
         }
 
-        switch ($request->get('sort')) {
-            case 'highest':
-                $query->orderByDesc('rating');
-                break;
-            case 'lowest':
-                $query->orderBy('rating');
-                break;
-            case 'oldest':
-                $query->oldest();
-                break;
-            default:
-                $query->latest();
-                break;
+        if ($review && $review->deleted_at !== null) {
+            return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
-        $reviews = $query->get();
+        $reservation->load('space');
 
-        // --- Calculate averages ---
-        $averageRating = round($reviews->avg(function ($r) {
-            return ($r->cleanliness + $r->conditions + $r->facilities) / 3;
-        }) ?? 0, 1);
-
-        $cleanliness = round($reviews->avg('cleanliness') ?? 0, 1);
-        $conditions  = round($reviews->avg('conditions') ?? 0, 1);
-        $facilities  = round($reviews->avg('facilities') ?? 0, 1);
-
-        return view('reviews.index', compact(
-            'space',
-            'reviews',
-            'averageRating',
-            'cleanliness',
-            'conditions',
-            'facilities'
-        ));
+        if($review) {
+            return Inertia::render('Reviews/Edit', [
+                'reservation' => $reservation,
+                'review' => $review
+            ]);
+        } else {
+            return Inertia::render('Reviews/Create', [
+                'reservation' => $reservation
+            ]);
+        }
     }
 
-    // post
-    public function store(Request $request, $spaceId)
+    public function store(StoreReviewRequest $request, Reservation $reservation)
     {
-        $request->validate([
-            'cleanliness' => 'required|numeric|min:1|max:5',
-            'conditions'  => 'required|numeric|min:1|max:5',
-            'facilities'  => 'required|numeric|min:1|max:5',
-            'comment'     => 'nullable|string|max:500',
-            'photo'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        $data = $request->validated();
 
-        $space = Space::findOrFail($spaceId);
-        $photoPath = null;
+        $existingReview = Review::where('user_id', Auth::id())
+                                ->where('reservation_id', $reservation->id)
+                                ->withTrashed()
+                                ->first();
 
-        $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
-
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            Log::info('Uploading new review photo', [
-                'original_name' => $file->getClientOriginalName(),
-                'mime' => $file->getMimeType(),
-            ]);
-
-            $photoPath = $file->store('reviews', 'public');
-
-            if (!Storage::disk('public')->exists($photoPath)) {
-                Log::error('File not saved correctly', ['path' => $photoPath]);
-            }
+        if ($existingReview) {
+            return redirect()->route('reservations.index')
+                            ->with('error', 'You have already reviewed this reservation.');
         }
 
         Review::create([
-            'user_id'     => Auth::id(),
-            'space_id'    => $space->id,
-            'cleanliness' => $request->cleanliness,
-            'conditions'  => $request->conditions,
-            'facilities'  => $request->facilities,
-            'rating'      => $rating,
-            'comment'     => $request->comment,
-            'photo'       => $photoPath,
+            'user_id'           => Auth::id(),
+            'reservation_id'    => $reservation->id,
+            'rating'            => $data['rating'],
+            'comment'           => $data['comment'],
+            'is_public'         => true,
         ]);
 
-        // --- Update average rating in spaces table ---
-        $average = Review::where('space_id', $space->id)->avg('rating');
-        $space->update(['rating' => round($average ?? 0, 1)]);
-
-        return redirect()->route('reviews.index', ['space' => $space->id])
-            ->with('success', 'Thank you for your review!');
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
+                        ->with('ok', 'Thank you for your review!');
     }
 
-    // update
-    public function update(Request $request, Review $review)
+    public function update(StoreReviewRequest $request, Reservation $reservation)
     {
-        $request->validate([
-            'cleanliness' => 'required|numeric|min:1|max:5',
-            'conditions'  => 'required|numeric|min:1|max:5',
-            'facilities'  => 'required|numeric|min:1|max:5',
-            'comment'     => 'nullable|string|max:500',
-            'photo'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        $data = $request->validated();
 
-        if ($review->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
+        $review = Review::where('user_id', Auth::id())
+                        ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
+                        ->first();
+
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to update this review.');
         }
 
-        $rating = ($request->cleanliness + $request->conditions + $request->facilities) / 3;
-
-        // --- Photo removal ---
-        if ($request->filled('remove_photo') && $request->remove_photo == true) {
-            if ($review->photo && Storage::disk('public')->exists($review->photo)) {
-                Storage::disk('public')->delete($review->photo);
-            }
-            $review->photo = null;
+        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
+            return back()->with('error', 'You can review only completed reservations.');
         }
 
-        // --- New photo upload ---
-        if ($request->hasFile('photo')) {
-            if ($review->photo && Storage::disk('public')->exists($review->photo)) {
-                Storage::disk('public')->delete($review->photo);
-            }
-            $photoPath = $request->file('photo')->store('reviews', 'public');
-            $review->photo = $photoPath;
+        if ($review->deleted_at !== null) {
+            return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
-        // --- Update review ---
         $review->update([
-            'cleanliness' => $request->cleanliness,
-            'conditions'  => $request->conditions,
-            'facilities'  => $request->facilities,
-            'rating'      => $rating,
-            'comment'     => $request->comment,
-            'photo'       => $review->photo,
+            'rating'      => $data['rating'],
+            'comment'     => $data['comment'],
         ]);
 
-        // --- Update average rating in spaces table ---
-        $average = Review::where('space_id', $review->space_id)->avg('rating');
-        $review->space->update(['rating' => round($average ?? 0, 1)]);
-
-        return back()->with('success', 'Your review has been updated!');
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
+                        ->with('ok', 'Your review has been updated!');
     }
 
-    // delete
-    public function destroy(Review $review)
+    public function destroy(Reservation $reservation)
     {
-        if ($review->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
+        $review = Review::where('user_id', Auth::id())
+                        ->where('reservation_id', $reservation->id)
+                        ->withTrashed()
+                        ->first();
+
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to delete this review.');
         }
 
-        if ($review->photo && Storage::disk('public')->exists($review->photo)) {
-            Storage::disk('public')->delete($review->photo);
+        if (!$review) {
+            return redirect()->route('reservations.index')->with('error', 'You have not reviewed this reservation yet.');
         }
 
-        $spaceId = $review->space_id;
+        if ($review->deleted_at !== null) {
+            return redirect()->route('reservations.index')->with('error', 'You have already deleted your review for this reservation.');
+        }
+
+        $review->update([
+            'is_public' => false,
+        ]);
+
         $review->delete();
 
-        // --- Update average rating in spaces table ---
-        $average = Review::where('space_id', $spaceId)->avg('rating');
-        $review->space->update(['rating' => round($average ?? 0, 1)]);
-
-        return back()->with('success', 'Your review has been deleted.');
+        return redirect()->route('spaces.reviewIndex', $reservation->space_id)
+                        ->with('ok', 'Your review has been deleted.');
     }
 }

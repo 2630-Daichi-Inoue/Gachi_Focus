@@ -1,0 +1,112 @@
+@extends('layouts.admin')
+
+@section('content')
+    <div class="container mt-5 px-0">
+        <h2 class="px-3 fw-bold mb-4">Dashboard</h2>
+
+        <!-- Row 1: Menu + Summary | Line chart -->
+        <div class="row gx-3 mb-4">
+            <div class="col-md-4">
+                <!-- Menu -->
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header fw-bold" style="font-weight:800;letter-spacing:0.8px;font-size:1.1rem;">
+                        Menu
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="{{ route('admin.reservations.index') }}" class="list-group-item fw-bold">Manage Reservations ></a>
+                        <a href="{{ route('admin.users.index') }}" class="list-group-item fw-bold">Manage Users ></a>
+                        <a href="{{ route('admin.spaces.index') }}" class="list-group-item fw-bold">Manage Spaces ></a>
+                        <a href="{{ route('admin.spaces.create') }}" class="list-group-item fw-bold">Create a space ></a>
+                        <a href="{{ route('admin.amenities.index') }}" class="list-group-item fw-bold">Edit Amenities ></a>
+                        <a href="{{ route('admin.reviews.index') }}" class="list-group-item fw-bold">Manage Reviews ></a>
+                        <a href="{{ route('admin.contacts.index') }}" class="list-group-item fw-bold">Manage Contacts ></a>
+                        <a href="{{ route('admin.announcements.index') }}" class="list-group-item fw-bold">Manage Announcements ></a>
+                        <a href="{{ route('admin.announcements.create') }}" class="list-group-item fw-bold">Create Announcement ></a>
+                        <a href="{{ route('admin.notifications.index') }}" class="list-group-item fw-bold">Manage Notifications ></a>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;">
+                    <div style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);background:rgba(252,252,252,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">Today</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">¥{{ number_format($summary['today']) }}</p>
+                    </div>
+                    <div style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);background:rgba(223,249,251,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Week</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">¥{{ number_format($summary['week']) }}</p>
+                    </div>
+                    <div style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);background:rgba(232,246,243,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Month</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">¥{{ number_format($summary['month']) }}</p>
+                    </div>
+                    <div style="border-radius:20px;padding:15px;backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.4);box-shadow:0 4px 12px rgba(0,0,0,0.05);background:rgba(252,243,207,0.8);text-align:center;">
+                        <h6 style="margin-bottom:4px;font-weight:600;color:#666;">This Year</h6>
+                        <p style="font-size:1.25rem;font-weight:700;margin-bottom:0;">¥{{ number_format($summary['year']) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Line chart: total sales over time -->
+            <div class="col-md-8">
+                <div class="card shadow-sm h-100" style="background:linear-gradient(180deg,#fdfdfd,#f3f4fa);">
+                    <div class="card-header fw-bold d-flex align-items-center gap-3" style="font-weight:800;letter-spacing:0.8px;font-size:1.1rem;">
+                        Total Sales
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                            <button id="btnPrev" class="btn btn-sm btn-outline-secondary px-2 py-0">&#8592;</button>
+                            <span id="chartMode" class="text-muted" style="min-width:50px;text-align:center;">Week</span>
+                            <button id="btnNext" class="btn btn-sm btn-outline-secondary px-2 py-0">&#8594;</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="height:340px;position:relative;">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2: Prefecture bar chart -->
+        <div class="row gx-3">
+            <div class="col-12">
+                <div class="card shadow-sm" style="background:linear-gradient(180deg,#fdfdfd,#f3f4fa);">
+                    <div class="card-header fw-bold" style="font-weight:800;letter-spacing:0.8px;font-size:1.1rem;">
+                        Sales by Prefecture — <span id="prefChartMode">Week</span>
+                    </div>
+                    <div class="card-body">
+                        <div id="prefChartWrap">
+                            <canvas id="prefectureChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const salesDataSets = {
+            year: {
+                labels:      {!! json_encode(array_keys($salesYear)) !!},
+                total:       {!! json_encode(array_values($salesYear)) !!},
+                prefectures: {!! json_encode($salesByPrefectureYear) !!},
+            },
+            month: {
+                labels:      ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+                total:       {!! json_encode(array_values($salesMonth)) !!},
+                prefectures: {!! json_encode($salesByPrefectureMonth) !!},
+            },
+            week: {
+                labels:      ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+                total:       {!! json_encode(array_values($salesWeek)) !!},
+                prefectures: {!! json_encode($salesByPrefectureWeek) !!},
+            },
+        };
+    </script>
+
+    <script src="{{ asset('js/admin-home.js') }}"></script>
+@endsection

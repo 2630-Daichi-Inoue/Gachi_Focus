@@ -5,24 +5,33 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 
 class Review extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasUlids, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'space_id', 'rating', 'cleanliness',
-        'conditions', 'facilities', 'comment', 'photo',
+        'user_id',
+        'reservation_id',
+        'rating',
+        'comment',
+        'is_public',
     ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
+    ];
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
+    }
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function space()
-    {
-        return $this->belongsTo(Space::class);
-    }
 }
 

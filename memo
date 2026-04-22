@@ -1,0 +1,147 @@
+Improvement points
+
+/Developing user's reservations sorting: upcoming first.
+/Developing user's own review page.
+/Unify the naming rule for variables and methods with camel case.
+/Delete unnecessary files e.g. users' blade files, other unused files.
+/Writing comments on codes for better understanding.
+/One liner for vue files if they can be made.
+/New badge, pinning, and clickable card for user's announcement index.
+
+Gap between stars on review page
+   →done.
+FormatPrice func. and formatTime func. to be put on the same place.
+   →done.
+Developing view space page's contact link.
+   →done.
+Two or more reservations for the same space and overlapping time zones.
+   →done.
+Modify filtering functions with sending 'all' value.
+   →done.
+Rows per page for reservations, spaces, and reviews index.
+   →done.
+Separation of filtering box and sorting one for space, reservation, and review index.
+   →done.
+Making messages on admin's management screens deletable or disappear in a few seconds.
+   →done.
+Argument of sorting functions whether it should be Builder.
+   →done.
+15.Holding the same status when sorting for vue files.
+   →done.
+16.Position of sorting box.
+   →done.
+17.Replace fill with update in controllers unless there are any reasons to use fill.
+   →done.
+18.Simplify backend-checking-result statement in admin's controllers.
+19.Simplify routes for both admin and users using by prefix and name.
+   →done.
+Error messages on data submitting pages to be commented out.
+   →done.
+Change names of variables with '*_at' into '*ed_at.'
+   →done.
+Add 'expired_at' to annoucement feature for letting admin manage announcements more easily.
+   →done.
+Not to put "Update Review" button if the review's deleted_at is not null.
+   →done.
+Unify 403 error message to "You are not authorized to..."
+   →done.
+
+Check later
+1.Usage of page in PaymentFrom.vue.
+2.Difference between ->lt and <.
+
+Read me
+
+Outline of this application
+-A web application for coworking space management and reservation.
+-Admin: Managing spaces, users, spaces' amenities, reservations, reviews, contacts, and notification.
+-User: Search for spaces, book a space, cancel a reservation, post a review, creae a contact.
+
+Used technologies
+-Laravel＠11.46.1
+-Vue@3.5.30
+
+This project is designed as an MVP, focusing on core functionality with room for scalability and improvement.
+
+## Challenges & Improvement Points
+
+### 🧠 Design / Logic
+- Prevent overlapping reservations for the same space and time
+  → Needs stronger backend control (e.g. transaction / locking)
+
+- Clarify reservation lifecycle when payment is introduced
+  → Decide whether reservation is confirmed before or after payment
+
+- Simplify backend validation logic
+  → Reduce duplicated condition checks in controllers
+
+---
+
+### ⚙️ Backend
+- Replace `fill()` + `save()` with `update()` where appropriate
+- Refactor sorting functions (argument consistency using Builder)
+- Improve filtering logic (handling 'all' values more cleanly)
+- Simplify route definitions using prefix and name grouping
+
+---
+
+### 🎨 Frontend / UX
+- Separate filtering and sorting UI for better usability
+- Maintain filter state when sorting is changed
+- Add rows-per-page selection for index pages (reservations, spaces, reviews)
+- Improve admin messages (auto-dismiss or manually dismissible)
+- Adjust UI details (e.g. spacing between review stars, layout consistency)
+
+---
+
+### 🧹 Code Quality
+- Unify naming conventions (camelCase)
+- Remove unused files and clean project structure
+- Add comments for better readability and maintainability
+- Refactor common utility functions (e.g. formatPrice, formatTime)
+
+---
+
+## 🚀 Future Improvements
+
+### 💳 Payment Integration
+- Introduce payment system (e.g. Stripe)
+- Add `payment_status` to reservations
+- Handle payment failure / cancellation scenarios
+- Design refund logic for canceled reservations
+
+---
+
+### ⭐ Favorite Feature
+- Allow users to bookmark (favorite) spaces
+- Create a dedicated favorites list page
+
+---
+
+### 📩 Contact System Enhancements
+- Add detailed contact view for admin
+- Introduce "read" and "unread" state handling
+- Allow admin responses (optional future extension)
+
+---
+
+### 🔔 Notification System
+- Admin can create announcements
+- Users can view notifications
+- (Optional) Add read/unread tracking
+
+---
+
+### 🧪 Testing & Stability
+- Perform end-to-end testing for all user flows:
+  - Reservation → Cancel → Review
+  - Contact creation and status transitions
+- Improve edge-case handling (invalid inputs, direct URL access)
+
+---
+
+### 📊 Possible Extensions
+- Reservation history dashboard
+- Space availability visualization
+- Multi-image support for spaces
+- Advanced filtering (price range, amenities, etc.)

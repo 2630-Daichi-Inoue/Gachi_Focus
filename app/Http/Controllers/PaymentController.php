@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\{Auth, Config, Log, DB};
 use App\Models\Reservation;
 use Carbon\Carbon;
 use Stripe\Stripe;
-use Stripe\Checkout\Session as CheckoutSession;
+// use Stripe\Checkout\Session as CheckoutSession;
 use Stripe\Webhook;
 
 class PaymentController extends Controller
@@ -20,13 +20,13 @@ class PaymentController extends Controller
 {
     // 1) Ensure the reservation belongs to the current user
     if (Auth::check() && $reservation->user_id && $reservation->user_id !== Auth::id()) {
-        abort(403);
+        abort(403, 'You are not authorized to access this reservation.');
     }
 
     // 2) Prevent double payment
     $status = $reservation->payment_status ?? 'unpaid';
     if ($status === 'paid') {
-        return back()->with('success', 'This reservation is already paid.');
+        return back()->with('ok', 'This reservation is already paid.');
     }
 
     // 3) Prepare amount and currency (server-side only)
@@ -188,5 +188,5 @@ class PaymentController extends Controller
             'reservation' => $reservation,
         ]);
     }
-    
+
 }

@@ -4,25 +4,28 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 class Payment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'reservation_id',
-        'method',
+        'payment_method',
         'status',
-        'created_at',
-        'updated_at',
-        'deleted_at',
+        'stripe_session_id',
+        'stripe_session_url',
+        'payment_intent_id',
+        'amount',
+        'currency',
+        'payment_region',
+        'paid_at',
     ];
 
-    /**
-     * A payment belongs to one reservation.
-     * Even if the reservation is soft-deleted, we can still access it.
-     */
+    protected $casts = [
+        'amount'   => 'integer',
+        'paid_at'  => 'datetime',
+    ];
+
     public function reservation()
     {
         return $this->belongsTo(Reservation::class)->withTrashed();

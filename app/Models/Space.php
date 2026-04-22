@@ -2,132 +2,166 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Auth;
 
 class Space extends Model
 {
-    use SoftDeletes, HasFactory;
+    use SoftDeletes, HasFactory, HasUlids;
 
     /**
      * Mass assignable attributes
      */
     protected $fillable = [
         'name',
-        'location_for_overview',
-        'location_for_details',
-        'min_capacity',
-        'max_capacity',
-        'area',
-        'weekday_price',
-        'weekend_price',
+        'prefecture',
+        'city',
+        'address_line',
+        'capacity',
+        'open_time',
+        'close_time',
+        'weekday_price_yen',
+        'weekend_price_yen',
         'description',
-        'image', // fallback image path or URL
-        // 'address', // add here only if the column exists
+        'image_path',
+        'is_public',
+    ];
+
+    protected $appends = [
+        'full_address',
     ];
 
     /**
-     * Type casting
+     * Attribute casting.
      */
     protected $casts = [
-        'min_capacity'  => 'integer',
-        'max_capacity'  => 'integer',
-        'weekday_price' => 'decimal:2',
-        'weekend_price' => 'decimal:2',
+        'capacity' => 'integer',
+        'weekday_price_yen' => 'integer',
+        'weekend_price_yen' => 'integer',
+        'is_public' => 'boolean',
     ];
+
 
     /*
     |--------------------------------------------------------------------------
-    | Relationships
+    | Relations
     |--------------------------------------------------------------------------
     */
-
-    // space - category_space (a space has many categories)
-    public function categorySpace()
+    public function amenities()
     {
-        return $this->hasMany(CategorySpace::class);
+        return $this->belongsToMany(
+            Amenity::class,
+            'amenity_space',
+            'space_id',
+            'amenity_id'
+        );
     }
 
-    // space - review
-    public function reviews()
-    {
-        return $this->hasMany(Review::class);
-    }
-
-    // space - reservation
     public function reservations()
     {
         return $this->hasMany(Reservation::class);
     }
 
-    // space - photo
-    public function photos()
+    public function notifications()
     {
-        return $this->hasMany(Photo::class);
+        return $this->morphMany(Notification::class, 'related');
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'favorites',
+            'space_id',
+            'user_id'
+        );
+    }
+
+    public function reviews()
+    {
+        return $this->hasManyThrough(
+            Review::class,
+            Reservation::class,
+            'space_id',
+            'reservation_id',
+            'id',
+            'id'
+        );
     }
 
     /*
     |--------------------------------------------------------------------------
-    | Accessors / Domain Helpers
+    | Scopes
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * ✅ Display image with fallback.
-     * Priority: 1) first photo -> 2) image column -> 3) no-image.png
-     * Works with URLs, data:image, public/images, or storage paths.
-     */
-    public function getDisplayImageUrlAttribute(): string
+    public function scopePublic($query)
     {
-        // Get the first photo path (avoid N+1 with subquery)
-        $path = $this->photos()->value('path') ?: $this->image;
-
-        // No image at all → default
-        if (!$path) {
-            return asset('images/no-image.png');
-        }
-
-        // Already a full URL or data:image
-        if (Str::startsWith($path, ['http://', 'https://', 'data:image'])) {
-            return $path;
-        }
-
-        // public/images or storage/... inside /public
-        if (Str::startsWith($path, ['images/', 'storage/'])) {
-            return asset($path);
-        }
-
-        // Otherwise treat as storage/app/public relative path
-        return asset('storage/' . ltrim($path, '/'));
+        return $query->where('is_public', true)
+                    ->whereNull('deleted_at');
     }
 
-    /**
-     * 🌍 Detect country code (used by Pricing/Tax logic)
-     */
-    public function getCountryCodeAttribute(): string
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+    public function isPublic(): bool
     {
-        $loc = strtolower($this->location_for_details ?? '');
+        return $this->is_public && is_null($this->deleted_at);
+    }
 
-        return match (true) {
-            str_contains($loc, 'japan'),
-            str_contains($loc, 'tokyo'),
-            str_contains($loc, 'osaka') => 'JP',
+    public function isWithinBusinessHours(CarbonInterface $startedAt, CarbonInterface $endedAt): bool
+    {
+        $startTime = $startedAt->format('H:i:s');
+        $endTime = $endedAt->format('H:i:s');
 
-            str_contains($loc, 'france'),
-            str_contains($loc, 'paris') => 'FR',
+        return $startTime >= $this->open_time
+            && $endTime <= $this->close_time;
+    }
 
-            str_contains($loc, 'united states'),
-            str_contains($loc, 'usa'),
-            str_contains($loc, 'new york') => 'US',
+    public function isFavorite(): bool
+    {
+        $isFavorite = Favorite::where('space_id', $this->id)
+                                ->where('user_id', Auth::id())
+                                ->exists();
+        if ($isFavorite) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-            str_contains($loc, 'australia'),
-            str_contains($loc, 'sydney') => 'AU',
+    public function getUnitPriceForDate(CarbonInterface $date): int
+    {
+        return $date->isWeekend()
+            ? $this->weekend_price_yen
+            : $this->weekday_price_yen;
+    }
 
-            str_contains($loc, 'singapore') => 'SG',
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+    public function getOpenTimeForFormAttribute()
+    {
+        $openTime = $this->attributes['open_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $openTime)->format('H:i');
+    }
 
-            default => 'JP',
-        };
+    public function getCloseTimeForFormAttribute()
+    {
+        $closeTime = $this->attributes['close_time'] ?? null;
+        return Carbon::createFromFormat('H:i:s', $closeTime)->format('H:i');
+    }
+
+    public function getFullAddressAttribute(): string
+    {
+        return "{$this->address_line}, {$this->city}, {$this->prefecture}";
     }
 }

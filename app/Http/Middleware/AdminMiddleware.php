@@ -5,9 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-
 class AdminMiddleware
 {
     /**
@@ -17,11 +14,13 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(Auth::check() && Auth::user()->role_id == User::ADMIN_ROLE_ID){
-            // Auth::check() - check if the use is logged in
-            return $next($request); // redirect to the admin page
+        $user = $request->user();
+
+        if (!$user || !$user->isAdmin()) {
+            abort(403);
         }
 
-        return redirect()->route('index'); //redirect to homepage if auth user is not an admin
+        return $next($request);
     }
+
 }

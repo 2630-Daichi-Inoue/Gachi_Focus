@@ -2,45 +2,147 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ContactRequest;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use App\Http\Requests\StoreContactRequest;
 use App\Models\Contact;
-use App\Mail\ContactSubmitted;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $contactStatusList = ['open', 'closed', 'canceled'];
+        $sortList = ['datePresentToPast', 'datePastToPresent'];
+
+        $request->validate([
+            'contact_status' => ['nullable', Rule::in(array_merge(['all'], $contactStatusList))],
+            'sort'           => ['nullable', Rule::in($sortList)],
+            'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100']
+        ]);
+
+        $query = Contact::query()
+                            ->where('user_id', Auth::id());
+
+        // Filter by contact_status
+        if($request->input('contact_status', 'all')!== 'all') {
+            $query->where('contact_status', $request->input('contact_status'));
+        }
+
+        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+
+        // Default: date present → past
+        $this->applySort($query, $request->input('sort', 'datePresentToPast'));
+
+        $contacts = $query
+                        ->paginate($rowsPerPage)
+                        ->withQueryString();
+
+        return Inertia::render('Contacts/Index', [
+            'contacts' => $contacts,
+            'filters' => [
+                'contact_status' => $request->input('contact_status', 'all'),
+                'sort'           => $request->input('sort', 'datePresentToPast'),
+                'rows_per_page'  => $rowsPerPage,
+            ]
+        ]);
+    }
+
+    private function applySort(Builder $q, ?string $sort): void
+    {
+        switch ($sort ?? 'datePresentToPast') {
+            case 'datePresentToPast':
+                $q->orderBy('created_at', 'desc')
+                    ->latest('id');
+                break;
+
+            case 'datePastToPresent':
+                $q->orderBy('created_at', 'asc')
+                    ->latest('id');
+                break;
+
+            default:
+                $q->orderBy('created_at', 'desc')
+                    ->latest('id');
+        }
+    }
+
     /**
      * Show contact form.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return view('contact.create'); // keep this in sync with your blade path
+        $reservationId = $request->input('reservation_id');
+
+        if ($reservationId) {
+            $reservation = Reservation::findOrFail($reservationId);
+
+            if ($reservation->user_id !== Auth::id()) {
+                abort(403, 'You are not authorized to create a contact for this reservation.');
+            }
+
+            return Inertia::render('Contacts/Create', [
+                'reservation' => $reservation,
+            ]);
+        } else {
+            return Inertia::render('Contacts/Create', [
+                'reservation' => null,
+            ]);
+        }
     }
 
     /**
      * Handle submit and redirect to Home with a flash message.
      */
-    public function store(ContactRequest $request): RedirectResponse
+    public function store(StoreContactRequest $request)
     {
-        // 1) Validate & persist
-        $contact = Contact::create($request->validated());
+        $data = $request->validated();
 
-        // 2) Try to send mail, but don't block redirect if it fails
-        try {
-            // Send notification to site admin (or any receiver you set)
-            Mail::to(config('mail.from.address'))
-                ->send(new ContactSubmitted($contact));
-        } catch (\Throwable $e) {
-            // Log the error and continue; user experience should still be smooth
-            Log::error('Contact mail failed: '.$e->getMessage());
+        Contact::create([
+            'user_id'        => Auth::id(),
+            'reservation_id' => $data['reservation_id'] ?? null,
+            'title'          => $data['title'],
+            'message'        => $data['message'],
+            'contact_status' => 'open',
+        ]);
+
+        if ($data['reservation_id'] !== null) {
+            return redirect()->route('reservations.index')
+                            ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
+        } else {
+            return redirect()->route('contacts.index')
+                            ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
+        }
+    }
+
+    public function cancel(Contact $contact)
+    {
+        if ($contact->user_id !== Auth::id()) {
+            abort(403, 'You are not authorized to cancel this contact.');
         }
 
-        // 3) Redirect to Home with a flash (key must match the blade: session('status'))
-        return redirect()
-            ->route('index') // <- Home is named "index" in your routes
-            ->with('status', 'Your message has been sent successfully.');
-            // Keep the key "status" because your blade/layout reads session('status')
+        if ($contact->contact_status === 'closed') {
+            return back()->with('error', 'This contact has already been closed.');
+        }
+
+        if ($contact->contact_status === 'canceled') {
+            return back()->with('error', 'This contact has already been canceled.');
+        }
+
+        if ($contact->read_at !== null) {
+            return back()->with('error', 'This contact has already been read. Please wait for our response.');
+        }
+
+        $contact->update([
+            'contact_status' => 'canceled',
+            'canceled_at' => now(),
+        ]);
+
+        return back()->with('ok', 'Your contact has been canceled.');
+
     }
 }

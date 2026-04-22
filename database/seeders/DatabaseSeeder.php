@@ -2,28 +2,40 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Space;
+use App\Models\Reservation;
+use App\Models\Review;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-
         $this->call([
-            // CategorySeeder::class,
-            // AdminSeeder::class,
-            CustomNotificationSeeder::class
+            AdminSeeder::class,
+            UserSeeder::class,
+            AmenitySeeder::class,
         ]);
+
+        $users = User::factory(100)->create();
+        $spaces = Space::factory(50)->create();
+        // User::factory()->suspended()->create();
+
+        foreach(range(1, 100) as $i) {
+            $user = $users->random();
+            $space = $spaces->random();
+            Reservation::factory()
+                        ->for($user, 'user')
+                        ->forSpace($space)
+                        ->create();
+        }
+
+        $reservations = Reservation::inRandomOrder()->limit(50)->get();
+        foreach($reservations as $reservation) {
+            Review::factory()
+                    ->forReservation($reservation)
+                    ->create();
+        }
     }
 }

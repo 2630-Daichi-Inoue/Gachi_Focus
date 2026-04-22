@@ -7,64 +7,93 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-
+use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
-    private $user;
-
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }
 
     public function index(Request $request)
     {
+        $userStatusList = ['active','restricted','banned'];
+
         $request->validate([
-            'name' => 'nullable|string|max:50',
-            'status' => 'nullable|in:all,active,banned',
-            'rows_per_page' => 'nullable|integer|in:20,50,100',
+            'name'          => ['nullable', 'string', 'max:50'],
+            'email'         => ['nullable', 'string', 'max:100'],
+            'user_status'   => ['nullable', Rule::in(array_merge(['all'], $userStatusList))],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
-        $q = \App\Models\User::query()->withTrashed();
+        // Exclude admin
+        $query = User::query()
+                        ->where('is_admin', false);
 
-        if($name = trim($request->input('name', ''))) {
-            $q->where('name', 'like', "%{$name}%");
-        }
-
-
-        switch($request->input('status', 'all')) {
-            case
-                'active':$q->whereNull('deleted_at');
-                break;
-            case
-                'banned':$q->whereNotNull('deleted_at');
-                break;
+        // Filter by user ID from admin's contact index page
+        if ($userId = trim((string)$request->input('user_id', ''))) {
+            $query->where('id', $userId);
+        } else {
+            // Filter by name
+            if ($request->filled('name')) {
+                $query->where('name', 'LIKE', '%' . $request->name . '%');
+            }
+            // Filter by email
+            if ($request->filled('email')) {
+                $query->where('email', 'LIKE', '%' . $request->email . '%');
+            }
+            // Filter by user_status
+            $userStatus = $request->input('user_status', 'all');
+            if($userStatus !== 'all') {
+                $query->where('user_status', $userStatus);
+            }
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
-        $all_users = $q->orderBy('id', 'desc')
-                        ->paginate($rowsPerPage)
-                        ->appends($request->query());
+        $users = $query
+                    ->latest()
+                    ->paginate($rowsPerPage);
 
-
-        return view('admin.users.index', compact('all_users'));
+        return view('admin.users.index', compact('users', 'rowsPerPage'));
     }
 
-    # ban
-    public function deactivate($id)
+    # Restrict User
+    public function restrict(User $user)
     {
-        $this->user->destroy($id);
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
 
-        return back();
+        $user->update(['user_status' => 'restricted']);
+
+        return redirect()->route('admin.users.index')
+                        ->with('ok', 'Successfully restricted.');
     }
 
-    # activate
-    public function activate($id)
+    # Activate User
+    public function activate(User $user)
     {
-        $this->user->onlyTrashed()->findOrFail($id)->restore();
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
 
-        return back();
+        $user->update(['user_status' => 'active']);
+
+        return redirect()->route('admin.users.index')
+                        ->with('ok', 'Successfully activated.');
+    }
+
+    # Ban User
+    public function ban(User $user)
+    {
+        if ($user->trashed()) {
+            return redirect()->route('admin.users.index')
+                ->with('error', $user->name . ' has already been deleted.');
+        }
+
+        $user->update(['user_status' => 'banned']);
+
+        return redirect()->route('admin.users.index')
+                        ->with('ok', 'Successfully banned.');
     }
 }
