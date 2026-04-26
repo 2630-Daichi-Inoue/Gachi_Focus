@@ -255,6 +255,16 @@ watch(
                 </div>
             </nav>
 
+            <!-- Restricted banner -->
+            <div
+                v-if="$page.props.auth.user.user_status === 'restricted'"
+                class="bg-yellow-50 border-b border-yellow-300 px-4 py-2 text-sm text-yellow-800 text-center"
+            >
+                Your account is currently restricted. New reservations and reviews are unavailable.
+                <Link :href="route('contacts.create')" class="underline font-medium hover:text-yellow-900">Contact us</Link>
+                if you have any questions.
+            </div>
+
             <!-- Toast -->
             <div class="fixed top-20 right-4 z-50 space-y-2">
                 <div

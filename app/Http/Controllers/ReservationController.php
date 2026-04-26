@@ -99,6 +99,11 @@ class ReservationController extends Controller
      */
     public function create(Request $request, Space $space)
     {
+        if (Auth::user()->isRestricted()) {
+            return redirect()->route('spaces.show', $space)
+                            ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
+        }
+
         if (!$space->isPublic()) {
             return redirect()->route('spaces.index')
                             ->with('error', 'Sorry, but this space is not currently available.');
@@ -207,6 +212,11 @@ class ReservationController extends Controller
      */
     public function store(StoreReservationRequest $request, Space $space)
     {
+        if (Auth::user()->isRestricted()) {
+            return redirect()->route('spaces.show', $space)
+                            ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
+        }
+
         $data = $request->validated();
 
         // normalize time to HH:mm

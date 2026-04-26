@@ -64,6 +64,7 @@ class UsersController extends Controller
         }
 
         $user->update(['user_status' => 'restricted']);
+        $user->reviews()->update(['is_public' => false]);
 
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully restricted.');
@@ -92,6 +93,7 @@ class UsersController extends Controller
         }
 
         $user->update(['user_status' => 'banned']);
+        $user->reviews()->update(['is_public' => false]);
 
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully banned.');

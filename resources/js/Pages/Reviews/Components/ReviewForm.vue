@@ -1,5 +1,5 @@
 <script setup>
-import { Link, router } from '@inertiajs/vue3'
+import { Link, router, usePage } from '@inertiajs/vue3'
 import { reactive, computed, ref } from 'vue'
 import Vue3StarRating from 'vue3-star-ratings'
 import DeleteReviewModal from './DeleteReviewModal.vue'
@@ -36,6 +36,8 @@ const ratingProxy = computed({
         form.rating = Math.round(Number(value))
     }
 })
+
+const isRestricted = usePage().props.auth.user.user_status === 'restricted'
 
 const showDeleteModal = ref(false);
 
@@ -114,7 +116,9 @@ const deleteReview = () => {
                 </button>
                 <button type="submit"
                         :class="review ? 'md:w-1/3' : 'md:w-1/2'"
-                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
+                        :disabled="!review && isRestricted"
+                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition"
+                        :style="!review && isRestricted ? 'background-color: #9ca3af; cursor: not-allowed; border-color: #9ca3af;' : ''">
                     {{ review ? 'Update Review' : 'Submit Review' }}
                 </button>
             </template>
