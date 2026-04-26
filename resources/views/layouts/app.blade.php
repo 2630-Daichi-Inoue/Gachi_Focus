@@ -75,13 +75,13 @@
                                 <!-- ← Admin or User -->
                                 <!-- ADMIN LINKS -->
 
-                                <a href="{{ route('admin.spaces.register') }}" class="nav-link me-3">Register Coworking Space</a>
+                                <a href="{{ route('admin.spaces.create') }}" class="nav-link me-3">Create Coworking Space</a>
                                 <a href="{{ route('admin.spaces.index') }}" class="nav-link me-3">Coworking Spaces</a>
                                 {{-- <a href="{{ route('admin.reservations.index') }}" class="nav-link me-3">Reservations</a>
                                 <a href="{{ route('admin.users.index') }}" class="nav-link me-3">Users</a> --}}
 
                                 <a href="{{ route('admin.dashboard') }}" class="nav-link me-4 fw-semibold text-dark">
-                                    <i class="fa-solid fa-chart-line me-1"></i>Dash board
+                                    <i class="fa-solid fa-chart-line me-1"></i>Dashboard
                                 </a>
 
                                 {{-- If admin need to check the user side UI Vr. --}}

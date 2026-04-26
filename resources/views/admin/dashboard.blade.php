@@ -101,7 +101,7 @@
                 prefectures: {!! json_encode($salesByPrefectureMonth) !!},
             },
             week: {
-                labels:      ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+                labels:      {!! json_encode($weekLabels) !!},
                 total:       {!! json_encode(array_values($salesWeek)) !!},
                 prefectures: {!! json_encode($salesByPrefectureWeek) !!},
             },

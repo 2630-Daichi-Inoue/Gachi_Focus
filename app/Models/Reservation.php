@@ -68,9 +68,9 @@ class Reservation extends Model
         return $this->morphMany(Notification::class, 'related');
     }
 
-     public function payment()
+     public function payments()
      {
-         return $this->hasOne(Payment::class);
+         return $this->hasMany(Payment::class);
      }
 
      public function review()
@@ -149,7 +149,7 @@ class Reservation extends Model
 
     public function isReviewable(): bool
     {
-        return $this->reservation_status !== 'canceled'
+        return $this->reservation_status === 'booked'
             && $this->ended_at->isPast()
             && !$this->review;
     }

@@ -24,6 +24,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -188,6 +189,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::patch('/{notification}/read', 'read')->name('read');
     });
+
+    // Payments
+    Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
+        Route::get('/{reservation}/checkout', 'checkout')->name('checkout');
+        Route::get('/{reservation}/success',  'success')->name('success');
+        Route::get('/{reservation}/cancel',   'cancel')->name('cancel');
+    });
 });
+
+// Stripe webhook — outside auth middleware, CSRF excluded via VerifyCsrfToken
+Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('payments.webhook');
 
 require __DIR__.'/auth.php';

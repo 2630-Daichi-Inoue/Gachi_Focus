@@ -18,7 +18,6 @@ const hasConflicts = computed(() => props.conflictingReservations.length > 0)
 const canSubmit = computed(() => !hasConflicts.value || overlapConfirmed.value)
 
 const payment = () => {
-    alert('The button is a dummy for now. Stripe checkout session will be implemented in the future development. The reservation gets confirmed only after the payment is completed.')
     if (!props.reservationData) return
     router.post(route('reservations.store', props.space.id), {
         date: props.reservationData.date,

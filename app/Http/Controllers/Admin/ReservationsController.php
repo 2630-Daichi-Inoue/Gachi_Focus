@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Reservation;
+use App\Services\RefundService;
 use Illuminate\Validation\Rule;
 
 class ReservationsController extends Controller
@@ -68,17 +70,40 @@ class ReservationsController extends Controller
         return view('admin.reservations.index', compact('reservations'));
     }
 
-    public function cancel(Reservation $reservation)
+    public function cancel(Reservation $reservation, RefundService $refundService)
     {
         if ($reservation->ended_at < now()) {
             return redirect()->route('admin.reservations.index')
                 ->with('error', 'The reservation has already ended.');
         }
 
-        $reservation->update(['reservation_status' => 'canceled']);
+        if ($reservation->reservation_status === 'canceled') {
+            return redirect()->route('admin.reservations.index')
+                ->with('error', 'The reservation has already been canceled.');
+        }
+
+        if ($reservation->reservation_status === 'booked') {
+            // Issue a full refund (Stripe) and cancel atomically
+            $refundService->refundAndCancel($reservation);
+
+            return redirect()->route('admin.reservations.index')
+                ->with('ok', 'Reservation canceled and refund initiated.');
+        }
+
+        // Pending: no captured payment — just cancel
+        DB::transaction(function () use ($reservation) {
+            $reservation->update([
+                'reservation_status' => 'canceled',
+                'canceled_at'        => now(),
+            ]);
+
+            $reservation->payments()
+                ->where('status', 'pending')
+                ->update(['status' => 'canceled']);
+        });
 
         return redirect()->route('admin.reservations.index')
-                        ->with('ok', 'Successfully canceled.');
+            ->with('ok', 'Successfully canceled.');
     }
 
 }

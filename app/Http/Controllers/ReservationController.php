@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Http\Requests\StoreReservationRequest;
+use App\Services\RefundService;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +22,7 @@ class ReservationController extends Controller
      */
     public function index(Request $request)
     {
-        $reservationStatusList = ['booked', 'canceled'];
+        $reservationStatusList = ['pending', 'booked', 'canceled'];
         $sortList = ['date_future_to_past', 'date_past_to_future'];
 
         $request->validate([
@@ -47,7 +48,7 @@ class ReservationController extends Controller
             $query->where('reservation_status', $reservationStatus);
         }
 
-        // upcoming / past / cancelled can be implemented later if needed by checking started_at, ended_at and reservation_status
+        // upcoming / past / canceled can be implemented later if needed by checking started_at, ended_at and reservation_status
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
@@ -162,7 +163,7 @@ class ReservationController extends Controller
 
         $overlappingQuantity = Reservation::query()
                                             ->where('space_id', $checkedSpace->id)
-                                            ->where('reservation_status', 'booked')
+                                            ->whereIn('reservation_status', ['booked', 'pending'])
                                             ->where('started_at', '<', $newEndedAt)
                                             ->where('ended_at', '>', $newStartedAt)
                                             ->sum('quantity');
@@ -175,7 +176,7 @@ class ReservationController extends Controller
 
         $conflictingReservations = Reservation::query()
             ->where('user_id', Auth::id())
-            ->where('reservation_status', 'booked')
+            ->whereIn('reservation_status', ['booked', 'pending'])
             ->where('ended_at', '>', now())
             ->where('started_at', '<', $newEndedAt)
             ->where('ended_at', '>', $newStartedAt)
@@ -217,7 +218,7 @@ class ReservationController extends Controller
 
             $overlappingQuantity = Reservation::query()
                                     ->where('space_id', $checkedSpace->id)
-                                    ->where('reservation_status', 'booked')
+                                    ->whereIn('reservation_status', ['booked', 'pending'])
                                     ->where('started_at', '<', $newEndedAt)
                                     ->where('ended_at', '>', $newStartedAt)
                                     ->sum('quantity');
@@ -237,7 +238,7 @@ class ReservationController extends Controller
             return Reservation::create([
                 'user_id'            => Auth::id(),
                 'space_id'           => $checkedSpace->id,
-                'reservation_status' => 'booked',  // For MVP, reservation is booked immediately. In production, this should become pending_payment until payment succeeds.
+                'reservation_status' => 'pending',
                 'started_at'         => $newStartedAt,
                 'ended_at'           => $newEndedAt,
                 'quantity'           => $data['quantity'],
@@ -247,23 +248,10 @@ class ReservationController extends Controller
             ]);
         });
 
-        // Create notification to admin
-        // $admin = User::where('role_id', 1)->first();
-        // if($admin) {
-        //     CustomNotification::create([
-        //         'sender_id' => Auth::id(),
-        //         'receiver_id' => $admin->id,
-        //         'type' => 'New Reservation',
-        //         'message' => Auth::user()->name . ' has made a new reservation for space ' . $space->name . '.',
-        //         'reservation_id' => $reservation->id,
-        //     ]);
-        // }
-
-        return redirect()->route('spaces.show', $space)
-        ->with('ok', 'Your reservation has been successfully made!');
+        return redirect()->route('payments.checkout', $reservation);
     }
 
-    public function cancel(Reservation $reservation)
+    public function cancel(Reservation $reservation, RefundService $refundService)
     {
         if ($reservation->user_id !== Auth::id()) {
             abort(403, 'You are not authorized to cancel this reservation.');
@@ -273,16 +261,30 @@ class ReservationController extends Controller
             return back()->with('error', 'This reservation has already been canceled.');
         }
 
-        if (Carbon::parse($reservation->started_at)->subHour()->lte(now())) {
-            return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
+        // Pending reservations can be canceled freely (payment not yet completed)
+        if ($reservation->reservation_status === 'booked') {
+            if (Carbon::parse($reservation->started_at)->subHour()->lte(now())) {
+                return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
+            }
+
+            // Issue a full refund and cancel atomically
+            $refundService->refundAndCancel($reservation);
+
+            return back()->with('ok', 'Your reservation has been canceled and a full refund has been initiated.');
         }
 
-        $reservation->update([
-            'reservation_status' => 'canceled',
-            'canceled_at' => now(),
-        ]);
+        // Pending status: no payment captured yet — just cancel
+        DB::transaction(function () use ($reservation) {
+            $reservation->update([
+                'reservation_status' => 'canceled',
+                'canceled_at'        => now(),
+            ]);
+
+            $reservation->payments()
+                ->where('status', 'pending')
+                ->update(['status' => 'canceled']);
+        });
 
         return back()->with('ok', 'Your reservation has been canceled.');
-
     }
 }

@@ -11,17 +11,16 @@ const showingNavigationDropdown = ref(false)
 
 const page = usePage()
 
-const showOk = ref(false)
-const showError = ref(false)
+const showOk      = ref(false)
+const showError   = ref(false)
+const showWarning = ref(false)
 
 watch(
     () => page.props.flash?.ok,
     (value) => {
         if (value) {
             showOk.value = true
-            setTimeout(() => {
-                showOk.value = false
-            }, 3000)
+            setTimeout(() => { showOk.value = false }, 3000)
         }
     },
     { immediate: true }
@@ -32,9 +31,18 @@ watch(
     (value) => {
         if (value) {
             showError.value = true
-            setTimeout(() => {
-                showError.value = false
-            }, 3000)
+            setTimeout(() => { showError.value = false }, 3000)
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    () => page.props.flash?.warning,
+    (value) => {
+        if (value) {
+            showWarning.value = true
+            setTimeout(() => { showWarning.value = false }, 5000)
         }
     },
     { immediate: true }
@@ -266,6 +274,14 @@ watch(
                 >
                     <span>{{ page.props.flash.error }}</span>
                     <button @click="showError = false">×</button>
+                </div>
+
+                <div
+                    v-if="showWarning && page.props.flash?.warning"
+                    class="min-w-[280px] rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-yellow-800 shadow-lg flex justify-between transition-opacity duration-300"
+                >
+                    <span>{{ page.props.flash.warning }}</span>
+                    <button @click="showWarning = false">×</button>
                 </div>
             </div>
 
