@@ -1,9 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -27,12 +25,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('login');
 })->name('index');
 
 Route::middleware(['auth', 'admin'])
