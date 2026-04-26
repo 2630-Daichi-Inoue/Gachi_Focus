@@ -191,6 +191,12 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+// Guest contact — no auth required (for banned users to reach support)
+Route::prefix('guest-contact')->name('guest-contact.')->controller(ContactController::class)->group(function () {
+    Route::get('/create', 'guestCreate')->name('create');
+    Route::post('/', 'guestStore')->name('store');
+});
+
 // Stripe webhook — outside auth middleware, CSRF excluded via VerifyCsrfToken
 Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('payments.webhook');
 

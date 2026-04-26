@@ -5,6 +5,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 defineProps({
     canResetPassword: Boolean,
     status: String,
+    banned: Boolean,
 });
 
 const form = useForm({
@@ -110,6 +111,15 @@ const submit = () => {
                 >
                     Register now!
                 </Link>
+            </div>
+
+            <div v-if="banned" class="mt-4 text-center">
+                <p class="text-sm text-gray-500">
+                    Need help?
+                    <Link :href="route('guest-contact.create')" class="text-sm text-red-600 hover:text-red-800 underline">
+                        Contact us
+                    </Link>
+                </p>
             </div>
         </div>
     </div>

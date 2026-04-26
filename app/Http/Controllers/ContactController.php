@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreContactRequest;
+use App\Http\Requests\StoreGuestContactRequest;
 use App\Models\Contact;
 use App\Models\Reservation;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ContactController extends Controller
@@ -117,6 +120,35 @@ class ContactController extends Controller
             return redirect()->route('contacts.index')
                             ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
         }
+    }
+
+    public function guestCreate()
+    {
+        return Inertia::render('GuestContacts/Create');
+    }
+
+    public function guestStore(StoreGuestContactRequest $request)
+    {
+        $data = $request->validated();
+
+        $user = User::where('email', $data['email'])->first();
+
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => 'No account found with this email address.',
+            ]);
+        }
+
+        Contact::create([
+            'user_id'        => $user->id,
+            'reservation_id' => null,
+            'title'          => $data['title'],
+            'message'        => $data['message'],
+            'contact_status' => 'open',
+        ]);
+
+        return redirect()->route('login')
+            ->with('status', 'Your message has been sent. We will get back to you as soon as possible.');
     }
 
     public function cancel(Contact $contact)
