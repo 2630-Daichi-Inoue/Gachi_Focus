@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Reservation;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,9 +19,20 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $hasPendingReservations = Reservation::where('user_id', $request->user()->id)
+            ->where(function ($q) {
+                $q->where('reservation_status', 'pending')
+                  ->orWhere(function ($q2) {
+                      $q2->where('reservation_status', 'booked')
+                         ->where('ended_at', '>', now());
+                  });
+            })
+            ->exists();
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'hasPendingReservations' => $hasPendingReservations,
         ]);
     }
 
@@ -50,6 +62,20 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        $hasPendingReservations = Reservation::where('user_id', $user->id)
+            ->where(function ($q) {
+                $q->where('reservation_status', 'pending')
+                  ->orWhere(function ($q2) {
+                      $q2->where('reservation_status', 'booked')
+                         ->where('ended_at', '>', now());
+                  });
+            })
+            ->exists();
+
+        if ($hasPendingReservations) {
+            return back()->with('error', 'You have pending or upcoming reservations. Please cancel them before deleting your account.');
+        }
 
         Auth::logout();
 

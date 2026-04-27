@@ -156,7 +156,7 @@ class SpaceController extends Controller
 
         $reviews = $space->reviews()
                             ->where('is_public', true)
-                            ->with('user')
+                            ->with(['user' => fn($q) => $q->withTrashed()])
                             ->latest()
                             ->get();
 
@@ -198,7 +198,7 @@ class SpaceController extends Controller
 
         $baseQuery = $space->reviews()
                             ->where('is_public', true)
-                            ->with('user');
+                            ->with(['user' => fn($q) => $q->withTrashed()]);
 
         $allReviews = (clone $baseQuery)->get();
 

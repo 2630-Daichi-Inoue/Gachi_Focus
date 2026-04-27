@@ -12,6 +12,9 @@ defineProps({
     status: {
         type: String,
     },
+    hasPendingReservations: {
+        type: Boolean,
+    },
 });
 </script>
 
@@ -48,7 +51,7 @@ defineProps({
                 <div
                     class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
                 >
-                    <DeleteUserForm class="max-w-xl" />
+                    <DeleteUserForm class="max-w-xl" :hasPendingReservations="hasPendingReservations" />
                 </div>
             </div>
         </div>

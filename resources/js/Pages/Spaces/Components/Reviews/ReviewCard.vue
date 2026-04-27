@@ -9,7 +9,11 @@ const props = defineProps({
 
 <template>
 <div class="p-4 border rounded bg-white">
-    <h1 class="text-xl font-semibold mb-2">{{ review.user.name || 'No Title' }} <span class="text-gray-500 text-sm">{{ formatDate(review.created_at) }}</span></h1>
+    <h1 class="text-xl font-semibold mb-2">
+        <span v-if="review.user?.deleted_at" class="text-gray-400 italic">Deleted user</span>
+        <span v-else>{{ review.user?.name }}</span>
+        <span class="text-gray-500 text-sm font-normal ml-2">{{ formatDate(review.created_at) }}</span>
+    </h1>
     <div class="flex items-center gap-1">
         <!-- Filled Stars -->
         <div v-for="n in Math.floor(review.rating || 0)" :key="'full-' + n">

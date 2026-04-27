@@ -32,10 +32,6 @@ const payment = () => {
 <div class="bg-white border border-gray-300 p-4">
     <form @submit.prevent="payment" class="space-y-4">
         <div>
-            <div class="bg-lime-100 border border-amber-600 p-2">
-                <h1 class="text-2xl text-gray-500">Memo</h1>
-                <p class="mb-2">Input boxes from Stripe's payment elements will go here in the future development.</p>
-            </div>
 
             <h1 class="text-2xl text-gray-500">Cancellation Policy</h1>
             <p class="mb-2">Cancellation can be done for free up to 1 hour before the reservation start time.</p>
