@@ -52,6 +52,7 @@ watch(() => form.rows_per_page, () => { search() })
                     <input v-model="form.name" type="text" placeholder="Space's Name" class="border rounded px-3 py-2" />
                     <select v-model="form.reservation_status" class="border rounded px-3 py-2">
                         <option value="all">All</option>
+                        <option value="pending">Pending Payment</option>
                         <option value="booked">Booked or Completed</option>
                         <option value="canceled">Canceled</option>
                     </select>

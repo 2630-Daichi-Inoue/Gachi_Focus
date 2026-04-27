@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
-import ApplicationLogo from '@/Components/ApplicationLogo.vue'
 import Dropdown from '@/Components/Dropdown.vue'
 import DropdownLink from '@/Components/DropdownLink.vue'
 import NavLink from '@/Components/NavLink.vue'
@@ -11,17 +10,16 @@ const showingNavigationDropdown = ref(false)
 
 const page = usePage()
 
-const showOk = ref(false)
-const showError = ref(false)
+const showOk      = ref(false)
+const showError   = ref(false)
+const showWarning = ref(false)
 
 watch(
     () => page.props.flash?.ok,
     (value) => {
         if (value) {
             showOk.value = true
-            setTimeout(() => {
-                showOk.value = false
-            }, 3000)
+            setTimeout(() => { showOk.value = false }, 3000)
         }
     },
     { immediate: true }
@@ -32,9 +30,18 @@ watch(
     (value) => {
         if (value) {
             showError.value = true
-            setTimeout(() => {
-                showError.value = false
-            }, 3000)
+            setTimeout(() => { showError.value = false }, 3000)
+        }
+    },
+    { immediate: true }
+)
+
+watch(
+    () => page.props.flash?.warning,
+    (value) => {
+        if (value) {
+            showWarning.value = true
+            setTimeout(() => { showWarning.value = false }, 5000)
         }
     },
     { immediate: true }
@@ -57,9 +64,7 @@ watch(
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('spaces.index')">
-                                    <ApplicationLogo
-                                        class="block h-9 w-auto fill-current text-gray-800"
-                                    />
+                                    <img src="/images/GachiFocus_logo.png" alt="GachiFocus" class="block h-9 w-auto" />
                                 </Link>
                             </div>
 
@@ -250,6 +255,16 @@ watch(
                 </div>
             </nav>
 
+            <!-- Restricted banner -->
+            <div
+                v-if="$page.props.auth.user.user_status === 'restricted'"
+                class="bg-yellow-50 border-b border-yellow-300 px-4 py-2 text-sm text-yellow-800 text-center"
+            >
+                Your account is currently restricted. New reservations and reviews are unavailable.
+                <Link :href="route('contacts.create')" class="underline font-medium hover:text-yellow-900">Contact us</Link>
+                if you have any questions.
+            </div>
+
             <!-- Toast -->
             <div class="fixed top-20 right-4 z-50 space-y-2">
                 <div
@@ -266,6 +281,14 @@ watch(
                 >
                     <span>{{ page.props.flash.error }}</span>
                     <button @click="showError = false">×</button>
+                </div>
+
+                <div
+                    v-if="showWarning && page.props.flash?.warning"
+                    class="min-w-[280px] rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-yellow-800 shadow-lg flex justify-between transition-opacity duration-300"
+                >
+                    <span>{{ page.props.flash.warning }}</span>
+                    <button @click="showWarning = false">×</button>
                 </div>
             </div>
 

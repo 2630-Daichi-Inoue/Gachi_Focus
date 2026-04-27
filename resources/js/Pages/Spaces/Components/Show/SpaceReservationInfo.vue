@@ -1,11 +1,12 @@
 <script setup>
-import { Link } from '@inertiajs/vue3'
+import { Link, usePage } from '@inertiajs/vue3'
 import { formatPrice, formatTimeStr } from '@/utils/formatters'
 
 const props = defineProps({
     space: Object,
 })
 
+const isRestricted = usePage().props.auth.user.user_status === 'restricted'
 </script>
 
 <template>
@@ -68,10 +69,15 @@ const props = defineProps({
                     class="flex items-center justify-center md:w-1/2 text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
                     Go Back
                 </Link>
-                <Link :href="route('reservations.create', { space: space.id })"
+                <Link v-if="!isRestricted"
+                    :href="route('reservations.create', { space: space.id })"
                     class="p-2 font-bold text-3xl flex items-center justify-center md:w-1/2 text-white border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
                     Book it
                 </Link>
+                <span v-else
+                    class="p-2 font-bold text-3xl flex items-center justify-center md:w-1/2 text-white border border-gray-300 rounded bg-gray-300 cursor-not-allowed">
+                    Book it
+                </span>
             </div>
         </div>
      </div>

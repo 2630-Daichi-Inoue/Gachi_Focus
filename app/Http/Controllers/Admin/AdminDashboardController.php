@@ -48,6 +48,10 @@ class AdminDashboardController extends Controller
         $weekDays              = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $salesWeek             = array_fill_keys($weekDays, 0);
         $salesByPrefectureWeek = [];
+        $weekLabels            = array_map(
+            fn($i) => [$startOfWeek->copy()->addDays($i)->format('D'), $startOfWeek->copy()->addDays($i)->format('n/j')],
+            range(0, 6)
+        );
         foreach ($reservations->filter(fn($r) => $r->started_at->betweenIncluded($startOfWeek, $endOfWeek)) as $r) {
             $day = $r->started_at->format('D');
             $salesWeek[$day] += $r->total_price_yen;
@@ -60,6 +64,7 @@ class AdminDashboardController extends Controller
             'salesYear',
             'salesMonth',
             'salesWeek',
+            'weekLabels',
             'salesByPrefectureYear',
             'salesByPrefectureMonth',
             'salesByPrefectureWeek',

@@ -28,6 +28,6 @@ class Payment extends Model
 
     public function reservation()
     {
-        return $this->belongsTo(Reservation::class)->withTrashed();
+        return $this->belongsTo(Reservation::class);
     }
 }

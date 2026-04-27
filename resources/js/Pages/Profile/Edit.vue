@@ -12,6 +12,9 @@ defineProps({
     status: {
         type: String,
     },
+    hasPendingReservations: {
+        type: Boolean,
+    },
 });
 </script>
 
@@ -28,7 +31,7 @@ defineProps({
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+            <div class="space-y-6 sm:px-6 lg:px-8" style="max-width: 800px; margin: auto;">
                 <div
                     class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
                 >
@@ -48,7 +51,7 @@ defineProps({
                 <div
                     class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
                 >
-                    <DeleteUserForm class="max-w-xl" />
+                    <DeleteUserForm class="max-w-xl" :hasPendingReservations="hasPendingReservations" />
                 </div>
             </div>
         </div>

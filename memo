@@ -5,8 +5,12 @@ Improvement points
 /Unify the naming rule for variables and methods with camel case.
 /Delete unnecessary files e.g. users' blade files, other unused files.
 /Writing comments on codes for better understanding.
+
 /One liner for vue files if they can be made.
+   →canceled.
 /New badge, pinning, and clickable card for user's announcement index.
+   →"new" statement, clicable card done.
+    pinning canceled.
 
 Gap between stars on review page
    →done.
@@ -145,3 +149,119 @@ This project is designed as an MVP, focusing on core functionality with room for
 - Space availability visualization
 - Multi-image support for spaces
 - Advanced filtering (price range, amenities, etc.)
+
+---
+
+## 💳 Payment Integration (Implemented)
+
+### Overview
+Stripe Checkout (hosted payment page) integration. All payment logic is server-side.
+Currency is JPY only (zero-decimal). Multi-currency support can be added later via the `currency` column.
+
+---
+
+### New Files & Key Changes
+
+| File | Role |
+|---|---|
+| `app/Http/Controllers/PaymentController.php` | checkout / webhook / success / cancel |
+| `app/Models/Payment.php` | Payment model (updated) |
+| `database/migrations/..._create_payments_table.php` | payments table migration |
+| `app/Console/Commands/ExpirePendingPayments.php` | Artisan command for expiry |
+| `routes/console.php` | Schedule: every minute |
+| `routes/web.php` | Payment routes added |
+| `app/Http/Middleware/VerifyCsrfToken.php` | Webhook excluded from CSRF |
+| `app/Http/Middleware/HandleInertiaRequests.php` | `warning` flash added to shared props |
+
+---
+
+### payments Table Columns
+
+| Column | Type | Notes |
+|---|---|---|
+| `reservation_id` | ULID FK | cascadeOnDelete |
+| `payment_method` | string | e.g. `stripe_checkout` |
+| `status` | string | pending / paid / canceled / expired / failed |
+| `stripe_session_id` | string unique | NOT NULL — set at checkout |
+| `stripe_session_url` | string nullable | Used for redirecting to existing session |
+| `payment_intent_id` | string nullable unique | Set by webhook on completion |
+| `amount` | unsignedInteger | Copied from total_price_yen at checkout |
+| `currency` | string(3) default JPY | For future multi-currency support |
+| `payment_region` | string(2) nullable | Card issuing country from Stripe |
+| `paid_at` | datetime nullable | Set by webhook on completion |
+
+No soft deletes — payments are audit records and must never be deleted.
+One reservation can have multiple Payment records (retries after failure/cancel).
+
+---
+
+### reservation_status Values (Updated)
+
+| Status | Meaning |
+|---|---|
+| `pending` | Reservation created, awaiting payment (slot held) |
+| `booked` | Payment confirmed by Stripe webhook |
+| `canceled` | Payment expired / user canceled / failed |
+
+Overlap checks count both `booked` and `pending` as occupying the slot.
+
+---
+
+### Payment Flow
+
+```
+User clicks "Pay with Stripe" on confirmation page
+    ↓ POST → reservations.store
+      - Availability check (booked + pending)
+      - Create Reservation (status: pending)
+      - Redirect to payments.checkout
+    ↓ GET → payments.checkout
+      - If active pending Payment exists → redirect to existing session URL
+      - Re-check availability (with lockForUpdate)
+      - Create Stripe Checkout Session (expires_at: +30 min)
+      - Create Payment record (status: pending)
+      - Redirect to Stripe
+
+Stripe Checkout page (Stripe-hosted)
+    ↓ success           ↓ cancel
+payments.success    payments.cancel
+    ↓                   ↓
+reservations.index  Mark payment: canceled
+(ok toast)          Reservation stays pending (retry possible)
+                    reservations.index (warning toast)
+
+Stripe Webhook → payments.webhook
+  checkout.session.completed  → Reservation: booked, Payment: paid
+  checkout.session.expired    → Reservation: canceled, Payment: expired
+  payment_intent.payment_failed → Payment: failed (reservation stays pending)
+
+Artisan: payments:expire-pending (every minute)
+  → Payments pending > 30 min → Payment: expired, Reservation: canceled
+```
+
+---
+
+### Guards in checkout()
+
+1. Reservation must belong to current user (abort 403)
+2. reservation_status must be `pending` (redirect if booked or canceled)
+3. If active pending Payment exists → redirect to existing stripe_session_url
+4. Re-check availability with DB lock before creating Stripe session
+
+---
+
+### Session Expiry
+
+- Stripe session `expires_at`: 30 minutes (minimum allowed by Stripe)
+- Artisan command runs every minute as backup in case webhook is not delivered
+- Both set Payment: `expired` and Reservation: `canceled`
+
+---
+
+### Frontend Changes (reservations.index)
+
+- **Yellow badge**: "Pending Payment" for pending reservations
+- **Pay Now button**: links to `payments.checkout` for pending reservations
+- **Warning toast**: 5-second amber toast for payment cancel/expiry messages
+- **Filter**: "Pending Payment" option added to reservation status filter
+- **Cancel button**: also cancels any active pending Payment via DB transaction

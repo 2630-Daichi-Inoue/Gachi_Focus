@@ -24,7 +24,4 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
 # Copy built assets
 COPY --from=frontend /app/public/build /app/public/build
 
-# Laravel config cache周り（任意だけど安定）
-RUN php artisan config:clear
-
-CMD sh -c "php -S 0.0.0.0:${PORT:-8080} -t public"
+CMD sh -c "php artisan config:clear && php artisan migrate --force && php -S 0.0.0.0:${PORT:-8080} -t public"

@@ -8,6 +8,9 @@ const props = defineProps({
 })
 
 const getMessage = computed(() => {
+    if (isPending.value) {
+        return 'Payment is pending. Your slot is held for 30 minutes — complete payment before it expires.';
+    }
     if (props.reservation.reservation_status === 'canceled') {
         return 'This reservation has been canceled.';
     }
@@ -29,6 +32,10 @@ const getMessage = computed(() => {
     return '';
 });
 
+const isPending = computed(() => {
+    return props.reservation.reservation_status === 'pending';
+});
+
 const isCanceled = computed(() => {
     return props.reservation.reservation_status === 'canceled';
 });
@@ -39,12 +46,11 @@ const isCompleted = computed(() => {
 });
 
 const canCancel = computed(() => {
-    if(props.reservation.reservation_status === 'canceled') {
-        return false;
-    }
+    if (props.reservation.reservation_status === 'canceled') return false;
+    if (isPending.value) return true;
     const now = new Date();
     const startedAt = new Date(props.reservation.started_at);
-    return props.reservation.reservation_status === 'booked' && startedAt - now > 60 * 60 * 1000; // 1 hour in milliseconds
+    return props.reservation.reservation_status === 'booked' && startedAt - now > 60 * 60 * 1000;
 });
 
 const showCancelReservationModal = ref(false);
@@ -75,21 +81,25 @@ const hasDeletedReview = computed(() => {
 <template>
     <div class="mx-2 flex flex-col gap-2 items-center w-full">
         <!-- Button area -->
-        <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
+        <div class="w-full flex flex-col md:flex-row md:justify-center gap-2">
+            <Link v-if="isPending"
+                    :href="route('payments.checkout', reservation.id)"
+                    class="w-full md:w-auto p-2 bg-yellow-500 flex items-center justify-center h-10 text-white font-bold border border-yellow-600 rounded transition hover:bg-yellow-600">
+                Pay Now
+            </Link>
             <Link v-if="!hasDeletedReview && isCompleted"
                     :href="hasActiveReview ? route('reviews.edit', { reservation: reservation.id }) : route('reviews.create', { reservation: reservation.id })"
-                    class="p-2 bg-sky-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
+                    class="w-full md:w-auto p-2 bg-sky-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
                 {{ hasActiveReview ? 'Edit Review': 'Leave Review' }}
             </Link>
             <button v-if="!isCanceled && !isCompleted"
                     :disabled="!canCancel"
                     @click="showCancelReservationModal = true"
-                    class="btn p-4 bg-white flex items-center justify-center h-10 text-red-500 font-bold border border-red-500 rounded transition hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed
-                    disabled:hover:bg-white">
+                    class="w-full md:w-auto p-2 bg-white flex items-center justify-center h-10 text-red-500 font-bold border border-red-500 rounded transition hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white">
                 Cancel
             </button>
             <Link :href="route('contacts.create', { reservation_id: reservation.id })"
-                    class="p-2 bg-slate-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
+                    class="w-full md:w-auto p-2 bg-slate-700 flex items-center justify-center h-10 text-white font-bold border border-gray-300 rounded transition hover:bg-sky-800">
                 Contact Us
             </Link>
         </div>

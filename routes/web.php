@@ -1,9 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 // Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -24,14 +22,10 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return redirect()->route('login');
 })->name('index');
 
 Route::middleware(['auth', 'admin'])
@@ -188,6 +182,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::patch('/{notification}/read', 'read')->name('read');
     });
+
+    // Payments
+    Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
+        Route::get('/{reservation}/checkout', 'checkout')->name('checkout');
+        Route::get('/{reservation}/success',  'success')->name('success');
+        Route::get('/{reservation}/cancel',   'cancel')->name('cancel');
+    });
 });
+
+// Guest contact — no auth required (for banned users to reach support)
+Route::prefix('guest-contact')->name('guest-contact.')->controller(ContactController::class)->group(function () {
+    Route::get('/create', 'guestCreate')->name('create');
+    Route::post('/', 'guestStore')->name('store');
+});
+
+// Stripe webhook — outside auth middleware, CSRF excluded via VerifyCsrfToken
+Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('payments.webhook');
 
 require __DIR__.'/auth.php';

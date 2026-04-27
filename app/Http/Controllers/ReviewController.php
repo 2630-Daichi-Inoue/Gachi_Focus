@@ -104,6 +104,11 @@ class ReviewController extends Controller
 
     public function store(StoreReviewRequest $request, Reservation $reservation)
     {
+        if (Auth::user()->isRestricted()) {
+            return redirect()->route('reservations.index')
+                            ->with('error', 'Your account is currently restricted. New reviews cannot be submitted.');
+        }
+
         $data = $request->validated();
 
         $existingReview = Review::where('user_id', Auth::id())
