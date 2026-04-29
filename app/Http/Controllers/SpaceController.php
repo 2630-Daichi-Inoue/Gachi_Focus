@@ -79,11 +79,12 @@ class SpaceController extends Controller
             'favoriteSpaceIds' => $favoriteSpaceIds,
             'prefectures' => $prefectures,
             'filters' => [
-                'name'       => $request->name,
-                'prefecture' => $request->prefecture,
-                'city'       => $request->city,
-                'max_price'  => $request->max_price,
-                'sort'       => $request->input('sort', 'favorite_first'),
+                'name'          => $request->name,
+                'prefecture'    => $request->prefecture,
+                'city'          => $request->city,
+                'max_price'     => $request->max_price,
+                'sort'          => $request->input('sort', 'favorite_first'),
+                'rows_per_page' => (int) $request->input('rows_per_page', 3),
             ]
         ]);
     }
