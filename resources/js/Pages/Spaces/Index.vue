@@ -93,7 +93,7 @@ watch(() => form.rows_per_page, () => { search() })
             </div>
 
             <!-- Card list -->
-            <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div v-else class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mt-6">
                 <div v-for="space in spaces.data"
                     :key="space.id"
                     class="md:w-full mb-4"

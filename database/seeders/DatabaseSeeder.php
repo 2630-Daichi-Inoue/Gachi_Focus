@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $users = User::factory(100)->create();
-        $spaces = Space::factory(50)->create();
+        $spaces = Space::factory(10)->create();
         // User::factory()->suspended()->create();
 
         foreach(range(1, 100) as $i) {
