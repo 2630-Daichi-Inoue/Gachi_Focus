@@ -23,17 +23,30 @@ class StoreReservationRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $date = $this->input('date');
+            $space     = $this->route('space');
+            $date      = $this->input('date');
             $startedAt = $this->input('started_at');
+            $endedAt   = $this->input('ended_at');
 
-            if (!$date || !$startedAt) {
+            if (!$date || !$startedAt || !$endedAt || !$space) {
                 return;
             }
 
-            $start = Carbon::parse($date . ' ' . $startedAt);
+            $start      = Carbon::parse($date . ' ' . $startedAt);
+            $end        = Carbon::parse($date . ' ' . $endedAt);
+            $openTime   = Carbon::parse($date . ' ' . $space->open_time);
+            $closeTime  = Carbon::parse($date . ' ' . $space->close_time);
 
             if (Carbon::parse($date)->isToday() && $start->lte(now())) {
                 $validator->errors()->add('started_at', 'Start time must be in the future.');
+            }
+
+            if ($start->lt($openTime)) {
+                $validator->errors()->add('started_at', 'Start time must be within the space opening hours.');
+            }
+
+            if ($end->gt($closeTime)) {
+                $validator->errors()->add('ended_at', 'End time must be within the space closing hours.');
             }
         });
     }
