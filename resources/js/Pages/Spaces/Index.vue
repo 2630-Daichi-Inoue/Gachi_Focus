@@ -93,10 +93,9 @@ watch(() => form.rows_per_page, () => { search() })
             </div>
 
             <!-- Card list -->
-            <div v-else class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mt-6">
+            <div v-else class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 mt-6 mb-6">
                 <div v-for="space in spaces.data"
                     :key="space.id"
-                    class="md:w-full mb-4"
                 >
                     <div class="h-full flex flex-col">
                         <SpaceCardTitle :space="space" :isFavorite="favoriteSpaceIds.includes(space.id)" />
@@ -114,13 +113,13 @@ watch(() => form.rows_per_page, () => { search() })
                         Showing {{ spaces.from }} to {{ spaces.to }} of {{ spaces.total }} results
                     </p>
                     <div class="flex items-center gap-1">
-                        <label class="text-sm text-gray-500">Rows:</label>
+                        <label class="text-sm text-gray-500">Per page:</label>
                         <select v-model="form.rows_per_page" class="border rounded pl-2 pr-7 py-1 text-sm">
-                            <option :value="1">1</option>
-                            <option :value="2">2</option>
                             <option :value="3">3</option>
-                            <option :value="4">4</option>
-                            <option :value="5">5</option>
+                            <option :value="6">6</option>
+                            <option :value="9">9</option>
+                            <option :value="12">12</option>
+                            <option :value="15">15</option>
                         </select>
                     </div>
                 </div>
