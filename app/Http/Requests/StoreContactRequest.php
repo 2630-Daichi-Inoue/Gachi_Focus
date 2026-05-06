@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreContactRequest extends FormRequest
 {
@@ -23,7 +25,7 @@ class StoreContactRequest extends FormRequest
             ],
             'reservation_id' => [
                 'nullable',
-                'exists:reservations,id'
+                Rule::exists('reservations', 'id')->where('user_id', Auth::id())
             ]
         ];
     }

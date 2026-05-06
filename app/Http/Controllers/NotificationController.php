@@ -30,8 +30,10 @@ class NotificationController extends Controller
 
         // Filter by keyword
         if($data['keyword']) {
-            $query->where('title', 'like', '%' . $data['keyword'] . '%')
+            $query->where(function ($q) use ($data) {
+                $q->where('title', 'like', '%' . $data['keyword'] . '%')
                   ->orWhere('message', 'like', '%' . $data['keyword'] . '%');
+            });
         }
 
         // Filter by read/unread status

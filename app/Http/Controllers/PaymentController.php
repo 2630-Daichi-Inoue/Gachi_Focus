@@ -32,7 +32,7 @@ class PaymentController extends Controller
 
         // If an active pending payment exists, redirect to its existing Stripe session
         $existingPayment = $reservation->payments()
-            ->where('status', '=', 'pending', 'and')
+            ->where('status', 'pending')
             ->latest()
             ->first();
 
@@ -153,6 +153,10 @@ class PaymentController extends Controller
      */
     public function success(Request $request, Reservation $reservation)
     {
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $sessionId = $request->query('session_id');
 
         if ($sessionId) {
@@ -164,7 +168,7 @@ class PaymentController extends Controller
 
                 if ($session->payment_status === 'paid') {
                     DB::transaction(function () use ($sessionId, $session) {
-                        $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
+                        $payment = Payment::where('stripe_session_id', $sessionId)
                             ->lockForUpdate()
                             ->first();
 
@@ -194,8 +198,12 @@ class PaymentController extends Controller
      */
     public function cancel(Request $request, Reservation $reservation)
     {
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $reservation->payments()
-            ->where('status', '=', 'pending', 'and')
+            ->where('status', 'pending')
             ->latest()
             ->first()
             ?->update(['status' => 'canceled']);
@@ -214,7 +222,7 @@ class PaymentController extends Controller
         if (!$sessionId) return;
 
         DB::transaction(function () use ($obj, $sessionId) {
-            $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
+            $payment = Payment::where('stripe_session_id', $sessionId)
                 ->lockForUpdate()
                 ->first();
 
@@ -236,7 +244,7 @@ class PaymentController extends Controller
         if (!$sessionId) return;
 
         DB::transaction(function () use ($sessionId) {
-            $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
+            $payment = Payment::where('stripe_session_id', $sessionId)
                 ->lockForUpdate()
                 ->first();
 
@@ -256,7 +264,7 @@ class PaymentController extends Controller
         if (!$intentId) return;
 
         DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', '=', $intentId, 'and')
+            $payment = Payment::where('payment_intent_id', $intentId)
                 ->lockForUpdate()
                 ->first();
 
@@ -278,7 +286,7 @@ class PaymentController extends Controller
         if (!$intentId) return;
 
         DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', '=', $intentId, 'and')
+            $payment = Payment::where('payment_intent_id', $intentId)
                 ->lockForUpdate()
                 ->first();
 

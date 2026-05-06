@@ -31,8 +31,10 @@ class AnnouncementController extends Controller
 
         // Filter by keyword
         if($request->input('keyword')) {
-            $query->where('title', 'like', '%' . $request->input('keyword') . '%')
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->input('keyword') . '%')
                   ->orWhere('message', 'like', '%' . $request->input('keyword') . '%');
+            });
         }
 
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
