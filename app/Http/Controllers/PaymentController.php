@@ -32,7 +32,7 @@ class PaymentController extends Controller
 
         // If an active pending payment exists, redirect to its existing Stripe session
         $existingPayment = $reservation->payments()
-            ->where('status', 'pending')
+            ->where('status', '=', 'pending', 'and')
             ->latest()
             ->first();
 
@@ -113,7 +113,6 @@ class PaymentController extends Controller
             'stripe_session_id'  => $session->id,
             'stripe_session_url' => $session->url,
             'amount'             => $reservation->total_price_yen,
-            'currency'           => 'JPY',
         ]);
 
         return Inertia::location($session->url);
@@ -165,7 +164,7 @@ class PaymentController extends Controller
 
                 if ($session->payment_status === 'paid') {
                     DB::transaction(function () use ($sessionId, $session) {
-                        $payment = Payment::where('stripe_session_id', $sessionId)
+                        $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
                             ->lockForUpdate()
                             ->first();
 
@@ -196,7 +195,7 @@ class PaymentController extends Controller
     public function cancel(Request $request, Reservation $reservation)
     {
         $reservation->payments()
-            ->where('status', 'pending')
+            ->where('status', '=', 'pending', 'and')
             ->latest()
             ->first()
             ?->update(['status' => 'canceled']);
@@ -215,7 +214,7 @@ class PaymentController extends Controller
         if (!$sessionId) return;
 
         DB::transaction(function () use ($obj, $sessionId) {
-            $payment = Payment::where('stripe_session_id', $sessionId)
+            $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
                 ->lockForUpdate()
                 ->first();
 
@@ -224,7 +223,6 @@ class PaymentController extends Controller
             $payment->update([
                 'status'            => 'paid',
                 'payment_intent_id' => $obj['payment_intent'] ?? null,
-                'payment_region'    => $obj['payment_method_details']['card']['country'] ?? null,
                 'paid_at'           => Carbon::now(),
             ]);
 
@@ -238,7 +236,7 @@ class PaymentController extends Controller
         if (!$sessionId) return;
 
         DB::transaction(function () use ($sessionId) {
-            $payment = Payment::where('stripe_session_id', $sessionId)
+            $payment = Payment::where('stripe_session_id', '=', $sessionId, 'and')
                 ->lockForUpdate()
                 ->first();
 
@@ -258,7 +256,7 @@ class PaymentController extends Controller
         if (!$intentId) return;
 
         DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', $intentId)
+            $payment = Payment::where('payment_intent_id', '=', $intentId, 'and')
                 ->lockForUpdate()
                 ->first();
 
@@ -280,7 +278,7 @@ class PaymentController extends Controller
         if (!$intentId) return;
 
         DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', $intentId)
+            $payment = Payment::where('payment_intent_id', '=', $intentId, 'and')
                 ->lockForUpdate()
                 ->first();
 

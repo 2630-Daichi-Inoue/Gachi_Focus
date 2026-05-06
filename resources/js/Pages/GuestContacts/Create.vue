@@ -1,12 +1,15 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const form = useForm({
     email: '',
     title: '',
     message: '',
 });
+
+const flashError = computed(() => usePage().props.flash?.error);
 
 const submit = () => {
     form.post(route('guest-contact.store'));
@@ -24,6 +27,10 @@ const submit = () => {
             </div>
 
             <p class="text-center text-sm text-gray-400 mb-8">Contact us and we will get back to you as soon as possible.</p>
+
+            <div v-if="flashError" class="mb-4 px-4 py-3 rounded bg-red-100 text-red-700 text-sm">
+                {{ flashError }}
+            </div>
 
             <form @submit.prevent="submit" class="space-y-5">
 

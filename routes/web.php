@@ -170,7 +170,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('contacts')->name('contacts.')->controller(ContactController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
+        Route::post('/', 'store')->name('store')->middleware('throttle:3,30');
         Route::patch('/{contact}/cancel', 'cancel')->name('cancel');
     });
 
@@ -194,7 +194,7 @@ Route::middleware('auth')->group(function () {
 // Guest contact — no auth required (for banned users to reach support)
 Route::prefix('guest-contact')->name('guest-contact.')->controller(ContactController::class)->group(function () {
     Route::get('/create', 'guestCreate')->name('create');
-    Route::post('/', 'guestStore')->name('store');
+    Route::post('/', 'guestStore')->name('store')->middleware('throttle:1,30');
 });
 
 // Stripe webhook — outside auth middleware, CSRF excluded via VerifyCsrfToken

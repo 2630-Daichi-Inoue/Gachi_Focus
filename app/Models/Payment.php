@@ -16,8 +16,6 @@ class Payment extends Model
         'stripe_session_url',
         'payment_intent_id',
         'amount',
-        'currency',
-        'payment_region',
         'paid_at',
     ];
 

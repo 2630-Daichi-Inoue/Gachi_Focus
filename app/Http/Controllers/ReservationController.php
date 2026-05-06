@@ -75,6 +75,22 @@ class ReservationController extends Controller
         ]);
     }
 
+    private function checkCapacity(Space $space, Carbon $startedAt, Carbon $endedAt, int $quantity): void
+    {
+        $overlappingQuantity = Reservation::query()
+            ->where('space_id', $space->id)
+            ->whereIn('reservation_status', ['booked', 'pending'])
+            ->where('started_at', '<', $endedAt)
+            ->where('ended_at', '>', $startedAt)
+            ->sum('quantity');
+
+        if ($overlappingQuantity + $quantity > $space->capacity) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Sorry, but there are not enough spaces available for the selected time slot.',
+            ]);
+        }
+    }
+
     private function applySort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'date_future_to_past') {
@@ -166,18 +182,7 @@ class ReservationController extends Controller
 
         $checkedSpace = Space::whereKey($space->id)->firstOrFail();
 
-        $overlappingQuantity = Reservation::query()
-                                            ->where('space_id', $checkedSpace->id)
-                                            ->whereIn('reservation_status', ['booked', 'pending'])
-                                            ->where('started_at', '<', $newEndedAt)
-                                            ->where('ended_at', '>', $newStartedAt)
-                                            ->sum('quantity');
-
-        if ($overlappingQuantity + $data['quantity'] > $checkedSpace->capacity) {
-            throw ValidationException::withMessages([
-                'quantity' => 'Sorry, but there are not enough spaces available for the selected time slot.',
-            ]);
-        }
+        $this->checkCapacity($checkedSpace, $newStartedAt, $newEndedAt, $data['quantity']);
 
         $conflictingReservations = Reservation::query()
             ->where('user_id', Auth::id())
@@ -226,18 +231,7 @@ class ReservationController extends Controller
         $reservation = DB::transaction(function() use ($space, $data, $newStartedAt, $newEndedAt) {
             $checkedSpace = Space::whereKey($space->id)->lockForUpdate()->firstOrFail();
 
-            $overlappingQuantity = Reservation::query()
-                                    ->where('space_id', $checkedSpace->id)
-                                    ->whereIn('reservation_status', ['booked', 'pending'])
-                                    ->where('started_at', '<', $newEndedAt)
-                                    ->where('ended_at', '>', $newStartedAt)
-                                    ->sum('quantity');
-
-            if ($overlappingQuantity + $data['quantity'] > $checkedSpace->capacity) {
-                throw ValidationException::withMessages([
-                    'quantity' => 'Sorry, but there are not enough spaces available for the selected time slot.',
-                ]);
-            }
+            $this->checkCapacity($checkedSpace, $newStartedAt, $newEndedAt, $data['quantity']);
 
             $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
             ? $checkedSpace->weekend_price_yen
