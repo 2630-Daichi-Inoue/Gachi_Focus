@@ -1,33 +1,20 @@
 <script setup>
-
-import { Link, router } from '@inertiajs/vue3'
-import { reactive } from 'vue'
+import InputError from '@/Components/InputError.vue'
+import { Link, useForm } from '@inertiajs/vue3'
 
 const props = defineProps({
     reservation: Object,
 })
 
-const form = reactive({
+const form = useForm({
     title: '',
-    message:  '',
+    message: '',
+    reservation_id: props.reservation?.id ?? null,
 })
 
 const submitContact = () => {
-    if (props.reservation !== null) {
-        router.post(route('contacts.store'), {
-            title: form.title,
-            message: form.message,
-            reservation_id: props.reservation.id
-        })
-    } else {
-        router.post(route('contacts.store'), {
-            title: form.title,
-            message: form.message,
-            reservation_id: null
-        })
-    }
+    form.post(route('contacts.store'))
 }
-
 </script>
 
 <template>
@@ -35,22 +22,13 @@ const submitContact = () => {
     <form @submit.prevent="submitContact" class="space-y-4">
 
         <div class="p-4 space-y-4">
-            <!-- <div class="flex flex-col md:flex-row gap-4">
-                <div class="w-full md:w-1/2">
-                    <img :src="reservation.space.image_path ? `/storage/${reservation.space.image_path}` : '/images/no-image.png'"
-                        :alt="`space ${reservation.space.name}`"
-                        class="object-cover rounded border border-gray-300"
-                    >
-                </div>
-
-                <div class="w-full md:w-1/2">
-                    <h1 class="text-3xl font-bold mb-2">{{ reservation.space.name }}</h1>
-                </div>
-            </div> -->
-
             <div class="w-full">
                 <label for="title" class="text-2xl text-gray-500">Title</label>
-                <input type="text" name="title" id="title" v-model="form.title" placeholder="Enter the title." class="w-full border border-gray-300 rounded p-2">
+                <input type="text" name="title" id="title" v-model="form.title"
+                    placeholder="Enter the title."
+                    class="w-full border border-gray-300 rounded p-2"
+                    required>
+                <InputError :message="form.errors.title" class="mt-1" />
             </div>
 
             <div class="w-full">
@@ -61,8 +39,10 @@ const submitContact = () => {
                         v-model="form.message"
                         placeholder="Write your message here."
                         class="w-full border border-gray-300 rounded p-2"
-                        rows="5">
+                        rows="5"
+                        required>
                 </textarea>
+                <InputError :message="form.errors.message" class="mt-1" />
             </div>
         </div>
 
@@ -78,7 +58,8 @@ const submitContact = () => {
                 Go Back
             </Link>
             <button type="submit"
-                    class="flex items-center justify-center md:w-1/2 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700">
+                    :disabled="form.processing"
+                    class="flex items-center justify-center md:w-1/2 text-white font-bold text-3xl border border-gray-500 rounded transition bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50">
                 Submit Contact
             </button>
         </div>

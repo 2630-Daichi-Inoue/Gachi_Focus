@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Reservation;
 use App\Models\User;
+use App\Services\RefundService;
 use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
@@ -85,7 +87,7 @@ class UsersController extends Controller
     }
 
     # Ban User
-    public function ban(User $user)
+    public function ban(User $user, RefundService $refundService)
     {
         if ($user->trashed()) {
             return redirect()->route('admin.users.index')
@@ -94,6 +96,12 @@ class UsersController extends Controller
 
         $user->update(['user_status' => 'banned']);
         $user->reviews()->update(['is_public' => false]);
+
+        Reservation::where('user_id', $user->id)
+            ->where('reservation_status', 'booked')
+            ->where('started_at', '>', now())
+            ->get()
+            ->each(fn($reservation) => $refundService->refundAndCancel($reservation));
 
         return redirect()->route('admin.users.index')
                         ->with('ok', 'Successfully banned.');

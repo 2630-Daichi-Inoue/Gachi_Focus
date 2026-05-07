@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Link, router, usePage } from '@inertiajs/vue3'
+import { Link, useForm } from '@inertiajs/vue3'
 import { formatTime } from '@/utils/formatters'
 
 const props = defineProps({
@@ -12,19 +12,20 @@ const props = defineProps({
     },
 })
 
-const page = usePage()
 const overlapConfirmed = ref(false)
 const hasConflicts = computed(() => props.conflictingReservations.length > 0)
-const canSubmit = computed(() => !hasConflicts.value || overlapConfirmed.value)
+const canSubmit = computed(() => (!hasConflicts.value || overlapConfirmed.value) && !form.processing)
+
+const form = useForm({
+    date:       props.reservationData?.date,
+    started_at: props.reservationData?.started_at,
+    ended_at:   props.reservationData?.ended_at,
+    quantity:   props.reservationData?.quantity,
+})
 
 const payment = () => {
     if (!props.reservationData) return
-    router.post(route('reservations.store', props.space.id), {
-        date: props.reservationData.date,
-        started_at: props.reservationData.started_at,
-        ended_at: props.reservationData.ended_at,
-        quantity: props.reservationData.quantity,
-    })
+    form.post(route('reservations.store', props.space.id))
 }
 </script>
 
@@ -53,8 +54,8 @@ const payment = () => {
             </label>
         </div>
 
-        <p v-if="page.props.errors.quantity" class="text-red-600 text-sm">
-            {{ page.props.errors.quantity }}
+        <p v-if="form.errors.quantity" class="text-red-600 text-sm">
+            {{ form.errors.quantity }}
         </p>
 
         <div class="flex flex-col md:flex-row gap-2">

@@ -1,6 +1,6 @@
 <script setup>
-import { Link, router, usePage } from '@inertiajs/vue3'
-import { reactive, computed, ref } from 'vue'
+import { Link, router, useForm, usePage } from '@inertiajs/vue3'
+import { computed, ref } from 'vue'
 import Vue3StarRating from 'vue3-star-ratings'
 import DeleteReviewModal from './DeleteReviewModal.vue'
 
@@ -9,22 +9,16 @@ const props = defineProps({
     review: Object,
 })
 
-const form = reactive({
+const form = useForm({
     rating: Math.round(Number(props.review?.rating ?? 1)),
     comment: props.review?.comment ?? '',
 })
 
 const submitReview = () => {
     if (props.review) {
-        router.patch(route('reviews.update', props.reservation.id), {
-            rating: form.rating,
-            comment: form.comment,
-        })
+        form.patch(route('reviews.update', props.reservation.id))
     } else {
-        router.post(route('reviews.store', props.reservation.id), {
-            rating: form.rating,
-            comment: form.comment,
-        })
+        form.post(route('reviews.store', props.reservation.id))
     }
 }
 
@@ -39,24 +33,22 @@ const ratingProxy = computed({
 
 const isRestricted = usePage().props.auth.user.user_status === 'restricted'
 
-const showDeleteModal = ref(false);
-const deleteError = ref('');
+const showDeleteModal = ref(false)
+const deleteError = ref('')
 
 const deleteReview = () => {
     router.delete(route('reviews.destroy', props.reservation.id), {
         preserveScroll: true,
         onSuccess: () => {
-            showDeleteModal.value = false;
-            deleteError.value = '';
+            showDeleteModal.value = false
+            deleteError.value = ''
         },
         onError: () => {
-            showDeleteModal.value = false;
-            deleteError.value = 'Failed to delete the review. Please try again.';
+            showDeleteModal.value = false
+            deleteError.value = 'Failed to delete the review. Please try again.'
         },
     })
-};
-
-
+}
 </script>
 
 <template>
@@ -100,6 +92,7 @@ const deleteReview = () => {
                         class="w-full border border-gray-300 rounded p-2"
                         rows="5">
                 </textarea>
+                <p v-if="form.errors.comment" class="text-sm text-red-500 mt-1">{{ form.errors.comment }}</p>
             </div>
         </div>
 
@@ -119,8 +112,8 @@ const deleteReview = () => {
                 </button>
                 <button type="submit"
                         :class="review ? 'md:w-1/3' : 'md:w-1/2'"
-                        :disabled="!review && isRestricted"
-                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition"
+                        :disabled="(!review && isRestricted) || form.processing"
+                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition disabled:opacity-50"
                         :style="!review && isRestricted ? 'background-color: #9ca3af; cursor: not-allowed; border-color: #9ca3af;' : ''">
                     {{ review ? 'Update Review' : 'Submit Review' }}
                 </button>

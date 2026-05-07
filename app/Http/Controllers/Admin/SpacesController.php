@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 
 
 use Illuminate\Http\Request;
-use App\Models\Space;
 use App\Models\Amenity;
+use App\Models\Reservation;
+use App\Models\Space;
+use App\Services\RefundService;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSpaceRequest;
@@ -199,8 +201,14 @@ class SpacesController extends Controller
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully shown.');
     }
 
-    public function destroy(Space $space)
+    public function destroy(Space $space, RefundService $refundService)
     {
+        Reservation::where('space_id', $space->id)
+            ->where('reservation_status', 'booked')
+            ->where('started_at', '>', now())
+            ->get()
+            ->each(fn($reservation) => $refundService->refundAndCancel($reservation));
+
         $space->delete();
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully deleted.');
     }
