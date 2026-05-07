@@ -40,16 +40,18 @@ const ratingProxy = computed({
 const isRestricted = usePage().props.auth.user.user_status === 'restricted'
 
 const showDeleteModal = ref(false);
+const deleteError = ref('');
 
 const deleteReview = () => {
-    // Call the API to delete the review
     router.delete(route('reviews.destroy', props.reservation.id), {
         preserveScroll: true,
         onSuccess: () => {
             showDeleteModal.value = false;
+            deleteError.value = '';
         },
         onError: () => {
-            alert('Failed to delete the review. Please try again.');
+            showDeleteModal.value = false;
+            deleteError.value = 'Failed to delete the review. Please try again.';
         },
     })
 };
@@ -101,6 +103,7 @@ const deleteReview = () => {
             </div>
         </div>
 
+        <p v-if="deleteError" class="text-sm text-red-500">{{ deleteError }}</p>
         <div class="flex flex-col md:flex-row gap-4">
             <Link :href="route('reservations.index')"
                     :class="review ? 'md:w-1/3' : 'md:w-1/2'"

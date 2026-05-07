@@ -113,7 +113,6 @@ class PaymentController extends Controller
             'stripe_session_id'  => $session->id,
             'stripe_session_url' => $session->url,
             'amount'             => $reservation->total_price_yen,
-            'currency'           => 'JPY',
         ]);
 
         return Inertia::location($session->url);
@@ -154,6 +153,10 @@ class PaymentController extends Controller
      */
     public function success(Request $request, Reservation $reservation)
     {
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $sessionId = $request->query('session_id');
 
         if ($sessionId) {
@@ -195,6 +198,10 @@ class PaymentController extends Controller
      */
     public function cancel(Request $request, Reservation $reservation)
     {
+        if ($reservation->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $reservation->payments()
             ->where('status', 'pending')
             ->latest()
@@ -224,7 +231,6 @@ class PaymentController extends Controller
             $payment->update([
                 'status'            => 'paid',
                 'payment_intent_id' => $obj['payment_intent'] ?? null,
-                'payment_region'    => $obj['payment_method_details']['card']['country'] ?? null,
                 'paid_at'           => Carbon::now(),
             ]);
 

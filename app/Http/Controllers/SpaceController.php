@@ -21,9 +21,10 @@ class SpaceController extends Controller
         );
 
         $request->validate([
-            'name' => ['nullable','string','max:50'],
-            'prefecture' => ['nullable', Rule::in(array_merge(['all'], $prefectureList))],
-            'city' => ['nullable','string','max:50'],
+            'name'          => ['nullable', 'string', 'max:50'],
+            'prefecture'    => ['nullable', Rule::in(array_merge(['all'], $prefectureList))],
+            'city'          => ['nullable', 'string', 'max:50'],
+            'max_price'     => ['nullable', 'integer', 'min:0'],
             'rows_per_page' => ['nullable', 'integer', 'in:3,6,9,12,15']
         ]);
 

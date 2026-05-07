@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Notification;
+use App\Traits\AppliesChronologicalSort;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
 {
+    use AppliesChronologicalSort;
     /**
      * Display a listing of the resource.
      */
@@ -30,8 +32,10 @@ class NotificationController extends Controller
 
         // Filter by keyword
         if($data['keyword']) {
-            $query->where('title', 'like', '%' . $data['keyword'] . '%')
+            $query->where(function ($q) use ($data) {
+                $q->where('title', 'like', '%' . $data['keyword'] . '%')
                   ->orWhere('message', 'like', '%' . $data['keyword'] . '%');
+            });
         }
 
         // Filter by read/unread status
@@ -61,21 +65,7 @@ class NotificationController extends Controller
 
     private function applySort(Builder $q, ?string $sort): void
     {
-        switch ($sort ?? 'datePresentToPast') {
-            case 'datePresentToPast':
-                $q->orderBy('created_at', 'desc')
-                    ->latest('id');
-                break;
-
-            case 'datePastToPresent':
-                $q->orderBy('created_at', 'asc')
-                    ->latest('id');
-                break;
-
-            default:
-                $q->orderBy('created_at', 'desc')
-                    ->latest('id');
-        }
+        $this->applyChronologicalSort($q, $sort, 'created_at', 'datePastToPresent');
     }
 
     public function read(Notification $notification)
