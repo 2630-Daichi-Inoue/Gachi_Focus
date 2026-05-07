@@ -54,16 +54,18 @@ const canCancel = computed(() => {
 });
 
 const showCancelReservationModal = ref(false);
+const cancelError = ref('');
 
 const cancelReservation = () => {
-    // Call the API to cancel the reservation
-    router.patch(route('reservations.cancel', props.reservation.id), {},  {
+    router.patch(route('reservations.cancel', props.reservation.id), {}, {
         preserveScroll: true,
         onSuccess: () => {
             showCancelReservationModal.value = false;
+            cancelError.value = '';
         },
         onError: () => {
-            alert('Failed to cancel the reservation. Please try again.');
+            showCancelReservationModal.value = false;
+            cancelError.value = 'Failed to cancel the reservation. Please try again.';
         },
     })
 };
@@ -103,6 +105,8 @@ const hasDeletedReview = computed(() => {
                 Contact Us
             </Link>
         </div>
+        <!-- Cancel error -->
+        <p v-if="cancelError" class="text-sm text-red-500">{{ cancelError }}</p>
         <!-- Message area -->
         <p class="text-sm" :class="{
             'text-gray-500': isCanceled || (isCompleted && hasDeletedReview),

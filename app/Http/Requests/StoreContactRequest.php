@@ -21,7 +21,7 @@ class StoreContactRequest extends FormRequest
             'message' => [
                 'required',
                 'string',
-                'max:100'
+                'max:1000'
             ],
             'reservation_id' => [
                 'nullable',

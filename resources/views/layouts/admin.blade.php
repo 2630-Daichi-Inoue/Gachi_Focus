@@ -26,6 +26,10 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 </head>
 <style>
+    html {
+        overflow-y: scroll;
+    }
+
     body {
         background-color: #ffffff;
         padding-top: 70px;
@@ -47,6 +51,15 @@
         align-items: center;
         padding-top: 0;
         padding-bottom: 0;
+    }
+
+    .navbar-custom .navbar-nav {
+        align-items: center;
+    }
+
+    .navbar-custom .nav-link {
+        display: inline-flex !important;
+        align-items: center;
     }
 </style>
 
@@ -130,7 +143,7 @@
 
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
-                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3"
+                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3 d-flex align-items-center"
                                         data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
 
                                         <!-- Unread mark on the bell icon -->
@@ -183,7 +196,7 @@
 
                                 <!-- notification -->
                                 <li class="nav-item dropdown">
-                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3"
+                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3 d-flex align-items-center"
                                         data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
 
                                         <!-- Unread mark on the bell icon -->
@@ -227,11 +240,11 @@
                             @endif
 
                             @if (auth()->user()->isAdmin())
-                                <i class="fas fa-circle-user text-secondary icon-sm"></i>
                                 <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href=""
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-1" href=""
                                         role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false" v-pre>
+                                        <i class="fas fa-circle-user text-secondary"></i>
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">

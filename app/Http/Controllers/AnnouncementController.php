@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Traits\AppliesChronologicalSort;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
 {
+    use AppliesChronologicalSort;
     /**
      * Display a listing of the resource.
      */
@@ -58,21 +60,7 @@ class AnnouncementController extends Controller
 
     private function applySort(Builder $q, ?string $sort): void
     {
-        switch ($sort ?? 'datePresentToPast') {
-            case 'datePresentToPast':
-                $q->orderBy('published_at', 'desc')
-                    ->latest('id');
-                break;
-
-            case 'datePastToPresent':
-                $q->orderBy('published_at', 'asc')
-                    ->latest('id');
-                break;
-
-            default:
-                $q->orderBy('published_at', 'desc')
-                    ->latest('id');
-        }
+        $this->applyChronologicalSort($q, $sort, 'published_at', 'datePastToPresent');
     }
 
     /**
