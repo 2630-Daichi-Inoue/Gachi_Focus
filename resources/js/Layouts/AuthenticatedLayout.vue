@@ -106,7 +106,16 @@ watch(
                                     :href="route('notifications.index')"
                                     :active="route().current('notifications.index')"
                                 >
-                                    Notifications
+                                    <span class="relative">
+                                        Notifications
+                                        <span
+                                            v-if="page.props.unreadNotificationCount > 0"
+                                            class="absolute -top-2 -left-2 inline-flex items-center justify-center rounded-full bg-red-500 text-white"
+                                            style="font-size: 0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 3px; line-height: 1;"
+                                        >
+                                            {{ page.props.unreadNotificationCount > 10 ? '10+' : page.props.unreadNotificationCount }}
+                                        </span>
+                                    </span>
                                 </NavLink>
 
                             </div>
@@ -216,12 +225,45 @@ watch(
                         >
                             Spaces
                         </ResponsiveNavLink>
-                        <!-- <ResponsiveNavLink
+                        <ResponsiveNavLink
                             :href="route('reservations.index')"
                             :active="route().current('reservations.index')"
                         >
-                            My Reservations
-                        </ResponsiveNavLink> -->
+                            My reservations
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('contacts.index')"
+                            :active="route().current('contacts.index')"
+                        >
+                            My contacts
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('contacts.create', { reservation_id: null })"
+                            :active="route().current('contacts.create')"
+                        >
+                            Make a contact
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('announcements.index')"
+                            :active="route().current('announcements.index')"
+                        >
+                            Announcements
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('notifications.index')"
+                            :active="route().current('notifications.index')"
+                        >
+                            <span class="relative inline-flex items-center">
+                                Notifications
+                                <span
+                                    v-if="page.props.unreadNotificationCount > 0"
+                                    class="ms-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white"
+                                    style="font-size: 0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 3px; line-height: 1;"
+                                >
+                                    {{ page.props.unreadNotificationCount > 10 ? '10+' : page.props.unreadNotificationCount }}
+                                </span>
+                            </span>
+                        </ResponsiveNavLink>
                     </div>
 
                     <!-- Responsive Settings Options -->

@@ -15,6 +15,7 @@ class ContactsController extends Controller
     public function index(Request $request)
     {
         $request->validate([
+            'id'             => ['nullable', 'integer'],
             'user_name'      => ['nullable', 'string', 'max:50'],
             'contact_status' => ['nullable', 'in:all,open,closed,canceled'],
             'keyword'        => ['nullable', 'string', 'max:50'],
@@ -24,6 +25,11 @@ class ContactsController extends Controller
 
         $query = Contact::query()
                         ->with('user');
+
+        // Filter by ID (e.g. from notification bell)
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
 
         // Filter by username
         if ($request->filled('user_name')) {
