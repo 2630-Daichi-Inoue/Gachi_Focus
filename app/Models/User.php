@@ -115,21 +115,21 @@ class User extends Authenticatable
 
     public function isActive(): bool
     {
-        return $this->user_status === 'active' && is_null($this->deleted_at);
+        return $this->user_status === 'active' && !$this->trashed();
     }
 
     public function isRestricted(): bool
     {
-        return $this->user_status === 'restricted' && is_null($this->deleted_at);
+        return $this->user_status === 'restricted' && !$this->trashed();
     }
 
     public function isBanned(): bool
     {
-        return $this->user_status === 'banned' && is_null($this->deleted_at);
+        return $this->user_status === 'banned' && !$this->trashed();
     }
 
     public function isDeleted(): bool
     {
-        return !is_null($this->deleted_at);
+        return $this->trashed();
     }
 }

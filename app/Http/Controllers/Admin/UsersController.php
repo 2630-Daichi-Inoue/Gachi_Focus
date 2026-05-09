@@ -57,7 +57,7 @@ class UsersController extends Controller
         return view('admin.users.index', compact('users', 'rowsPerPage'));
     }
 
-    # Restrict User
+    // Restrict User
     public function restrict(User $user)
     {
         if ($user->trashed()) {
@@ -72,7 +72,7 @@ class UsersController extends Controller
                         ->with('ok', 'Successfully restricted.');
     }
 
-    # Activate User
+    // Activate User
     public function activate(User $user)
     {
         if ($user->trashed()) {
@@ -86,7 +86,7 @@ class UsersController extends Controller
                         ->with('ok', 'Successfully activated.');
     }
 
-    # Ban User
+    // Ban User
     public function ban(User $user, RefundService $refundService)
     {
         if ($user->trashed()) {

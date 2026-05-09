@@ -112,7 +112,7 @@ class Space extends Model
     */
     public function isPublic(): bool
     {
-        return $this->is_public && is_null($this->deleted_at);
+        return $this->is_public && !$this->trashed();
     }
 
     public function isWithinBusinessHours(CarbonInterface $startedAt, CarbonInterface $endedAt): bool

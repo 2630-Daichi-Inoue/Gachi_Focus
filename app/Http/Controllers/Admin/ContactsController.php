@@ -101,12 +101,9 @@ class ContactsController extends Controller
             'message' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        # 1. Update the contact data in the contacts table
-        $contact->update ([
-            'contact_status' => 'closed',
-        ]);
+        $contact->update(['contact_status' => 'closed']);
 
-        # 2. Create a notification
+        // Create a notification
         Notification::create([
             'user_id' => $contact->user_id,
             'title' => 'Your contact has been closed.',
@@ -131,7 +128,7 @@ class ContactsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store()
     {
         // Nothing goes here since contacts are created by users, not admins.
     }
@@ -139,7 +136,7 @@ class ContactsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show()
     {
         // Nothing goes here since we have a separate "read" method for marking as read and showing details in a modal.
     }
@@ -147,7 +144,7 @@ class ContactsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit()
     {
         // Nothing goes here since we have a separate "close" method for marking as closed and we don't have any other editable fields for contacts.
     }
@@ -155,7 +152,7 @@ class ContactsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update()
     {
         // Nothing goes here since we have separate methods for marking as read and closed, and we don't have any other editable fields for contacts.
     }
@@ -163,7 +160,7 @@ class ContactsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy()
     {
         // Nothing goes here since we don't want admins to delete contacts, as they may contain important information regarding user issues and inquiries.
     }

@@ -26,7 +26,7 @@ class ReviewController extends Controller
                         ->withTrashed()
                         ->first();
 
-        if ($review && $review->deleted_at !== null) {
+        if ($review && $review->trashed()) {
             return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
@@ -98,7 +98,7 @@ class ReviewController extends Controller
                         ->withTrashed()
                         ->first();
 
-        if (!$review || $review->deleted_at !== null) {
+        if (!$review || $review->trashed()) {
             return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
@@ -129,7 +129,7 @@ class ReviewController extends Controller
                             ->with('error', 'You have not reviewed this reservation yet.');
         }
 
-        if ($review->deleted_at !== null) {
+        if ($review->trashed()) {
             return redirect()->route('reservations.index')
                             ->with('error', 'You have already deleted your review for this reservation.');
         }

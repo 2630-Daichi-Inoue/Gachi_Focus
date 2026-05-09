@@ -83,12 +83,10 @@ class SpacesController extends Controller
 
     public function store(StoreSpaceRequest $request)
     {
-        # 1. Validate all form data
         $data = $request->validated();
-        // store the uploaded image (storage/app/public/spaces)
         $imagePath = $request->file('image')->store('spaces', 'public');
 
-        # 2. Save space data to spaces table
+        // 1. Save space data to spaces table
         $space= Space::create([
             'name'              => $data['name'],
             'prefecture'        => $data['prefecture'],
@@ -104,10 +102,9 @@ class SpacesController extends Controller
             'is_public'         => $data['is_public'] ?? true,
         ]);
 
-        # 3. Sync amenities to the pivot table
+        // 2. Sync amenities to the pivot table
         $space->amenities()->sync($data['amenities'] ?? []);
 
-        # 4. Redirect back to the spaces list with a success message
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully created.');
     }
 
@@ -125,7 +122,7 @@ class SpacesController extends Controller
                             ->select('id', 'name')
                             ->get();
 
-        # Get all amenity IDs of the space.
+        // Get all amenity IDs of the space.
         $selectedAmenityIds = $space->amenities->pluck('id')->toArray();
 
         return view('admin.spaces.edit', [
@@ -143,10 +140,9 @@ class SpacesController extends Controller
                 ->with('error', $space->name . ' has already been deleted.');
         }
 
-        # 1. Validate all form data
         $data = $request->validated();
 
-        # 2. Update the space data in the spaces table
+        // 1. Update the space data in the spaces table
         $updateData = [
             'name'              => $data['name'],
             'prefecture'        => $data['prefecture'],
@@ -169,10 +165,9 @@ class SpacesController extends Controller
 
         $space->update($updateData);
 
-        # 3. Sync amenities to the pivot table
+        // 2. Sync amenities to the pivot table
         $space->amenities()->sync($data['amenities'] ?? []);
 
-        # 4. redirect to the index
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully updated.');
     }
 
