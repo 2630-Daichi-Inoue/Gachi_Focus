@@ -1,22 +1,22 @@
 <script setup>
-import { ref } from 'vue';
-import ViewAnnouncementModal from './ViewAnnouncementModal.vue'
+import { ref } from "vue";
+import ViewAnnouncementModal from "./ViewAnnouncementModal.vue";
 
 const props = defineProps({
     announcement: Object,
-})
+});
 
 const showViewAnnouncementModal = ref(false);
-
 </script>
 
 <template>
-    <div class="mx-2 flex flex-col gap-2 items-center w-full">
+    <div class="mx-2 flex w-full flex-col items-center gap-2">
         <!-- View button -->
-        <div class="w-full md:w-auto flex flex-col md:flex-row gap-2">
-            <button @click="showViewAnnouncementModal = true"
-                    class="btn p-4 bg-white flex items-center justify-center h-10 text-sky-500 font-bold border border-sky-500 rounded transition hover:bg-sky-200 disabled:opacity-50 disabled:cursor-not-allowed
-                    disabled:hover:bg-white">
+        <div class="flex w-full flex-col gap-2 md:w-auto md:flex-row">
+            <button
+                @click="showViewAnnouncementModal = true"
+                class="btn flex h-10 items-center justify-center rounded border border-sky-500 bg-white p-4 font-bold text-sky-500 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white"
+            >
                 View
             </button>
         </div>

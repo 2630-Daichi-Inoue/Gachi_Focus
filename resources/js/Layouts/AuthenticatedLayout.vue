@@ -1,62 +1,67 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
-import Dropdown from '@/Components/Dropdown.vue'
-import DropdownLink from '@/Components/DropdownLink.vue'
-import NavLink from '@/Components/NavLink.vue'
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
+import { ref, watch } from "vue";
+import { Link, usePage } from "@inertiajs/vue3";
+import Dropdown from "@/Components/Dropdown.vue";
+import DropdownLink from "@/Components/DropdownLink.vue";
+import NavLink from "@/Components/NavLink.vue";
+import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
 
-const showingNavigationDropdown = ref(false)
+const showingNavigationDropdown = ref(false);
 
-const page = usePage()
+const page = usePage();
 
-const showOk      = ref(false)
-const showError   = ref(false)
-const showWarning = ref(false)
+const showOk = ref(false);
+const showError = ref(false);
+const showWarning = ref(false);
 
 watch(
     () => page.props.flash?.ok,
     (value) => {
         if (value) {
-            showOk.value = true
-            setTimeout(() => { showOk.value = false }, 3000)
+            showOk.value = true;
+            setTimeout(() => {
+                showOk.value = false;
+            }, 3000);
         }
     },
-    { immediate: true }
-)
+    { immediate: true },
+);
 
 watch(
     () => page.props.flash?.error,
     (value) => {
         if (value) {
-            showError.value = true
-            setTimeout(() => { showError.value = false }, 3000)
+            showError.value = true;
+            setTimeout(() => {
+                showError.value = false;
+            }, 3000);
         }
     },
-    { immediate: true }
-)
+    { immediate: true },
+);
 
 watch(
     () => page.props.flash?.warning,
     (value) => {
         if (value) {
-            showWarning.value = true
-            setTimeout(() => { showWarning.value = false }, 5000)
+            showWarning.value = true;
+            setTimeout(() => {
+                showWarning.value = false;
+            }, 5000);
         }
     },
-    { immediate: true }
-)
-
+    { immediate: true },
+);
 </script>
 
 <template>
-    <link rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    />
     <div>
         <div class="min-h-screen bg-gray-100">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
+            <nav class="border-b border-gray-100 bg-white">
                 <!-- Primary Navigation Menu -->
                 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
@@ -64,7 +69,11 @@ watch(
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('spaces.index')">
-                                    <img src="/images/GachiFocus_logo.png" alt="GachiFocus" class="block h-9 w-auto" />
+                                    <img
+                                        src="/images/GachiFocus_logo.png"
+                                        alt="GachiFocus"
+                                        class="block h-9 w-auto"
+                                    />
                                 </Link>
                             </div>
 
@@ -80,7 +89,9 @@ watch(
                                 </NavLink>
                                 <NavLink
                                     :href="route('reservations.index')"
-                                    :active="route().current('reservations.index')"
+                                    :active="
+                                        route().current('reservations.index')
+                                    "
                                 >
                                     My reservations
                                 </NavLink>
@@ -91,33 +102,56 @@ watch(
                                     My contacts
                                 </NavLink>
                                 <NavLink
-                                    :href="route('contacts.create', { reservation_id: null })"
+                                    :href="
+                                        route('contacts.create', {
+                                            reservation_id: null,
+                                        })
+                                    "
                                     :active="route().current('contacts.create')"
                                 >
                                     Make a contact
                                 </NavLink>
                                 <NavLink
                                     :href="route('announcements.index')"
-                                    :active="route().current('announcements.index')"
+                                    :active="
+                                        route().current('announcements.index')
+                                    "
                                 >
                                     Announcements
                                 </NavLink>
                                 <NavLink
                                     :href="route('notifications.index')"
-                                    :active="route().current('notifications.index')"
+                                    :active="
+                                        route().current('notifications.index')
+                                    "
                                 >
                                     <span class="relative">
                                         Notifications
                                         <span
-                                            v-if="page.props.unreadNotificationCount > 0"
-                                            class="absolute -top-2 -left-2 inline-flex items-center justify-center rounded-full bg-red-500 text-white"
-                                            style="font-size: 0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 3px; line-height: 1;"
+                                            v-if="
+                                                page.props
+                                                    .unreadNotificationCount > 0
+                                            "
+                                            class="absolute -left-2 -top-2 inline-flex items-center justify-center rounded-full bg-red-500 text-white"
+                                            style="
+                                                font-size: 0.6rem;
+                                                min-width: 1.1rem;
+                                                height: 1.1rem;
+                                                padding: 0 3px;
+                                                line-height: 1;
+                                            "
                                         >
-                                            {{ page.props.unreadNotificationCount > 10 ? '10+' : page.props.unreadNotificationCount }}
+                                            {{
+                                                page.props
+                                                    .unreadNotificationCount >
+                                                10
+                                                    ? "10+"
+                                                    : page.props
+                                                          .unreadNotificationCount
+                                            }}
                                         </span>
                                     </span>
                                 </NavLink>
-
                             </div>
                         </div>
 
@@ -238,7 +272,11 @@ watch(
                             My contacts
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            :href="route('contacts.create', { reservation_id: null })"
+                            :href="
+                                route('contacts.create', {
+                                    reservation_id: null,
+                                })
+                            "
                             :active="route().current('contacts.create')"
                         >
                             Make a contact
@@ -256,24 +294,32 @@ watch(
                             <span class="relative inline-flex items-center">
                                 Notifications
                                 <span
-                                    v-if="page.props.unreadNotificationCount > 0"
+                                    v-if="
+                                        page.props.unreadNotificationCount > 0
+                                    "
                                     class="ms-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white"
-                                    style="font-size: 0.6rem; min-width: 1.1rem; height: 1.1rem; padding: 0 3px; line-height: 1;"
+                                    style="
+                                        font-size: 0.6rem;
+                                        min-width: 1.1rem;
+                                        height: 1.1rem;
+                                        padding: 0 3px;
+                                        line-height: 1;
+                                    "
                                 >
-                                    {{ page.props.unreadNotificationCount > 10 ? '10+' : page.props.unreadNotificationCount }}
+                                    {{
+                                        page.props.unreadNotificationCount > 10
+                                            ? "10+"
+                                            : page.props.unreadNotificationCount
+                                    }}
                                 </span>
                             </span>
                         </ResponsiveNavLink>
                     </div>
 
                     <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
+                    <div class="border-t border-gray-200 pb-1 pt-4">
                         <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
-                            >
+                            <div class="text-base font-medium text-gray-800">
                                 {{ $page.props.auth.user.name }}
                             </div>
                             <div class="text-sm font-medium text-gray-500">
@@ -300,18 +346,23 @@ watch(
             <!-- Restricted banner -->
             <div
                 v-if="$page.props.auth.user.user_status === 'restricted'"
-                class="bg-yellow-50 border-b border-yellow-300 px-4 py-2 text-sm text-yellow-800 text-center"
+                class="border-b border-yellow-300 bg-yellow-50 px-4 py-2 text-center text-sm text-yellow-800"
             >
-                Your account is currently restricted. New reservations and reviews are unavailable.
-                <Link :href="route('contacts.create')" class="underline font-medium hover:text-yellow-900">Contact us</Link>
+                Your account is currently restricted. New reservations and
+                reviews are unavailable.
+                <Link
+                    :href="route('contacts.create')"
+                    class="font-medium underline hover:text-yellow-900"
+                    >Contact us</Link
+                >
                 if you have any questions.
             </div>
 
             <!-- Toast -->
-            <div class="fixed top-20 right-4 z-50 space-y-2">
+            <div class="fixed right-4 top-20 z-50 space-y-2">
                 <div
                     v-if="showOk && page.props.flash?.ok"
-                    class="min-w-[280px] rounded border border-green-300 bg-green-100 px-4 py-3 text-green-800 shadow-lg flex justify-between transition-opacity duration-300"
+                    class="flex min-w-[280px] justify-between rounded border border-green-300 bg-green-100 px-4 py-3 text-green-800 shadow-lg transition-opacity duration-300"
                 >
                     <span>{{ page.props.flash.ok }}</span>
                     <button @click="showOk = false">×</button>
@@ -319,7 +370,7 @@ watch(
 
                 <div
                     v-if="showError && page.props.flash?.error"
-                    class="min-w-[280px] rounded border border-red-300 bg-red-100 px-4 py-3 text-red-800 shadow-lg flex justify-between transition-opacity duration-300"
+                    class="flex min-w-[280px] justify-between rounded border border-red-300 bg-red-100 px-4 py-3 text-red-800 shadow-lg transition-opacity duration-300"
                 >
                     <span>{{ page.props.flash.error }}</span>
                     <button @click="showError = false">×</button>
@@ -327,7 +378,7 @@ watch(
 
                 <div
                     v-if="showWarning && page.props.flash?.warning"
-                    class="min-w-[280px] rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-yellow-800 shadow-lg flex justify-between transition-opacity duration-300"
+                    class="flex min-w-[280px] justify-between rounded border border-yellow-300 bg-yellow-100 px-4 py-3 text-yellow-800 shadow-lg transition-opacity duration-300"
                 >
                     <span>{{ page.props.flash.warning }}</span>
                     <button @click="showWarning = false">×</button>
@@ -335,10 +386,7 @@ watch(
             </div>
 
             <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
+            <header class="bg-white shadow" v-if="$slots.header">
                 <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>

@@ -1,68 +1,75 @@
 <script setup>
-
-import { computed } from 'vue';
+import { computed } from "vue";
 
 const props = defineProps({
     contact: Object,
-})
+});
 
 const isOpen = computed(() => {
-    return props.contact.contact_status === 'open';
+    return props.contact.contact_status === "open";
 });
 
 const isClosed = computed(() => {
-    return props.contact.contact_status === 'closed';
+    return props.contact.contact_status === "closed";
 });
 
 const isCanceled = computed(() => {
-    return props.contact.contact_status === 'canceled';
+    return props.contact.contact_status === "canceled";
 });
 
 const formatStatus = (status) => {
-    if(status === 'canceled') {
-        return 'Completed';
+    if (status === "canceled") {
+        return "Completed";
     }
-    if(status === 'open') {
-        return 'Open';
+    if (status === "open") {
+        return "Open";
     }
-    if(status === 'closed') {
-        return 'Closed';
+    if (status === "closed") {
+        return "Closed";
     }
-    return '';
+    return "";
 };
 
 const statusInfo = computed(() => {
-    if(props.contact.contact_status === 'open') {
+    if (props.contact.contact_status === "open") {
         return {
-            label: 'Open',
-            class: 'bg-sky-500 text-sky-900',
+            label: "Open",
+            class: "bg-sky-500 text-sky-900",
         };
     }
-    if(props.contact.contact_status === 'closed') {
+    if (props.contact.contact_status === "closed") {
         return {
-            label: 'Closed',
-            class: 'bg-green-500 text-green-900',
+            label: "Closed",
+            class: "bg-green-500 text-green-900",
         };
     }
-    if(props.contact.contact_status === 'canceled') {
+    if (props.contact.contact_status === "canceled") {
         return {
-            label: 'Canceled',
-            class: 'bg-gray-500 text-white',
+            label: "Canceled",
+            class: "bg-gray-500 text-white",
         };
     }
     return {
-        label: '',
-        class: '',
+        label: "",
+        class: "",
     };
 });
-
 </script>
 
 <template>
-    <div class="flex flex-row items-center justify-around md:gap-4 w-full">
+    <div class="flex w-full flex-row items-center justify-around md:gap-4">
         <div class="md:flex md:justify-end">
             <div v-if="statusInfo">
-                <p :class="[statusInfo.class, 'text-xl', 'px-2', 'py-1', 'rounded-full', 'w-auto']">
+                <p
+                    :class="[
+                        statusInfo.class,
+                        'text-xl',
+                        'px-2',
+                        'py-1',
+                        'rounded-full',
+                        'w-auto',
+                    ]"
+                >
                     {{ statusInfo.label }}
                 </p>
             </div>

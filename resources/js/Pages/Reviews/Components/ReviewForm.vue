@@ -1,134 +1,162 @@
 <script setup>
-import { Link, router, useForm, usePage } from '@inertiajs/vue3'
-import { computed, ref } from 'vue'
-import Vue3StarRating from 'vue3-star-ratings'
-import DeleteReviewModal from './DeleteReviewModal.vue'
+import { Link, router, useForm, usePage } from "@inertiajs/vue3";
+import { computed, ref } from "vue";
+import Vue3StarRating from "vue3-star-ratings";
+import DeleteReviewModal from "./DeleteReviewModal.vue";
 
 const props = defineProps({
     reservation: Object,
     review: Object,
-})
+});
 
 const form = useForm({
     rating: Math.round(Number(props.review?.rating ?? 1)),
-    comment: props.review?.comment ?? '',
-})
+    comment: props.review?.comment ?? "",
+});
 
 const submitReview = () => {
     if (props.review) {
-        form.patch(route('reviews.update', props.reservation.id))
+        form.patch(route("reviews.update", props.reservation.id));
     } else {
-        form.post(route('reviews.store', props.reservation.id))
+        form.post(route("reviews.store", props.reservation.id));
     }
-}
+};
 
 const ratingProxy = computed({
     get() {
-        return form.rating
+        return form.rating;
     },
     set(value) {
-        form.rating = Math.round(Number(value))
-    }
-})
+        form.rating = Math.round(Number(value));
+    },
+});
 
-const isRestricted = usePage().props.auth.user.user_status === 'restricted'
+const isRestricted = usePage().props.auth.user.user_status === "restricted";
 
-const showDeleteModal = ref(false)
-const deleteError = ref('')
+const showDeleteModal = ref(false);
+const deleteError = ref("");
 
 const deleteReview = () => {
-    router.delete(route('reviews.destroy', props.reservation.id), {
+    router.delete(route("reviews.destroy", props.reservation.id), {
         preserveScroll: true,
         onSuccess: () => {
-            showDeleteModal.value = false
-            deleteError.value = ''
+            showDeleteModal.value = false;
+            deleteError.value = "";
         },
         onError: () => {
-            showDeleteModal.value = false
-            deleteError.value = 'Failed to delete the review. Please try again.'
+            showDeleteModal.value = false;
+            deleteError.value =
+                "Failed to delete the review. Please try again.";
         },
-    })
-}
+    });
+};
 </script>
 
 <template>
-<div class="bg-white border border-gray-300 p-4">
-    <form @submit.prevent="submitReview" class="space-y-4">
+    <div class="border border-gray-300 bg-white p-4">
+        <form @submit.prevent="submitReview" class="space-y-4">
+            <div class="space-y-4 border border-gray-300 p-4">
+                <div class="flex flex-col gap-4 md:flex-row">
+                    <div class="w-full md:w-1/2">
+                        <img
+                            :src="
+                                reservation.space.image_path
+                                    ? `/storage/${reservation.space.image_path}`
+                                    : '/images/no-image.png'
+                            "
+                            :alt="`space ${reservation.space.name}`"
+                            class="rounded border border-gray-300 object-cover"
+                        />
+                    </div>
 
-        <div class="border border-gray-300 p-4 space-y-4">
-            <div class="flex flex-col md:flex-row gap-4">
-                <div class="w-full md:w-1/2">
-                    <img :src="reservation.space.image_path ? `/storage/${reservation.space.image_path}` : '/images/no-image.png'"
-                        :alt="`space ${reservation.space.name}`"
-                        class="object-cover rounded border border-gray-300"
+                    <div class="w-full md:w-1/2">
+                        <h1 class="mb-2 text-3xl font-bold">
+                            {{ reservation.space.name }}
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="w-full">
+                    <h2 class="text-2xl text-gray-500">Rating</h2>
+                    <Vue3StarRating
+                        v-model="ratingProxy"
+                        :increment="1"
+                        :numberOfStars="5"
+                        :starSize="30"
+                        starColor="#fbbf24"
+                        inactiveColor="#e0e0e0"
+                        :show-rating="false"
+                        class="star-rating"
                     >
+                    </Vue3StarRating>
                 </div>
 
-                <div class="w-full md:w-1/2">
-                    <h1 class="text-3xl font-bold mb-2">{{ reservation.space.name }}</h1>
-                </div>
-            </div>
-
-            <div class="w-full">
-                <h2 class="text-2xl text-gray-500">Rating</h2>
-                <Vue3StarRating
-                            v-model="ratingProxy"
-                            :increment="1"
-                            :numberOfStars="5"
-                            :starSize="30"
-                            starColor="#fbbf24"
-                            inactiveColor="#e0e0e0"
-                            :show-rating="false"
-                            class="star-rating"
-                >
-                </Vue3StarRating>
-            </div>
-
-            <div class="w-full">
-                <label for="comment" class="text-2xl text-gray-500">Comment <span class="text-lg">(Optional)</span></label>
-                <textarea id="comment"
+                <div class="w-full">
+                    <label for="comment" class="text-2xl text-gray-500"
+                        >Comment <span class="text-lg">(Optional)</span></label
+                    >
+                    <textarea
+                        id="comment"
                         v-model="form.comment"
                         placeholder="Write your review here."
-                        class="w-full border border-gray-300 rounded p-2"
-                        rows="5">
-                </textarea>
-                <p v-if="form.errors.comment" class="text-sm text-red-500 mt-1">{{ form.errors.comment }}</p>
+                        class="w-full rounded border border-gray-300 p-2"
+                        rows="5"
+                    >
+                    </textarea>
+                    <p
+                        v-if="form.errors.comment"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.comment }}
+                    </p>
+                </div>
             </div>
-        </div>
 
-        <p v-if="deleteError" class="text-sm text-red-500">{{ deleteError }}</p>
-        <div class="flex flex-col md:flex-row gap-4">
-            <Link :href="route('reservations.index')"
+            <p v-if="deleteError" class="text-sm text-red-500">
+                {{ deleteError }}
+            </p>
+            <div class="flex flex-col gap-4 md:flex-row">
+                <Link
+                    :href="route('reservations.index')"
                     :class="review ? 'md:w-1/3' : 'md:w-1/2'"
-                    class="flex items-center justify-center text-black text-3xl border border-gray-500 rounded transition hover:bg-gray-200 p-2">
-                Go Back
-            </Link>
-            <template v-if="!review?.deleted_at">
-                <button v-if="review"
+                    class="flex items-center justify-center rounded border border-gray-500 p-2 text-3xl text-black transition hover:bg-gray-200"
+                >
+                    Go Back
+                </Link>
+                <template v-if="!review?.deleted_at">
+                    <button
+                        v-if="review"
                         type="button"
                         @click="showDeleteModal = true"
-                        class="flex items-center justify-center md:w-1/3 text-red-500 font-bold text-3xl border border-red-500 rounded transition hover:bg-red-200">
-                    Delete Review
-                </button>
-                <button type="submit"
+                        class="flex items-center justify-center rounded border border-red-500 text-3xl font-bold text-red-500 transition hover:bg-red-200 md:w-1/3"
+                    >
+                        Delete Review
+                    </button>
+                    <button
+                        type="submit"
                         :class="review ? 'md:w-1/3' : 'md:w-1/2'"
                         :disabled="(!review && isRestricted) || form.processing"
-                        class="flex items-center justify-center text-white font-bold text-3xl border border-gray-500 rounded transition disabled:opacity-50"
-                        :style="!review && isRestricted ? 'background-color: #9ca3af; cursor: not-allowed; border-color: #9ca3af;' : ''">
-                    {{ review ? 'Update Review' : 'Submit Review' }}
-                </button>
-            </template>
-        </div>
-    </form>
-    <Transition name="modal-fade">
-        <DeleteReviewModal
-            v-if="showDeleteModal"
-            :reservation="reservation"
-            @close="showDeleteModal = false"
-            @confirm="deleteReview"
-        />
-    </Transition>
-</div>
+                        class="flex items-center justify-center rounded border border-gray-500 text-3xl font-bold text-white transition disabled:opacity-50"
+                        :style="
+                            !review && isRestricted
+                                ? 'background-color: #9ca3af; cursor: not-allowed; border-color: #9ca3af;'
+                                : ''
+                        "
+                    >
+                        {{ review ? "Update Review" : "Submit Review" }}
+                    </button>
+                </template>
+            </div>
+        </form>
+        <Transition name="modal-fade">
+            <DeleteReviewModal
+                v-if="showDeleteModal"
+                :reservation="reservation"
+                @close="showDeleteModal = false"
+                @confirm="deleteReview"
+            />
+        </Transition>
+    </div>
 </template>
 
 <style scoped>
