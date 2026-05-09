@@ -15,7 +15,7 @@ class ContactsController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'id'             => ['nullable', 'integer'],
+            'id'             => ['nullable', 'string'],
             'user_name'      => ['nullable', 'string', 'max:50'],
             'contact_status' => ['nullable', 'in:all,open,closed,canceled'],
             'keyword'        => ['nullable', 'string', 'max:50'],
@@ -43,8 +43,10 @@ class ContactsController extends Controller
         }
         // Filter by keyword in title or message
         if ($request->filled('keyword')) {
-            $query->where('title', 'LIKE', '%' . $request->keyword . '%')
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'LIKE', '%' . $request->keyword . '%')
                   ->orWhere('message', 'LIKE', '%' . $request->keyword . '%');
+            });
         }
         // Filter by read status
         if ($request->filled('read_status') && $request->read_status !== 'all') {

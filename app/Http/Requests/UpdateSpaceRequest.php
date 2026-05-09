@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\HalfHourTime;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,14 +14,6 @@ class UpdateSpaceRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()?->isAdmin() ?? false;
-    }
-
-    private function timeValidation($datetime, $fail): void
-    {
-        $timeCollection = explode(':', $datetime);
-        if ($timeCollection[1] !== '00' && $timeCollection[1] !== '30') {
-            $fail('The time must be in 30-minute increments.');
-        }
     }
 
     /**
@@ -65,18 +58,14 @@ class UpdateSpaceRequest extends FormRequest
             'open_time' => [
                 'required',
                 'date_format:H:i',
-                function ($attribute, $value, $fail) {
-                    $this->timeValidation($value, $fail);
-                },
+                new HalfHourTime,
             ],
 
             'close_time' => [
                 'required',
                 'date_format:H:i',
                 'after:open_time',
-                function ($attribute, $value, $fail) {
-                    $this->timeValidation($value, $fail);
-                },
+                new HalfHourTime,
             ],
 
             'weekday_price_yen' => [

@@ -9,16 +9,18 @@ const props = defineProps({
 })
 
 const showViewNotificationModal = ref(false);
+const readError = ref('')
 
 const readNotification = () => {
-    // Call the API to mark the notification as read
     router.patch(route('notifications.read', props.notification.id), {},  {
         preserveScroll: true,
         onSuccess: () => {
-            showViewNotificationModal.value = false;
+            showViewNotificationModal.value = false
+            readError.value = ''
         },
         onError: () => {
-            alert('Failed to mark the notification as read. Please try again.');
+            showViewNotificationModal.value = false
+            readError.value = 'Failed to mark the notification as read. Please try again.'
         },
     })
 };
@@ -50,6 +52,8 @@ const readNotification = () => {
             <p class="text-black line-cramp-2">{{ notification.message }}</p>
         </div>
     </div>
+
+    <p v-if="readError" class="text-sm text-red-500 px-2">{{ readError }}</p>
 
     <!-- View notification modal -->
     <Transition name="modal-fade">

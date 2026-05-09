@@ -21,16 +21,18 @@ const canCancel = computed(() => isOpen.value && isUnread.value);
 const showViewContactModal = ref(false);
 
 const showCancelContactModal = ref(false);
+const cancelError = ref('')
 
 const cancelContact = () => {
-    // Call the API to cancel the contact
     router.patch(route('contacts.cancel', props.contact.id), {},  {
         preserveScroll: true,
         onSuccess: () => {
-            showCancelContactModal.value = false;
+            showCancelContactModal.value = false
+            cancelError.value = ''
         },
         onError: () => {
-            alert('Failed to cancel the contact. Please try again.');
+            showCancelContactModal.value = false
+            cancelError.value = 'Failed to cancel the contact. Please try again.'
         },
     })
 };
@@ -70,6 +72,7 @@ const getMessage = computed(() => {
                 Cancel
             </button>
         </div>
+        <p v-if="cancelError" class="text-sm text-red-500">{{ cancelError }}</p>
         <!-- Message -->
         <p class="text-sm" :class="{
             'text-black': canCancel,

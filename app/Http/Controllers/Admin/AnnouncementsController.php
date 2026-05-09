@@ -25,8 +25,10 @@ class AnnouncementsController extends Controller
 
         // Filter by keyword
         if ($request->filled('keyword')) {
-            $query->where('title', 'like', "%{$request->keyword}%")
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', "%{$request->keyword}%")
                   ->orWhere('message', 'like', "%{$request->keyword}%");
+            });
         }
         // Filter by is_public status
         if ($request->filled('is_public') && $request->is_public !== 'all') {
@@ -83,8 +85,6 @@ class AnnouncementsController extends Controller
                 'expired_date' => 'Expired date and time must be after the published date and time.'
             ])->withInput();
         }
-
-        // dd($expiredAt);
 
         # 2. Save announcement data to announcements table
         Announcement::create([

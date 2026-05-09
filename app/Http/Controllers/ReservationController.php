@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\Space;
@@ -54,7 +53,7 @@ class ReservationController extends Controller
         $rowsPerPage = (int)$request->input('rows_per_page', 20);
 
         // Default: date present → past
-        $this->applySort($query, $request->input('sort', 'date_future_to_past'));
+        $this->applyChronologicalSort($query, $request->input('sort', 'date_future_to_past'), 'started_at', 'date_past_to_future');
 
         $reservations = $query
                         ->paginate($rowsPerPage)
@@ -91,11 +90,6 @@ class ReservationController extends Controller
                 'quantity' => 'Sorry, but there are not enough spaces available for the selected time slot.',
             ]);
         }
-    }
-
-    private function applySort(Builder $q, ?string $sort): void
-    {
-        $this->applyChronologicalSort($q, $sort, 'started_at', 'date_past_to_future');
     }
 
     /**
