@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth, Config, Log, DB};
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
-use App\Models\{Reservation, Payment};
+use App\Models\Payment;
+use App\Models\Reservation;
 use Carbon\Carbon;
 use Stripe\Webhook;
 

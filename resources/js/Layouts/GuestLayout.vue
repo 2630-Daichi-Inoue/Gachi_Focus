@@ -1,5 +1,5 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link } from "@inertiajs/vue3";
 </script>
 
 <template>
@@ -8,7 +8,11 @@ import { Link } from '@inertiajs/vue3';
     >
         <div>
             <Link href="/">
-                <img src="/images/GachiFocus_logo.png" alt="GachiFocus" class="h-20" />
+                <img
+                    src="/images/GachiFocus_logo.png"
+                    alt="GachiFocus"
+                    class="h-20"
+                />
             </Link>
         </div>
 

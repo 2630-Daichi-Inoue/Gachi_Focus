@@ -25,8 +25,10 @@ class AnnouncementsController extends Controller
 
         // Filter by keyword
         if ($request->filled('keyword')) {
-            $query->where('title', 'like', "%{$request->keyword}%")
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', "%{$request->keyword}%")
                   ->orWhere('message', 'like', "%{$request->keyword}%");
+            });
         }
         // Filter by is_public status
         if ($request->filled('is_public') && $request->is_public !== 'all') {
@@ -59,7 +61,6 @@ class AnnouncementsController extends Controller
      */
     public function store(StoreAnnouncementRequest $request)
     {
-        # 1. Validate all form data
         $data = $request->validated();
 
         $publishedAt = null;
@@ -84,9 +85,7 @@ class AnnouncementsController extends Controller
             ])->withInput();
         }
 
-        // dd($expiredAt);
-
-        # 2. Save announcement data to announcements table
+        // Save announcement data to announcements table
         Announcement::create([
             'title'         => $data['title'],
             'message'       => $data['message'],
@@ -95,7 +94,7 @@ class AnnouncementsController extends Controller
             'is_public'     => $data['is_public'] ?? true,
         ]);
 
-        # 3. Redirect back to the announcement list with a success message
+        // Redirect back to the announcement list with a success message
         return redirect()->route('admin.announcements.index')
                             ->with('ok', 'Successfully created.');
     }
@@ -107,12 +106,8 @@ class AnnouncementsController extends Controller
                 ->with('error', 'The announcement has already been hidden.');
         }
 
-        # 1. Update the announcement data in the announcements table
-        $announcement->update ([
-            'is_public' => false,
-        ]);
+        $announcement->update(['is_public' => false]);
 
-        # 2. redirect to the index
         return redirect()->route('admin.announcements.index')
                         ->with('ok', 'Successfully hidden.');
     }

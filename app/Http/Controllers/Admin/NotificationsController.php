@@ -34,7 +34,6 @@ class NotificationsController extends Controller
         }
 
         // Filter by type
-        // dd($request->input('type'));
         if ($request->filled('type') && $request->input('type') !== 'all') {
             $type = $request->input('type');
             if ($type === 'user') {

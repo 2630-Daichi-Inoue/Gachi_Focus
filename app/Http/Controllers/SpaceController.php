@@ -28,8 +28,7 @@ class SpaceController extends Controller
             'rows_per_page' => ['nullable', 'integer', 'in:3,6,9,12,15']
         ]);
 
-        $query = Space::query()
-                        ->where('is_public', true)
+        $query = Space::public()
                         ->with('amenities')
                         ->withCount(
                             ['reviews as public_reviews_count' => function ($q) {
@@ -66,7 +65,7 @@ class SpaceController extends Controller
                     ->paginate($request->input('rows_per_page', 3))
                     ->withQueryString();
 
-        $prefectures = Space::where('is_public', true)
+        $prefectures = Space::public()
                             ->select('prefecture')
                             ->distinct()
                             ->orderBy('prefecture')
@@ -147,7 +146,7 @@ class SpaceController extends Controller
 
     public function show(Space $space)
     {
-        if (!$space->is_public) {
+        if (!$space->isPublic()) {
             return redirect()->route('spaces.index')
                             ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
         }
@@ -181,7 +180,7 @@ class SpaceController extends Controller
     public function reviewIndex(Space $space, Request $request)
     {
 
-        if (!$space->is_public) {
+        if (!$space->isPublic()) {
             return redirect()->route('spaces.index')
                             ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
         }

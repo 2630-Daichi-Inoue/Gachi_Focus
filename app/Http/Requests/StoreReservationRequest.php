@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Rules\HalfHourTime;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreReservationRequest extends FormRequest
 {
@@ -20,7 +21,7 @@ class StoreReservationRequest extends FormRequest
         return true;
     }
 
-    public function withValidator($validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($validator) {
             $space     = $this->route('space');
@@ -70,9 +71,6 @@ class StoreReservationRequest extends FormRequest
             'started_at' => [
                 'required',
                 'date_format:H:i',
-                // function ($attribute, $value, $fail) {
-                //     $this->timeValidator($value, $fail);
-                // },
                 new HalfHourTime
             ],
 
@@ -80,9 +78,6 @@ class StoreReservationRequest extends FormRequest
                 'required',
                 'date_format:H:i',
                 'after:started_at',
-                // function ($attribute, $value, $fail) {
-                //     $this->timeValidator($value, $fail);
-                // },
                 new HalfHourTime
             ],
 

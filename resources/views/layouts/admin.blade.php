@@ -141,106 +141,40 @@
                                     </ul>
                                 </li> --}}
 
-                                <!-- notification -->
+                                <!-- notification bell -->
                                 <li class="nav-item dropdown">
                                     <a id="notificationDropdown" href="" class="nav-link position-relative me-3 d-flex align-items-center"
-                                        data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
-
-                                        <!-- Unread mark on the bell icon -->
-                                        {{-- @php
-                                            $hasUnread = auth()
-                                                ->user()
-                                                ->receivedNotifications()
-                                                ->whereNull('read_at')
-                                                ->exists();
-                                        @endphp
-                                        @if ($hasUnread)
-                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle"
-                                                style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
-                                            </span>
-                                        @endif --}}
-                                    </a>
-
-                                    <!-- popup window of notifications -->
-                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white"
-                                        aria-labelledby="notificationDropdown" style="width: 300px;">
-                                        <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                            {{-- @forelse($notifications as $notification)
-                                                <div class="notification-item mb-2">
-                                                    <small
-                                                        class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
-                                                    <p class="mb-0">{{ $notification->message }}</p>
-                                                </div>
-                                                <hr class="my-2">
-                                            @empty
-                                                <p>No notifications found.</p>
-                                            @endforelse --}}
-                                        </div>
-
-                                        <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            {{-- <a href="{{ route('admin.notifications.index') }}" class="text-primary">All
-                                                Notifications &gt;</a> --}}
-                                        </div>
-                                    </div>
-                                </li>
-                            @else
-                                <!-- USER LINKS -->
-                                <!-- Current Reservation -->
-                                <a href="{{ route('reservations.current') }}" class="nav-link me-3">Current Reservation</a>
-
-                            <!-- Past Reservation -->
-                            <a href="{{ route('reservations.past') }}" class="nav-link me-3">Past Reservation</a>
-
-                                <!-- Contact -->
-                                <a href="{{ route('contact.create') }}" class="nav-link me-3">Contact</a>
-
-                                <!-- notification -->
-                                <li class="nav-item dropdown">
-                                    <a id="notificationDropdown" href="" class="nav-link position-relative me-3 d-flex align-items-center"
-                                        data-bs-toggle="dropdown" aria-expanded="false"><i class="fa-solid fa-bell"></i>
-
-                                        <!-- Unread mark on the bell icon -->
-                                        @php
-                                            $hasUnread = auth()
-                                                ->user()
-                                                ->receivedNotifications()
-                                                ->whereNull('read_at')
-                                                ->exists();
-                                        @endphp
-                                        @if ($hasUnread)
-                                            <span id="unread-dot" class="position-absolute bg-danger rounded-circle"
-                                                style="width: 10px; height: 10px; bottom: 9px; right: 2px;">
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fa-solid fa-bell"></i>
+                                        @if ($unreadCount > 0)
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                                {{ $unreadCount > 9 ? '10+' : $unreadCount }}
                                             </span>
                                         @endif
                                     </a>
 
-                                    <!-- popup window of notifications -->
-                                    <div class="dropdown-menu dropdown-menu-end p-3 bg-white"
+                                    <div class="dropdown-menu dropdown-menu-end p-0 bg-white shadow-sm"
                                         aria-labelledby="notificationDropdown" style="width: 300px;">
-                                        <div style="max-height: 200px; overflow-y: auto; padding: 12px;">
-                                            @forelse($notifications as $notification)
-                                                <div class="notification-item mb-2">
-                                                    <small
-                                                        class="text-muted">{{ $notification->created_at->format('M d Y') }}</small>
-                                                    <p class="mb-0">{{ $notification->message }}</p>
-                                                </div>
-                                                <hr class="my-2">
+                                        <div style="max-height: 260px; overflow-y: auto;">
+                                            @forelse($unreadContacts as $contact)
+                                                <a href="{{ route('admin.contacts.index', ['id' => $contact->id]) }}"
+                                                   class="d-block px-3 py-2 text-dark text-decoration-none border-bottom"
+                                                   style="font-size: 0.875rem;">
+                                                    <div class="fw-semibold text-truncate">{{ $contact->user->name }}</div>
+                                                    <div class="text-muted text-truncate">{{ $contact->title }}</div>
+                                                </a>
                                             @empty
-                                                <p>No notifications found.</p>
+                                                <p class="px-3 py-2 mb-0 text-muted" style="font-size: 0.875rem;">No unread contacts.</p>
                                             @endforelse
-
                                         </div>
-
-                                        <div class="border-top px-3 py-2 text-end bg-white position-sticky bottom-0">
-                                            <a href="{{ route('notifications.index') }}" class="text-primary">All
-                                                Notifications &gt;</a>
+                                        <div class="px-3 py-2 text-end border-top">
+                                            <a href="{{ route('admin.contacts.index', ['read_status' => '0']) }}" class="text-primary" style="font-size: 0.875rem;">All unread &gt;</a>
                                         </div>
                                     </div>
                                 </li>
                             @endif
 
-                            @if (auth()->user()->isAdmin())
-                                <li class="nav-item dropdown">
+                            <li class="nav-item dropdown">
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center gap-1" href=""
                                         role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false" v-pre>
@@ -260,38 +194,6 @@
                                         </form>
                                     </div>
                                 </li>
-                            @else
-                                <!-- user icon -->
-                                @if (auth()->user()->avatar)
-                                    <img src="{{ asset('storage/' . auth()->user()->avatar) }}"
-                                        alt="{{ auth()->user()->name }}" class="img-fluid rounded-circle image-sm">
-                                @else
-                                    <i class="fas fa-circle-user text-secondary icon-sm"></i>
-                                @endif
-                                <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href=""
-                                        role="button" data-bs-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false" v-pre>
-                                        {{ Auth::user()->name }}
-                                    </a>
-
-                                    <!-- Profile & logout -->
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="{{ route('profile.show', Auth::user()->id) }}"><i
-                                                class="fa-solid fa-user"></i> Profile</a>
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                            onclick="event.preventDefault();
-                                                        document.getElementById('logout-form').submit();">
-                                            <i class="fa-solid fa-right-from-bracket"></i> {{ __('Logout') }}
-                                        </a>
-
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                            class="d-none">
-                                            @csrf
-                                        </form>
-                                    </div>
-                                </li>
-                            @endif
                         @endguest
                     </ul>
                 </div>

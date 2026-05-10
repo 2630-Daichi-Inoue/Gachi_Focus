@@ -256,6 +256,7 @@
                     </select>
 
                     <!-- keep current filters when changing page size -->
+                    <input type="hidden" name="id" value="{{ request('id') }}">
                     <input type="hidden" name="user_name" value="{{ request('user_name') }}">
                     <input type="hidden" name="keyword" value="{{ request('keyword') }}">
                     <input type="hidden" name="contact_status" value="{{ request('contact_status', 'all') }}">

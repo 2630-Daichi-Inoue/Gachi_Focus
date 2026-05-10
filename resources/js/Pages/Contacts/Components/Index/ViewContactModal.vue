@@ -1,20 +1,20 @@
 <script setup>
-
-const emit = defineEmits(['close']);
+const emit = defineEmits(["close"]);
 
 const props = defineProps({
     contact: Object,
-})
-
+});
 </script>
 
 <template>
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center"
-        @click.self="$emit('close')">
-        <div class="relative bg-white p-4 w-2/3 rounded-lg shadow-lg">
+    <div
+        class="fixed inset-0 flex items-center justify-center bg-black/50"
+        @click.self="$emit('close')"
+    >
+        <div class="relative w-2/3 rounded-lg bg-white p-4 shadow-lg">
             <button
                 @click="$emit('close')"
-                class="absolute top-3 right-3 px-2 py-1 text-gray-500 hover:text-black text-lg"
+                class="absolute right-3 top-3 px-2 py-1 text-lg text-gray-500 hover:text-black"
             >
                 ✖︎
             </button>
@@ -23,7 +23,7 @@ const props = defineProps({
                 <p class="text-2xl font-bold">
                     {{ contact.title }}
                 </p>
-                <p class="text-lg break-words">
+                <p class="break-words text-lg">
                     {{ contact.message }}
                 </p>
             </div>
@@ -34,11 +34,13 @@ const props = defineProps({
 <style scoped>
 .modal-fade-enter-active,
 .modal-fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
 }
 
 .modal-fade-enter-from,
 .modal-fade-leave-to {
-  opacity: 0;
+    opacity: 0;
 }
 </style>

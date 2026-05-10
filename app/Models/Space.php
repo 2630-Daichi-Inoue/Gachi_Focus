@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 
 class Space extends Model
@@ -99,10 +100,9 @@ class Space extends Model
     | Scopes
     |--------------------------------------------------------------------------
     */
-    public function scopePublic($query)
+    public function scopePublic(Builder $query)
     {
-        return $query->where('is_public', true)
-                    ->whereNull('deleted_at');
+        return $query->where('is_public', true);
     }
 
     /*
@@ -112,28 +112,14 @@ class Space extends Model
     */
     public function isPublic(): bool
     {
-        return $this->is_public && is_null($this->deleted_at);
-    }
-
-    public function isWithinBusinessHours(CarbonInterface $startedAt, CarbonInterface $endedAt): bool
-    {
-        $startTime = $startedAt->format('H:i:s');
-        $endTime = $endedAt->format('H:i:s');
-
-        return $startTime >= $this->open_time
-            && $endTime <= $this->close_time;
+        return $this->is_public && !$this->trashed();
     }
 
     public function isFavorite(): bool
     {
-        $isFavorite = Favorite::where('space_id', $this->id)
-                                ->where('user_id', Auth::id())
-                                ->exists();
-        if ($isFavorite) {
-            return true;
-        } else {
-            return false;
-        }
+        return Favorite::where('space_id', $this->id)
+                        ->where('user_id', Auth::id())
+                        ->exists();
     }
 
     public function getUnitPriceForDate(CarbonInterface $date): int

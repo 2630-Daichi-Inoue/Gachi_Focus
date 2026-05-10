@@ -15,6 +15,7 @@ class ContactsController extends Controller
     public function index(Request $request)
     {
         $request->validate([
+            'id'             => ['nullable', 'string'],
             'user_name'      => ['nullable', 'string', 'max:50'],
             'contact_status' => ['nullable', 'in:all,open,closed,canceled'],
             'keyword'        => ['nullable', 'string', 'max:50'],
@@ -24,6 +25,11 @@ class ContactsController extends Controller
 
         $query = Contact::query()
                         ->with('user');
+
+        // Filter by ID (e.g. from notification bell)
+        if ($request->filled('id')) {
+            $query->where('id', $request->id);
+        }
 
         // Filter by username
         if ($request->filled('user_name')) {
@@ -37,8 +43,10 @@ class ContactsController extends Controller
         }
         // Filter by keyword in title or message
         if ($request->filled('keyword')) {
-            $query->where('title', 'LIKE', '%' . $request->keyword . '%')
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'LIKE', '%' . $request->keyword . '%')
                   ->orWhere('message', 'LIKE', '%' . $request->keyword . '%');
+            });
         }
         // Filter by read status
         if ($request->filled('read_status') && $request->read_status !== 'all') {
@@ -93,12 +101,9 @@ class ContactsController extends Controller
             'message' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        # 1. Update the contact data in the contacts table
-        $contact->update ([
-            'contact_status' => 'closed',
-        ]);
+        $contact->update(['contact_status' => 'closed']);
 
-        # 2. Create a notification
+        // Create a notification
         Notification::create([
             'user_id' => $contact->user_id,
             'title' => 'Your contact has been closed.',
@@ -123,7 +128,7 @@ class ContactsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store()
     {
         // Nothing goes here since contacts are created by users, not admins.
     }
@@ -131,7 +136,7 @@ class ContactsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show()
     {
         // Nothing goes here since we have a separate "read" method for marking as read and showing details in a modal.
     }
@@ -139,7 +144,7 @@ class ContactsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit()
     {
         // Nothing goes here since we have a separate "close" method for marking as closed and we don't have any other editable fields for contacts.
     }
@@ -147,7 +152,7 @@ class ContactsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update()
     {
         // Nothing goes here since we have separate methods for marking as read and closed, and we don't have any other editable fields for contacts.
     }
@@ -155,7 +160,7 @@ class ContactsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy()
     {
         // Nothing goes here since we don't want admins to delete contacts, as they may contain important information regarding user issues and inquiries.
     }

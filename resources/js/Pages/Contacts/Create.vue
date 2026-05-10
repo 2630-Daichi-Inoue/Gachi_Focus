@@ -1,12 +1,11 @@
 <script setup>
-import { Head } from '@inertiajs/vue3'
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import ContactForm from './Components/Create/ContactForm.vue'
+import { Head } from "@inertiajs/vue3";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
+import ContactForm from "./Components/Create/ContactForm.vue";
 
 const props = defineProps({
     reservation: Object,
-})
-
+});
 </script>
 
 <template>

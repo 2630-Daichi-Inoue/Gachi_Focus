@@ -12,7 +12,7 @@ class StoreReviewRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        if ($user->user_status === 'banned' || $user->user_status === 'restricted') {
+        if ($user->isBanned() || $user->isRestricted()) {
             return false;
         }
         return true;
