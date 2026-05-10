@@ -204,6 +204,7 @@ class SpacesController extends Controller
             ->get()
             ->each(fn($reservation) => $refundService->refundAndCancel($reservation));
 
+        $space->update(['is_public' => false]);
         $space->delete();
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully deleted.');
     }

@@ -180,9 +180,7 @@ class ReservationController extends Controller
             ->with('space:id,name')
             ->get(['id', 'space_id', 'started_at', 'ended_at']);
 
-        $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
-        ? $checkedSpace->weekend_price_yen
-        : $checkedSpace->weekday_price_yen;
+        $unitPriceYen = $checkedSpace->getUnitPriceForDate(Carbon::parse($data['date']));
 
         $slotCount = $newStartedAt->diffInMinutes($newEndedAt) / 30;
 
@@ -220,9 +218,7 @@ class ReservationController extends Controller
 
             $this->checkCapacity($checkedSpace, $newStartedAt, $newEndedAt, $data['quantity']);
 
-            $unitPriceYen = Carbon::parse($data['date'])->isWeekend()
-            ? $checkedSpace->weekend_price_yen
-            : $checkedSpace->weekday_price_yen;
+            $unitPriceYen = $checkedSpace->getUnitPriceForDate(Carbon::parse($data['date']));
 
             $slotCount = $newStartedAt->diffInMinutes($newEndedAt) / 30;
 

@@ -82,40 +82,12 @@ class User extends Authenticatable
 
     /*
     |--------------------------------------------------------------------------
-    | Scopes
-    |--------------------------------------------------------------------------
-    */
-    public function scopeActive($query)
-    {
-        return $query->where('user_status', 'active')
-                    ->whereNull('deleted_at');
-    }
-
-    public function scopeRestricted($query)
-    {
-        return $query->where('user_status', 'restricted')
-                    ->whereNull('deleted_at');
-    }
-
-    public function scopeBanned($query)
-    {
-        return $query->where('user_status', 'banned')
-                    ->whereNull('deleted_at');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
     | Helpers
     |--------------------------------------------------------------------------
     */
     public function isAdmin(): bool
     {
         return $this->is_admin;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->user_status === 'active' && !$this->trashed();
     }
 
     public function isRestricted(): bool
