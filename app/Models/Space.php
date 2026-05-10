@@ -117,14 +117,9 @@ class Space extends Model
 
     public function isFavorite(): bool
     {
-        $isFavorite = Favorite::where('space_id', $this->id)
-                                ->where('user_id', Auth::id())
-                                ->exists();
-        if ($isFavorite) {
-            return true;
-        } else {
-            return false;
-        }
+        return Favorite::where('space_id', $this->id)
+                        ->where('user_id', Auth::id())
+                        ->exists();
     }
 
     public function getUnitPriceForDate(CarbonInterface $date): int
