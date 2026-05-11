@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 
 class AmenitiesController extends Controller
@@ -12,6 +12,7 @@ class AmenitiesController extends Controller
     public function index()
     {
         $amenities = Amenity::orderBy('name')->paginate(10);
+
         return view('admin.amenities.index', compact('amenities'));
     }
 
@@ -24,13 +25,14 @@ class AmenitiesController extends Controller
     {
         $data = $request->validate([
             'name' => ['required',
-                        'string',
-                        'max:100',
-                        'unique:amenities,name'],
+                'string',
+                'max:100',
+                'unique:amenities,name'],
         ]);
 
         Amenity::create($data);
-        return back()->with('ok','Successfully added.');
+
+        return back()->with('ok', 'Successfully added.');
     }
 
     public function show()
@@ -47,18 +49,20 @@ class AmenitiesController extends Controller
     {
         $data = $request->validate([
             'name' => ['required',
-                        'string',
-                        'max:100',
-                        Rule::unique('amenities', 'name')->ignore($amenity)],
+                'string',
+                'max:100',
+                Rule::unique('amenities', 'name')->ignore($amenity)],
         ]);
 
         $amenity->update($data);
-        return back()->with('ok','Successfully updated.');
+
+        return back()->with('ok', 'Successfully updated.');
     }
 
     public function destroy(Amenity $amenity)
     {
         $amenity->forceDelete();
-        return back()->with('ok','Successfully deleted.');
+
+        return back()->with('ok', 'Successfully deleted.');
     }
 }

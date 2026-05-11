@@ -8,7 +8,10 @@ use Illuminate\Validation\Rule;
 
 class StoreContactRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -16,17 +19,17 @@ class StoreContactRequest extends FormRequest
             'title' => [
                 'required',
                 'string',
-                'max:50'
+                'max:50',
             ],
             'message' => [
                 'required',
                 'string',
-                'max:1000'
+                'max:1000',
             ],
             'reservation_id' => [
                 'nullable',
-                Rule::exists('reservations', 'id')->where('user_id', Auth::id())
-            ]
+                Rule::exists('reservations', 'id')->where('user_id', Auth::id()),
+            ],
         ];
     }
 }

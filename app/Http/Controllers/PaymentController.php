@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Payment;
+use App\Models\Reservation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Inertia\Inertia;
 use Illuminate\Validation\ValidationException;
-use App\Models\Payment;
-use App\Models\Reservation;
-use Carbon\Carbon;
+use Inertia\Inertia;
+use Stripe\Checkout\Session;
+use Stripe\Stripe;
 use Stripe\Webhook;
 
 class PaymentController extends Controller
@@ -31,6 +33,7 @@ class PaymentController extends Controller
             $message = $reservation->reservation_status === 'booked'
                 ? 'This reservation has already been paid.'
                 : 'This reservation is no longer available for payment.';
+
             return redirect()->route('reservations.index')->with('error', $message);
         }
 
@@ -71,13 +74,13 @@ class PaymentController extends Controller
 
         // Initialize Stripe
         $secret = trim((string) config('services.stripe.secret'));
-        if (!$secret || !str_starts_with($secret, 'sk_')) {
+        if (! $secret || ! str_starts_with($secret, 'sk_')) {
             abort(500, 'Stripe secret key is missing or invalid.');
         }
-        \Stripe\Stripe::setApiKey($secret);
+        Stripe::setApiKey($secret);
 
-        $space       = $reservation->space;
-        $spaceName   = $space->name ?? "Space #{$reservation->space_id}";
+        $space = $reservation->space;
+        $spaceName = $space->name ?? "Space #{$reservation->space_id}";
         $productName = sprintf(
             '%s / %s %s-%s',
             $spaceName,
@@ -86,37 +89,37 @@ class PaymentController extends Controller
             $reservation->ended_at->format('H:i')
         );
 
-        $successUrl = route('payments.success', $reservation) . '?session_id={CHECKOUT_SESSION_ID}';
-        $cancelUrl  = route('payments.cancel',  $reservation);
+        $successUrl = route('payments.success', $reservation).'?session_id={CHECKOUT_SESSION_ID}';
+        $cancelUrl = route('payments.cancel', $reservation);
 
-        $session = \Stripe\Checkout\Session::create([
-            'mode'                 => 'payment',
+        $session = Session::create([
+            'mode' => 'payment',
             'payment_method_types' => ['card'],
-            'customer_email'       => Auth::user()->email,
-            'expires_at'           => now()->addMinutes(31)->timestamp,
-            'line_items'           => [[
+            'customer_email' => Auth::user()->email,
+            'expires_at' => now()->addMinutes(31)->timestamp,
+            'line_items' => [[
                 'price_data' => [
-                    'currency'     => 'jpy',
-                    'unit_amount'  => $reservation->total_price_yen,
+                    'currency' => 'jpy',
+                    'unit_amount' => $reservation->total_price_yen,
                     'product_data' => ['name' => $productName],
                 ],
                 'quantity' => 1,
             ]],
             'success_url' => $successUrl,
-            'cancel_url'  => $cancelUrl,
-            'metadata'    => [
+            'cancel_url' => $cancelUrl,
+            'metadata' => [
                 'reservation_id' => (string) $reservation->id,
-                'user_id'        => (string) Auth::id(),
+                'user_id' => (string) Auth::id(),
             ],
         ]);
 
         Payment::create([
-            'reservation_id'     => $reservation->id,
-            'payment_method'     => 'stripe_checkout',
-            'status'             => 'pending',
-            'stripe_session_id'  => $session->id,
+            'reservation_id' => $reservation->id,
+            'payment_method' => 'stripe_checkout',
+            'status' => 'pending',
+            'stripe_session_id' => $session->id,
             'stripe_session_url' => $session->url,
-            'amount'             => $reservation->total_price_yen,
+            'amount' => $reservation->total_price_yen,
         ]);
 
         return Inertia::location($session->url);
@@ -129,22 +132,23 @@ class PaymentController extends Controller
     public function webhook(Request $request)
     {
         $payload = $request->getContent();
-        $sig     = $request->header('Stripe-Signature');
-        $secret  = Config::get('services.stripe.webhook_secret');
+        $sig = $request->header('Stripe-Signature');
+        $secret = Config::get('services.stripe.webhook_secret');
 
         try {
             $event = Webhook::constructEvent($payload, $sig, $secret);
         } catch (\Throwable $e) {
             Log::warning('Stripe webhook signature verification failed', ['error' => $e->getMessage()]);
+
             return response('Invalid signature', 400);
         }
 
         match ($event->type) {
-            'checkout.session.completed'    => $this->handleSessionCompleted((array) $event->data->object),
-            'checkout.session.expired'      => $this->handleSessionExpired((array) $event->data->object),
+            'checkout.session.completed' => $this->handleSessionCompleted((array) $event->data->object),
+            'checkout.session.expired' => $this->handleSessionExpired((array) $event->data->object),
             'payment_intent.payment_failed' => $this->handlePaymentFailed((array) $event->data->object),
-            'charge.refunded'               => $this->handleChargeRefunded((array) $event->data->object),
-            default                         => null,
+            'charge.refunded' => $this->handleChargeRefunded((array) $event->data->object),
+            default => null,
         };
 
         return response()->noContent();
@@ -165,10 +169,10 @@ class PaymentController extends Controller
 
         if ($sessionId) {
             $secret = trim((string) config('services.stripe.secret'));
-            \Stripe\Stripe::setApiKey($secret);
+            Stripe::setApiKey($secret);
 
             try {
-                $session = \Stripe\Checkout\Session::retrieve($sessionId);
+                $session = Session::retrieve($sessionId);
 
                 if ($session->payment_status === 'paid') {
                     DB::transaction(function () use ($sessionId, $session) {
@@ -176,12 +180,14 @@ class PaymentController extends Controller
                             ->lockForUpdate()
                             ->first();
 
-                        if (!$payment || $payment->status === 'paid') return;
+                        if (! $payment || $payment->status === 'paid') {
+                            return;
+                        }
 
                         $payment->update([
-                            'status'             => 'paid',
-                            'payment_intent_id'  => $session->payment_intent ?? null,
-                            'paid_at'            => Carbon::now(),
+                            'status' => 'paid',
+                            'payment_intent_id' => $session->payment_intent ?? null,
+                            'paid_at' => Carbon::now(),
                         ]);
 
                         $payment->reservation()->update(['reservation_status' => 'booked']);
@@ -223,19 +229,23 @@ class PaymentController extends Controller
     private function handleSessionCompleted(array $obj): void
     {
         $sessionId = $obj['id'] ?? null;
-        if (!$sessionId) return;
+        if (! $sessionId) {
+            return;
+        }
 
         DB::transaction(function () use ($obj, $sessionId) {
             $payment = Payment::where('stripe_session_id', $sessionId)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$payment || $payment->status === 'paid') return;
+            if (! $payment || $payment->status === 'paid') {
+                return;
+            }
 
             $payment->update([
-                'status'            => 'paid',
+                'status' => 'paid',
                 'payment_intent_id' => $obj['payment_intent'] ?? null,
-                'paid_at'           => Carbon::now(),
+                'paid_at' => Carbon::now(),
             ]);
 
             $payment->reservation()->update(['reservation_status' => 'booked']);
@@ -245,19 +255,23 @@ class PaymentController extends Controller
     private function handleSessionExpired(array $obj): void
     {
         $sessionId = $obj['id'] ?? null;
-        if (!$sessionId) return;
+        if (! $sessionId) {
+            return;
+        }
 
         DB::transaction(function () use ($sessionId) {
             $payment = Payment::where('stripe_session_id', $sessionId)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$payment || $payment->status !== 'pending') return;
+            if (! $payment || $payment->status !== 'pending') {
+                return;
+            }
 
             $payment->update(['status' => 'expired']);
             $payment->reservation()->update([
                 'reservation_status' => 'canceled',
-                'canceled_at'        => Carbon::now(),
+                'canceled_at' => Carbon::now(),
             ]);
         });
     }
@@ -265,14 +279,18 @@ class PaymentController extends Controller
     private function handlePaymentFailed(array $obj): void
     {
         $intentId = $obj['id'] ?? null;
-        if (!$intentId) return;
+        if (! $intentId) {
+            return;
+        }
 
         DB::transaction(function () use ($intentId) {
             $payment = Payment::where('payment_intent_id', $intentId)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$payment || $payment->status !== 'pending') return;
+            if (! $payment || $payment->status !== 'pending') {
+                return;
+            }
 
             // Reservation stays pending — user can retry with a new session
             $payment->update(['status' => 'failed']);
@@ -287,14 +305,18 @@ class PaymentController extends Controller
     private function handleChargeRefunded(array $obj): void
     {
         $intentId = $obj['payment_intent'] ?? null;
-        if (!$intentId) return;
+        if (! $intentId) {
+            return;
+        }
 
         DB::transaction(function () use ($intentId) {
             $payment = Payment::where('payment_intent_id', $intentId)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$payment || $payment->status === 'refunded') return;
+            if (! $payment || $payment->status === 'refunded') {
+                return;
+            }
 
             $payment->update(['status' => 'refunded']);
         });

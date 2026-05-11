@@ -6,8 +6,10 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAnnouncementRequest extends FormRequest
 {
-
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -15,12 +17,12 @@ class StoreAnnouncementRequest extends FormRequest
             'title' => [
                 'required',
                 'string',
-                'max:50'
+                'max:50',
             ],
             'message' => [
                 'required',
                 'string',
-                'max:1000'
+                'max:1000',
             ],
             'published_date' => [
                 'required',
@@ -39,7 +41,7 @@ class StoreAnnouncementRequest extends FormRequest
             'expired_time' => [
                 'nullable',
                 'date_format:H:i',
-            ]
+            ],
 
         ];
     }

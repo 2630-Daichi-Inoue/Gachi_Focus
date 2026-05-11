@@ -1,58 +1,55 @@
 <?php
 
-
 namespace App\Http\Controllers\Admin;
 
-
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\RefundService;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class UsersController extends Controller
 {
-
     public function index(Request $request)
     {
-        $userStatusList = ['active','restricted','banned'];
+        $userStatusList = ['active', 'restricted', 'banned'];
 
         $request->validate([
-            'name'          => ['nullable', 'string', 'max:50'],
-            'email'         => ['nullable', 'string', 'max:100'],
-            'user_status'   => ['nullable', Rule::in(array_merge(['all'], $userStatusList))],
+            'name' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'string', 'max:100'],
+            'user_status' => ['nullable', Rule::in(array_merge(['all'], $userStatusList))],
             'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         // Exclude admin
         $query = User::query()
-                        ->where('is_admin', false);
+            ->where('is_admin', false);
 
         // Filter by user ID from admin's contact index page
-        if ($userId = trim((string)$request->input('user_id', ''))) {
+        if ($userId = trim((string) $request->input('user_id', ''))) {
             $query->where('id', $userId);
         } else {
             // Filter by name
             if ($request->filled('name')) {
-                $query->where('name', 'LIKE', '%' . $request->name . '%');
+                $query->where('name', 'LIKE', '%'.$request->name.'%');
             }
             // Filter by email
             if ($request->filled('email')) {
-                $query->where('email', 'LIKE', '%' . $request->email . '%');
+                $query->where('email', 'LIKE', '%'.$request->email.'%');
             }
             // Filter by user_status
             $userStatus = $request->input('user_status', 'all');
-            if($userStatus !== 'all') {
+            if ($userStatus !== 'all') {
                 $query->where('user_status', $userStatus);
             }
         }
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         $users = $query
-                    ->latest()
-                    ->paginate($rowsPerPage);
+            ->latest()
+            ->paginate($rowsPerPage);
 
         return view('admin.users.index', compact('users', 'rowsPerPage'));
     }
@@ -62,14 +59,14 @@ class UsersController extends Controller
     {
         if ($user->trashed()) {
             return redirect()->route('admin.users.index')
-                ->with('error', $user->name . ' has already been deleted.');
+                ->with('error', $user->name.' has already been deleted.');
         }
 
         $user->update(['user_status' => 'restricted']);
         $user->reviews()->update(['is_public' => false]);
 
         return redirect()->route('admin.users.index')
-                        ->with('ok', 'Successfully restricted.');
+            ->with('ok', 'Successfully restricted.');
     }
 
     // Activate User
@@ -77,13 +74,13 @@ class UsersController extends Controller
     {
         if ($user->trashed()) {
             return redirect()->route('admin.users.index')
-                ->with('error', $user->name . ' has already been deleted.');
+                ->with('error', $user->name.' has already been deleted.');
         }
 
         $user->update(['user_status' => 'active']);
 
         return redirect()->route('admin.users.index')
-                        ->with('ok', 'Successfully activated.');
+            ->with('ok', 'Successfully activated.');
     }
 
     // Ban User
@@ -91,7 +88,7 @@ class UsersController extends Controller
     {
         if ($user->trashed()) {
             return redirect()->route('admin.users.index')
-                ->with('error', $user->name . ' has already been deleted.');
+                ->with('error', $user->name.' has already been deleted.');
         }
 
         $user->update(['user_status' => 'banned']);
@@ -101,9 +98,9 @@ class UsersController extends Controller
             ->where('reservation_status', 'booked')
             ->where('started_at', '>', now())
             ->get()
-            ->each(fn($reservation) => $refundService->refundAndCancel($reservation));
+            ->each(fn ($reservation) => $refundService->refundAndCancel($reservation));
 
         return redirect()->route('admin.users.index')
-                        ->with('ok', 'Successfully banned.');
+            ->with('ok', 'Successfully banned.');
     }
 }

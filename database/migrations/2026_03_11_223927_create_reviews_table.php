@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
@@ -16,19 +17,19 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained();
+                ->constrained();
             $table->foreignUlId('reservation_id')
-                    ->unique()
-                    ->constrained();
+                ->unique()
+                ->constrained();
             $table->unsignedTinyInteger('rating')
-                    ->min(1)
-                    ->max(5);
+                ->min(1)
+                ->max(5);
             $table->text('comment')
-                    ->nullable();
+                ->nullable();
             $table->boolean('is_public')
-                    ->default(true);
+                ->default(true);
             $table->timestamps();
             $table->softDeletes();
 

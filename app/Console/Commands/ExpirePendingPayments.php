@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use App\Models\Payment;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class ExpirePendingPayments extends Command
 {
-    protected $signature   = 'payments:expire-pending';
+    protected $signature = 'payments:expire-pending';
+
     protected $description = 'Cancel reservations whose pending payment has exceeded 30 minutes without completion.';
 
     public function handle(): void
@@ -22,13 +23,15 @@ class ExpirePendingPayments extends Command
             DB::transaction(function () use ($payment) {
                 // Re-fetch with lock to avoid race condition with webhook
                 $locked = Payment::lockForUpdate()->find($payment->id);
-                if (!$locked || $locked->status !== 'pending') return;
+                if (! $locked || $locked->status !== 'pending') {
+                    return;
+                }
 
                 $locked->update(['status' => 'expired']);
 
                 $locked->reservation()->update([
                     'reservation_status' => 'canceled',
-                    'canceled_at'        => Carbon::now(),
+                    'canceled_at' => Carbon::now(),
                 ]);
             });
         }

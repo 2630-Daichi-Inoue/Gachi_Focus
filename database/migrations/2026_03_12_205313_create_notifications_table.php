@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
@@ -16,14 +17,14 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained();
+                ->constrained();
             $table->string('title', 50);
             $table->text('message');
             $table->nullableUlidMorphs('related');
             $table->timestamp('read_at')
-                    ->nullable();
+                ->nullable();
             $table->timestamps();
 
             $table->index(['user_id', 'created_at']);

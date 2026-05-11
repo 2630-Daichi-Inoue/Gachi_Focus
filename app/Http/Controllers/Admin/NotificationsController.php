@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Notification;
+use App\Models\Reservation;
 use App\Models\Space;
 use App\Models\User;
-use App\Models\Reservation;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class NotificationsController extends Controller
 {
@@ -16,10 +16,10 @@ class NotificationsController extends Controller
     {
 
         $request->validate([
-            'keyword'        => ['nullable', 'string', 'max:50'],
-            'type'           => ['nullable', 'string', 'in:all,user,space,contact'],
-            'read_status'    => ['nullable', 'in:all,1,0'],
-            'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100']
+            'keyword' => ['nullable', 'string', 'max:50'],
+            'type' => ['nullable', 'string', 'in:all,user,space,contact'],
+            'read_status' => ['nullable', 'in:all,1,0'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Notification::query()->with('user');
@@ -29,7 +29,7 @@ class NotificationsController extends Controller
             $keyword = $request->input('keyword');
             $query->where(function ($q) use ($keyword) {
                 $q->where('title', 'like', "%{$keyword}%")
-                  ->orWhere('message', 'like', "%{$keyword}%");
+                    ->orWhere('message', 'like', "%{$keyword}%");
             });
         }
 
@@ -54,11 +54,11 @@ class NotificationsController extends Controller
             }
         }
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         $notifications = $query
-                        ->orderBy('created_at', 'desc')
-                        ->paginate($rowsPerPage);
+            ->orderBy('created_at', 'desc')
+            ->paginate($rowsPerPage);
 
         return view('admin.notifications.index', compact('notifications'));
     }
@@ -71,9 +71,9 @@ class NotificationsController extends Controller
             $today = today();
 
             $targetReservations = Reservation::where('space_id', $space->id)
-                                                ->where('reservation_status', 'booked')
-                                                ->where('started_at', '>=', Carbon::createFromFormat("Y-m-d H:i:s", "$today"))
-                                                ->get();
+                ->where('reservation_status', 'booked')
+                ->where('started_at', '>=', Carbon::createFromFormat('Y-m-d H:i:s', "$today"))
+                ->get();
 
             $targetUsers = $targetReservations->pluck('user_id')->unique()->values();
 
@@ -96,7 +96,7 @@ class NotificationsController extends Controller
             return view('admin.notifications.users.create', compact('user', 'message'));
         } else {
             return redirect()->route('admin.dashboard')
-                            ->with('ok', 'Invalid notification type or target.');
+                ->with('ok', 'Invalid notification type or target.');
         }
     }
 
@@ -137,6 +137,6 @@ class NotificationsController extends Controller
         }
 
         return redirect()->route('admin.dashboard')
-                        ->with('ok', 'A notification has been successfully sent.');
+            ->with('ok', 'A notification has been successfully sent.');
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
@@ -16,9 +17,9 @@ return new class extends Migration
     {
         Schema::create('amenities', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->string('name', 50)
-                    ->unique();
+                ->unique();
             $table->timestamps();
         });
     }

@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Reservation;
 use App\Models\Space;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Reservation>
+ * @extends Factory<Reservation>
  */
 class ReservationFactory extends Factory
 {
@@ -26,15 +27,15 @@ class ReservationFactory extends Factory
         ];
     }
 
-    public function forSpace(Space $space) :static
+    public function forSpace(Space $space): static
     {
         return $this->state(function () use ($space) {
             // Reseavation's date
             $date = fake()->dateTimeBetween('now', '+30 days')->format('Y-m-d');
 
             // Space's open-close times (not depending on date)
-            $openTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->open_time}");
-            $closeTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->close_time}");
+            $openTime = Carbon::createFromFormat('Y-m-d H:i:s', "$date {$space->open_time}");
+            $closeTime = Carbon::createFromFormat('Y-m-d H:i:s', "$date {$space->close_time}");
 
             // Candidates for reservation start time (every 30 min slot between open and close)
             $startCandidates = [];

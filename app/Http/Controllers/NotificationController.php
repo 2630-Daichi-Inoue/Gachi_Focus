@@ -2,64 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Builder;
 use App\Models\Notification;
 use App\Traits\AppliesChronologicalSort;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class NotificationController extends Controller
 {
     use AppliesChronologicalSort;
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $data = $request->merge([
-            'new_only'      => $request->boolean('new_only'),
+            'new_only' => $request->boolean('new_only'),
         ]);
         $data->validate([
-            'keyword'       => ['nullable', 'string', 'max:50'],
-            'new_only'      => ['nullable', 'boolean'],
-            'sort'          => ['nullable', 'in:datePresentToPast,datePastToPresent'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'keyword' => ['nullable', 'string', 'max:50'],
+            'new_only' => ['nullable', 'boolean'],
+            'sort' => ['nullable', 'in:datePresentToPast,datePastToPresent'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Notification::query()
-                            ->where('user_id', Auth::id());
+            ->where('user_id', Auth::id());
 
         // Filter by keyword
-        if($data['keyword']) {
+        if ($data['keyword']) {
             $query->where(function ($q) use ($data) {
-                $q->where('title', 'like', '%' . $data['keyword'] . '%')
-                  ->orWhere('message', 'like', '%' . $data['keyword'] . '%');
+                $q->where('title', 'like', '%'.$data['keyword'].'%')
+                    ->orWhere('message', 'like', '%'.$data['keyword'].'%');
             });
         }
 
         // Filter by read/unread status
-        if($data['new_only']) {
+        if ($data['new_only']) {
             $query->whereNull('read_at');
         }
 
-        $rowsPerPage = (int)($data['rows_per_page'] ?? 20);
+        $rowsPerPage = (int) ($data['rows_per_page'] ?? 20);
 
         // Default: date present → past
         $this->applySort($query, $data['sort'] ?? 'datePresentToPast');
 
         $notifications = $query
-                        ->paginate($rowsPerPage)
-                        ->withQueryString();
+            ->paginate($rowsPerPage)
+            ->withQueryString();
 
         return Inertia::render('Notifications/Index', [
             'notifications' => $notifications,
             'filters' => [
-                'keyword'      => $data['keyword'] ?? '',
-                'new_only'     => $data['new_only'] ?? false,
-                'sort'         => $data['sort'] ?? 'datePresentToPast',
+                'keyword' => $data['keyword'] ?? '',
+                'new_only' => $data['new_only'] ?? false,
+                'sort' => $data['sort'] ?? 'datePresentToPast',
                 'rows_per_page' => $rowsPerPage,
-            ]
+            ],
         ]);
     }
 
@@ -76,7 +77,7 @@ class NotificationController extends Controller
         }
 
         $notification->update([
-            'read_at' => now()
+            'read_at' => now(),
         ]);
 
         return back()->with('ok', 'The notification has been marked as read.');

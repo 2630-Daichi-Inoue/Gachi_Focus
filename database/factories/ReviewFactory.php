@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Reservation;
+use App\Models\Review;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Review>
+ * @extends Factory<Review>
  */
 class ReviewFactory extends Factory
 {
@@ -30,7 +31,7 @@ class ReviewFactory extends Factory
         ];
     }
 
-    public function forReservation(Reservation $reservation) :static
+    public function forReservation(Reservation $reservation): static
     {
         return $this->state(function () use ($reservation) {
             return [

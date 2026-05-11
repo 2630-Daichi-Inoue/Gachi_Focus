@@ -1,23 +1,20 @@
 <?php
 
-
 namespace App\Http\Controllers\Admin;
 
-
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreSpaceRequest;
+use App\Http\Requests\UpdateSpaceRequest;
 use App\Models\Amenity;
 use App\Models\Reservation;
 use App\Models\Space;
 use App\Services\RefundService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreSpaceRequest;
-use App\Http\Requests\UpdateSpaceRequest;
 use Illuminate\Validation\Rule;
 
 class SpacesController extends Controller
 {
-
     public function index(Request $request)
     {
 
@@ -32,14 +29,14 @@ class SpacesController extends Controller
             'city' => ['nullable', 'string', 'max:50'],
             'address_line' => ['nullable', 'string', 'max:100'],
             'is_public' => ['nullable', 'in:all,0,1'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Space::query();
 
         // Filter by name
         if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%' . $request->name . '%');
+            $query->where('name', 'LIKE', '%'.$request->name.'%');
         }
         // Filter by prefecture
         if ($request->filled('prefecture') && $request->prefecture !== 'all') {
@@ -47,27 +44,27 @@ class SpacesController extends Controller
         }
         // Filter by city
         if ($request->filled('city')) {
-            $query->where('city', 'LIKE', '%' . $request->city . '%');
+            $query->where('city', 'LIKE', '%'.$request->city.'%');
         }
         // Filter by address_line
         if ($request->filled('address_line')) {
-            $query->where('address_line', 'LIKE', '%' . $request->address_line . '%');
+            $query->where('address_line', 'LIKE', '%'.$request->address_line.'%');
         }
         // Filter by is_public
         if ($request->filled('is_public') && $request->is_public !== 'all') {
             $query->where('is_public', $request->boolean('is_public'));
         }
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         $spaces = $query
-                    ->latest()
-                    ->paginate($rowsPerPage);
+            ->latest()
+            ->paginate($rowsPerPage);
 
         $prefectures = Space::select('prefecture')
-                            ->distinct()
-                            ->orderBy('prefecture')
-                            ->pluck('prefecture');
+            ->distinct()
+            ->orderBy('prefecture')
+            ->pluck('prefecture');
 
         return view('admin.spaces.index', compact('spaces', 'prefectures', 'rowsPerPage'));
     }
@@ -75,8 +72,8 @@ class SpacesController extends Controller
     public function create()
     {
         $amenities = Amenity::orderBy('name')
-                            ->select('id','name')
-                            ->get();
+            ->select('id', 'name')
+            ->get();
 
         return view('admin.spaces.create', compact('amenities'));
     }
@@ -87,19 +84,19 @@ class SpacesController extends Controller
         $imagePath = $request->file('image')->store('spaces', 'public');
 
         // 1. Save space data to spaces table
-        $space= Space::create([
-            'name'              => $data['name'],
-            'prefecture'        => $data['prefecture'],
-            'city'              => $data['city'],
-            'address_line'      => $data['address_line'],
-            'capacity'          => $data['capacity'],
-            'open_time'         => $data['open_time'],
-            'close_time'        => $data['close_time'],
+        $space = Space::create([
+            'name' => $data['name'],
+            'prefecture' => $data['prefecture'],
+            'city' => $data['city'],
+            'address_line' => $data['address_line'],
+            'capacity' => $data['capacity'],
+            'open_time' => $data['open_time'],
+            'close_time' => $data['close_time'],
             'weekend_price_yen' => $data['weekend_price_yen'],
             'weekday_price_yen' => $data['weekday_price_yen'],
-            'description'       => $data['description'],
-            'image_path'        => $imagePath,
-            'is_public'         => $data['is_public'] ?? true,
+            'description' => $data['description'],
+            'image_path' => $imagePath,
+            'is_public' => $data['is_public'] ?? true,
         ]);
 
         // 2. Sync amenities to the pivot table
@@ -112,24 +109,24 @@ class SpacesController extends Controller
     {
         if ($space->trashed()) {
             return redirect()
-                    ->route('admin.spaces.index')
-                    ->with('error', $space->name . ' has already been deleted.');
+                ->route('admin.spaces.index')
+                ->with('error', $space->name.' has already been deleted.');
         }
 
         $space->load('amenities');
 
         $amenities = Amenity::orderBy('name')
-                            ->select('id', 'name')
-                            ->get();
+            ->select('id', 'name')
+            ->get();
 
         // Get all amenity IDs of the space.
         $selectedAmenityIds = $space->amenities->pluck('id')->toArray();
 
         return view('admin.spaces.edit', [
-                'space' => $space,
-                'amenities' => $amenities,
-                'selectedAmenityIds' => $selectedAmenityIds,
-            ]
+            'space' => $space,
+            'amenities' => $amenities,
+            'selectedAmenityIds' => $selectedAmenityIds,
+        ]
         );
     }
 
@@ -137,27 +134,27 @@ class SpacesController extends Controller
     {
         if ($space->trashed()) {
             return redirect()->route('admin.spaces.index')
-                ->with('error', $space->name . ' has already been deleted.');
+                ->with('error', $space->name.' has already been deleted.');
         }
 
         $data = $request->validated();
 
         // 1. Update the space data in the spaces table
         $updateData = [
-            'name'              => $data['name'],
-            'prefecture'        => $data['prefecture'],
-            'city'              => $data['city'],
-            'address_line'      => $data['address_line'],
-            'capacity'          => $data['capacity'],
-            'open_time'         => $data['open_time'],
-            'close_time'        => $data['close_time'],
+            'name' => $data['name'],
+            'prefecture' => $data['prefecture'],
+            'city' => $data['city'],
+            'address_line' => $data['address_line'],
+            'capacity' => $data['capacity'],
+            'open_time' => $data['open_time'],
+            'close_time' => $data['close_time'],
             'weekend_price_yen' => $data['weekend_price_yen'],
             'weekday_price_yen' => $data['weekday_price_yen'],
-            'description'       => $data['description'],
+            'description' => $data['description'],
         ];
 
         if ($request->hasFile('image')) {
-            if (!empty($space->image_path)) {
+            if (! empty($space->image_path)) {
                 Storage::disk('public')->delete($space->image_path);
             }
             $updateData['image_path'] = $request->file('image')->store('spaces', 'public');
@@ -175,20 +172,20 @@ class SpacesController extends Controller
     {
         if ($space->trashed()) {
             return redirect()->route('admin.spaces.index')
-                ->with('error', $space->name . ' has already been deleted.');
+                ->with('error', $space->name.' has already been deleted.');
         }
 
         $space->update(['is_public' => false]);
 
         return redirect()->route('admin.spaces.index')
-                        ->with('ok', 'Successfully hidden.');
+            ->with('ok', 'Successfully hidden.');
     }
 
     public function show(Space $space)
     {
         if ($space->trashed()) {
             return redirect()->route('admin.spaces.index')
-                ->with('error', $space->name . ' has already been deleted.');
+                ->with('error', $space->name.' has already been deleted.');
         }
 
         $space->update(['is_public' => true]);
@@ -202,10 +199,11 @@ class SpacesController extends Controller
             ->where('reservation_status', 'booked')
             ->where('started_at', '>', now())
             ->get()
-            ->each(fn($reservation) => $refundService->refundAndCancel($reservation));
+            ->each(fn ($reservation) => $refundService->refundAndCancel($reservation));
 
         $space->update(['is_public' => false]);
         $space->delete();
+
         return redirect()->route('admin.spaces.index')->with('ok', 'Successfully deleted.');
     }
 }
