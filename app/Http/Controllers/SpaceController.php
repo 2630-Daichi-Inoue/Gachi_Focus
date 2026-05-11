@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Builder;
-use App\Models\Space;
 use App\Models\Favorite;
+use App\Models\Space;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class SpaceController extends Controller
 {
-
     public function index(Request $request)
     {
         $prefectureList = array_merge(
@@ -21,29 +20,29 @@ class SpaceController extends Controller
         );
 
         $request->validate([
-            'name'          => ['nullable', 'string', 'max:50'],
-            'prefecture'    => ['nullable', Rule::in(array_merge(['all'], $prefectureList))],
-            'city'          => ['nullable', 'string', 'max:50'],
-            'max_price'     => ['nullable', 'integer', 'min:0'],
-            'rows_per_page' => ['nullable', 'integer', 'in:3,6,9,12,15']
+            'name' => ['nullable', 'string', 'max:50'],
+            'prefecture' => ['nullable', Rule::in(array_merge(['all'], $prefectureList))],
+            'city' => ['nullable', 'string', 'max:50'],
+            'max_price' => ['nullable', 'integer', 'min:0'],
+            'rows_per_page' => ['nullable', 'integer', 'in:3,6,9,12,15'],
         ]);
 
         $query = Space::public()
-                        ->with('amenities')
-                        ->withCount(
-                            ['reviews as public_reviews_count' => function ($q) {
-                                $q->where('is_public', true);
-                            },
-                        ])
-                        ->withAvg(
-                            ['reviews as public_reviews_avg_rating' => function ($q) {
-                                $q->where('is_public', true);
-                            },
-                        ], 'rating');
+            ->with('amenities')
+            ->withCount(
+                ['reviews as public_reviews_count' => function ($q) {
+                    $q->where('is_public', true);
+                },
+                ])
+            ->withAvg(
+                ['reviews as public_reviews_avg_rating' => function ($q) {
+                    $q->where('is_public', true);
+                },
+                ], 'rating');
 
         // Filter by name
         if ($request->filled('name')) {
-            $query->where('name', 'LIKE', '%' . $request->name . '%');
+            $query->where('name', 'LIKE', '%'.$request->name.'%');
         }
         // Filter by prefecture
         if ($request->filled('prefecture') && $request->prefecture !== 'all') {
@@ -51,7 +50,7 @@ class SpaceController extends Controller
         }
         // Filter by city
         if ($request->filled('city')) {
-            $query->where('city', 'LIKE', '%' . $request->city . '%');
+            $query->where('city', 'LIKE', '%'.$request->city.'%');
         }
         // Filter by max_price
         if ($request->filled('max_price')) {
@@ -62,30 +61,30 @@ class SpaceController extends Controller
         $this->applySort($query, $request->input('sort', 'favorite_first'));
 
         $spaces = $query
-                    ->paginate($request->input('rows_per_page', 3))
-                    ->withQueryString();
+            ->paginate($request->input('rows_per_page', 3))
+            ->withQueryString();
 
         $prefectures = Space::public()
-                            ->select('prefecture')
-                            ->distinct()
-                            ->orderBy('prefecture')
-                            ->pluck('prefecture');
+            ->select('prefecture')
+            ->distinct()
+            ->orderBy('prefecture')
+            ->pluck('prefecture');
 
         $favoriteSpaceIds = Favorite::where('user_id', Auth::id())
-                                    ->pluck('space_id');
+            ->pluck('space_id');
 
         return Inertia::render('Spaces/Index', [
             'spaces' => $spaces,
             'favoriteSpaceIds' => $favoriteSpaceIds,
             'prefectures' => $prefectures,
             'filters' => [
-                'name'          => $request->name,
-                'prefecture'    => $request->prefecture,
-                'city'          => $request->city,
-                'max_price'     => $request->max_price,
-                'sort'          => $request->input('sort', 'favorite_first'),
+                'name' => $request->name,
+                'prefecture' => $request->prefecture,
+                'city' => $request->city,
+                'max_price' => $request->max_price,
+                'sort' => $request->input('sort', 'favorite_first'),
                 'rows_per_page' => (int) $request->input('rows_per_page', 3),
-            ]
+            ],
         ]);
     }
 
@@ -131,7 +130,7 @@ class SpaceController extends Controller
                 break;
 
             case 'favorite_first':
-                $q->orderByRaw("CASE WHEN spaces.id IN (SELECT space_id FROM favorites WHERE user_id = ?) THEN 0 ELSE 1 END", [Auth::id()])
+                $q->orderByRaw('CASE WHEN spaces.id IN (SELECT space_id FROM favorites WHERE user_id = ?) THEN 0 ELSE 1 END', [Auth::id()])
                     ->orderByRaw('COALESCE(public_reviews_avg_rating,0) DESC')
                     ->orderBy('public_reviews_count', 'desc')
                     ->latest('created_at');
@@ -146,9 +145,9 @@ class SpaceController extends Controller
 
     public function show(Space $space)
     {
-        if (!$space->isPublic()) {
+        if (! $space->isPublic()) {
             return redirect()->route('spaces.index')
-                            ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
+                ->with('error', 'Sorry, but '.$space->name.' is not currently available.');
         }
 
         $space->load('amenities');
@@ -156,10 +155,10 @@ class SpaceController extends Controller
         $isFavorite = $space->isFavorite();
 
         $reviews = $space->reviews()
-                            ->where('is_public', true)
-                            ->with(['user' => fn($q) => $q->withTrashed()])
-                            ->latest()
-                            ->get();
+            ->where('is_public', true)
+            ->with(['user' => fn ($q) => $q->withTrashed()])
+            ->latest()
+            ->get();
 
         $reviewCount = $reviews->count();
 
@@ -170,19 +169,19 @@ class SpaceController extends Controller
             'space' => $space,
             'isFavorite' => $isFavorite,
             'reviewInfo' => [
-                'reviews'       => $reviews,
-                'reviewCount'   => $reviewCount,
+                'reviews' => $reviews,
+                'reviewCount' => $reviewCount,
                 'averageRating' => $averageRating,
-            ]
+            ],
         ]);
     }
 
     public function reviewIndex(Space $space, Request $request)
     {
 
-        if (!$space->isPublic()) {
+        if (! $space->isPublic()) {
             return redirect()->route('spaces.index')
-                            ->with('error', 'Sorry, but ' . $space->name . ' is not currently available.');
+                ->with('error', 'Sorry, but '.$space->name.' is not currently available.');
         }
 
         $sortList = [
@@ -194,12 +193,12 @@ class SpaceController extends Controller
         $request->validate([
             'stars' => ['nullable', 'in:all,1,2,3,4,5'],
             'sort' => ['nullable', Rule::in($sortList)],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $baseQuery = $space->reviews()
-                            ->where('is_public', true)
-                            ->with(['user' => fn($q) => $q->withTrashed()]);
+            ->where('is_public', true)
+            ->with(['user' => fn ($q) => $q->withTrashed()]);
 
         $allReviews = (clone $baseQuery)->get();
 
@@ -211,11 +210,11 @@ class SpaceController extends Controller
 
         $this->applyReviewSort($filteredQuery, $request->input('sort', 'rating_high_to_low'));
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         $filteredReviews = $filteredQuery
-                            ->paginate($rowsPerPage)
-                            ->withQueryString();
+            ->paginate($rowsPerPage)
+            ->withQueryString();
 
         $reviewCount = $allReviews->count();
         $avg = $allReviews->avg('rating');
@@ -225,14 +224,14 @@ class SpaceController extends Controller
             'space' => $space,
             'reviewInfo' => [
                 'filteredReviews' => $filteredReviews,
-                'reviewCount'     => $reviewCount,
-                'averageRating'   => $averageRating,
+                'reviewCount' => $reviewCount,
+                'averageRating' => $averageRating,
             ],
             'filters' => [
                 'stars' => $request->input('stars', 'all'),
                 'sort' => $request->input('sort', 'rating_high_to_low'),
                 'rows_per_page' => $rowsPerPage,
-            ]
+            ],
         ]);
     }
 

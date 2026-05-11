@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('favorites', function (Blueprint $table) {
             $table->foreignUlId('user_id')
-                    ->constrained();
+                ->constrained();
             $table->foreignUlId('space_id')
-                    ->constrained();
+                ->constrained();
 
-            $table->primary(['user_id','space_id']);
+            $table->primary(['user_id', 'space_id']);
             $table->index(['user_id', 'space_id']);
         });
     }

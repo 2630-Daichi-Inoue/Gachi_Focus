@@ -1,14 +1,13 @@
 <?php
 
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-
 return new class extends Migration
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
@@ -18,7 +17,7 @@ return new class extends Migration
     {
         Schema::create('spaces', function (Blueprint $table) {
             $table->ulid('id')
-                  ->primary();
+                ->primary();
             $table->string('name', 50);
             $table->string('prefecture', 20);
             $table->string('city', 50);
@@ -31,7 +30,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('image_path', 255);
             $table->boolean('is_public')
-                    ->default(true);
+                ->default(true);
             $table->timestamps();
             $table->softDeletes();
 
@@ -46,5 +45,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('spaces');
     }
-
 };

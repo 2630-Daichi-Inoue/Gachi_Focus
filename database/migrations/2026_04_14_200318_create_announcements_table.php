@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('announcements', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->string('title', 50);
             $table->text('message');
             $table->boolean('is_public')
-                    ->default(true);
+                ->default(true);
             $table->timestamp('published_at');
             $table->timestamp('expired_at')->nullable();
             $table->timestamps();

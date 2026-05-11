@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Contact extends Model
 {
@@ -27,11 +27,11 @@ class Contact extends Model
      * Attribute casting.
      */
     protected $casts = [
-        'message'        => 'string',
-        'title'          => 'string',
+        'message' => 'string',
+        'title' => 'string',
         'contact_status' => 'string',
-        'read_at'        => 'datetime',
-        'canceled_at'    => 'datetime',
+        'read_at' => 'datetime',
+        'canceled_at' => 'datetime',
     ];
 
     /**
@@ -43,8 +43,8 @@ class Contact extends Model
     }
 
     /**
-    * Get the reservation associated with the contact.
-    */
+     * Get the reservation associated with the contact.
+     */
     public function reservation()
     {
         return $this->belongsTo(Reservation::class);
@@ -62,7 +62,7 @@ class Contact extends Model
 
     public function isCanceled(): bool
     {
-        return !is_null($this->canceled_at);
+        return ! is_null($this->canceled_at);
     }
 
     public function isClosed(): bool

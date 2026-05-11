@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('amenity_space', function (Blueprint $table) {
             $table->foreignUlId('space_id')
-                    ->constrained();
+                ->constrained();
             $table->foreignUlId('amenity_id')
-                    ->constrained()
-                    ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
-            $table->primary(['space_id','amenity_id']);
+            $table->primary(['space_id', 'amenity_id']);
             $table->index(['space_id', 'amenity_id']);
         });
     }

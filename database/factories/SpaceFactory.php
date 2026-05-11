@@ -101,17 +101,17 @@ class SpaceFactory extends Factory
             'spaces/demo4.png',
         ];
 
-    static $usedLocationIndexes = [];
+        static $usedLocationIndexes = [];
 
-    do {
-        $locationIndex = fake()->numberBetween(0, count($locations) - 1);
-    } while (in_array($locationIndex, $usedLocationIndexes, true));
-    $usedLocationIndexes[] = $locationIndex;
-    $brand = fake()->randomElement($brands);
-    $location = $locations[$locationIndex];
+        do {
+            $locationIndex = fake()->numberBetween(0, count($locations) - 1);
+        } while (in_array($locationIndex, $usedLocationIndexes, true));
+        $usedLocationIndexes[] = $locationIndex;
+        $brand = fake()->randomElement($brands);
+        $location = $locations[$locationIndex];
 
         return [
-            'name' => $brand . ' ' . $location['area'],
+            'name' => $brand.' '.$location['area'],
             'prefecture' => $location['prefecture'],
             'city' => $location['city'],
             'address_line' => $location['address_line'],

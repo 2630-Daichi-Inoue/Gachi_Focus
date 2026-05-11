@@ -1,66 +1,188 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Gachi Focus
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
 
-## About Laravel
+A web application for coworking space management and reservation. Users can search for spaces, make reservations, and pay online. Admins can manage spaces, users, reservations, reviews, contacts, and notifications from a dedicated dashboard.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This project is designed as an MVP, focusing on core functionality with room for scalability and future improvement.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Setup
 
-## Learning Laravel
+```bash
+git clone <repository-url>
+cd gachi-focus
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+composer install
+npm install
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+cp .env.example .env
+php artisan key:generate
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Configure the following in `.env`:
 
-## Laravel Sponsors
+```env
+DB_DATABASE=your_database
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+STRIPE_KEY=pk_test_...
+STRIPE_SECRET=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
 
-### Premium Partners
+```bash
+php artisan migrate --seed
+npm run dev
+php artisan serve
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+To test Stripe webhooks locally (requires [Stripe CLI](https://stripe.com/docs/stripe-cli)):
 
-## Contributing
+```bash
+stripe listen --forward-to localhost:8000/stripe/webhook
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+To also test automatic reservation expiration (optional — Stripe CLI covers the normal expiry path via webhook):
 
-## Code of Conduct
+```bash
+php artisan schedule:work
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Tech Stack
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Layer | Technology |
+| --- | --- |
+| Backend | Laravel 11 |
+| Frontend | Vue 3 / Inertia.js / Tailwind CSS |
+| Payment | Stripe Checkout (server-side, hosted page) |
+| Database | MySQL (ULID primary keys) |
+| Code Quality | Prettier + prettier-plugin-tailwindcss |
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Key Features
+
+### User
+- Space search with filters (name, prefecture, city, max price) and sorting (rating, price, capacity, favorites-first)
+- Reservation flow: time slot selection → confirmation → Stripe payment
+- Free cancellation up to 1 hour before start time, with automatic refund
+- Review submission, editing, and soft deletion
+- Contact form submission and status tracking
+- View notifications and announcements made by admin
+
+### Admin
+- Space CRUD with public/hidden toggle
+- User management with three statuses:
+  - `active`: full access
+  - `restricted`: cannot make reservations or post new reviews; existing reviews hidden
+  - `banned`: all restrictions of restricted apply; additionally cannot log in and future reservations are auto-canceled with refund
+- Future reservations auto-canceled with refund on space deletion
+- Review, contact, and notification management
+- Dashboard with revenue aggregations by day, week, month, year, and prefecture
+
+---
+
+## Reservation Status Lifecycle
+
+```mermaid
+flowchart LR
+    pending -->|payment confirmed via webhook| booked
+    pending -->|expired / canceled / failed| canceled
+    booked -->|user canceled / admin action| canceled
+```
+
+Both `pending` and `booked` reservations occupy the slot in overlap checks to prevent double-booking.
+
+| Status | Meaning |
+| --- | --- |
+| `pending` | Reservation created, awaiting payment (slot held) |
+| `booked` | Payment confirmed by Stripe webhook |
+| `canceled` | Payment expired / user canceled / admin action |
+
+---
+
+## Payment Flow
+
+```
+User clicks "Pay with Stripe"
+    ↓ POST → reservations.store
+      - Availability check (booked + pending)
+      - Create Reservation (status: pending)
+      - Redirect to payments.checkout
+    ↓ GET → payments.checkout
+      - If active pending Payment exists → redirect to existing Stripe session
+      - Re-check availability with DB lock (lockForUpdate)
+      - Create Stripe Checkout Session (expires in 30 min)
+      - Create Payment record (status: pending)
+      - Redirect to Stripe
+
+Stripe Checkout (Stripe-hosted)
+    ↓ success                    ↓ cancel
+payments.success             payments.cancel
+    ↓                            ↓
+reservations.index           Payment: canceled
+(ok flash)                   Reservation stays pending temporarily (retry possible until expiration)
+                             reservations.index (warning flash)
+
+Stripe Webhook → payments.webhook
+  checkout.session.completed   → Reservation: booked, Payment: paid
+  checkout.session.expired     → Reservation: canceled, Payment: expired
+  payment_intent.payment_failed → Payment: failed (reservation stays pending)
+
+Artisan: payments:expire-pending (runs every minute, fallback for missed webhooks)
+  → Payments pending > 30 min → Payment: expired, Reservation: canceled
+```
+
+> Payment confirmation relies solely on the Stripe webhook (`checkout.session.completed`);
+> the success redirect is cosmetic and does not confirm payment.
+
+---
+
+## Technical Highlights
+
+### Backend
+- **Race condition prevention**: concurrent reservation requests can pass the availability check simultaneously before either is committed — mitigated by wrapping creation in a DB transaction with `lockForUpdate()` on the Space row, forcing sequential capacity checks
+- **FormRequest**: validation and authorization separated into dedicated FormRequest classes; `authorize()` handles both authentication and user status checks
+- **Soft deletes**: applied to User, Space, and Review; related records remain accessible via `withTrashed()`
+- **Model helpers and scopes**: `isRestricted()`, `isBanned()`, `isPublic()`, `Space::public()` etc. centralize status checks and keep controllers clean
+- **Shared sort logic**: `AppliesChronologicalSort` trait eliminates duplicated sort boilerplate across controllers
+- **Rate limiting**: the contact form is vulnerable to spam and excessive submissions — `throttle` middleware limits request frequency per user
+- **Refund flow**: `Refund::create()` is intentionally executed outside the DB transaction to avoid holding row locks during slow external API calls. The reservation is first marked `canceled` and the payment `refund_pending`; if the Stripe call fails, a notification and auto-generated admin contact are created for manual processing. The `charge.refunded` webhook acts as a fallback if the process crashes between the Stripe API call and the local DB update.
+- **Pending reservation as retry slot**: on payment cancel or failure, the reservation stays `pending` rather than being immediately canceled, allowing the user to retry payment without recreating the reservation; the slot is released automatically after 30 minutes via a scheduled command
+
+### Frontend
+- **Inertia.js `useForm`**: double submission on slow networks or repeated clicks can cause duplicate records — all forms use `useForm` with `form.processing` to disable the submit button while a request is in flight
+- **Inline error display**: action errors (cancel, delete, etc.) shown as inline messages instead of browser `alert()`
+- **Conflict warning**: users are warned and asked to confirm if a new reservation overlaps with an existing one
+
+### Access Control
+- Backend guards on all sensitive endpoints regardless of frontend state (URL-direct-access proof)
+- Admin routes protected by `auth` + `admin` middleware; `authorize()` in FormRequests as an additional layer
+- User status enforced in both middleware and FormRequest `authorize()` to prevent bypass
+
+---
+
+## Code Quality
+
+| Tool | Purpose | Status |
+| --- | --- | --- |
+| Laravel Pint | PHP code style (PSR-12) | ✅ Applied |
+| Prettier + prettier-plugin-tailwindcss | Vue / JS formatting + Tailwind class sorting | ✅ Applied |
+| PHPUnit | Feature and unit tests | 🔲 Planned |
+| Larastan | Static analysis (PHPStan for Laravel) | 🔲 Planned |
+
+---
+
+## Future Prospects
+
+- **Internationalization**: timezone, locale, and multi-currency support (`currency` column already provisioned in payments table)
+- **Testing**: E2E tests covering reservation → cancel → review flows and edge cases
+- **Multi-image support** for spaces
+- **Space availability visualization** (calendar view)
+- **Admin reply feature** for contacts
+- **Reservation history dashboard** for users

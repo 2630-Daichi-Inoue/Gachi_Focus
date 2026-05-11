@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Carbon\Carbon;
-use App\Models\Reservation;
 use App\Http\Controllers\Controller;
+use App\Models\Reservation;
+use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
     public function index()
     {
-        $today       = now();
+        $today = now();
         $startOfWeek = $today->copy()->startOfWeek(Carbon::MONDAY);
-        $endOfWeek   = $today->copy()->endOfWeek(Carbon::SUNDAY);
+        $endOfWeek = $today->copy()->endOfWeek(Carbon::SUNDAY);
         $fiveYearsAgo = Carbon::create($today->year - 4)->startOfYear();
 
         $summary = [
             'today' => Reservation::booked()->whereDate('started_at', $today->toDateString())->sum('total_price_yen'),
-            'week'  => Reservation::booked()->whereBetween('started_at', [$startOfWeek, $endOfWeek])->sum('total_price_yen'),
+            'week' => Reservation::booked()->whereBetween('started_at', [$startOfWeek, $endOfWeek])->sum('total_price_yen'),
             'month' => Reservation::booked()->whereYear('started_at', $today->year)->whereMonth('started_at', $today->month)->sum('total_price_yen'),
-            'year'  => Reservation::booked()->whereYear('started_at', $today->year)->sum('total_price_yen'),
+            'year' => Reservation::booked()->whereYear('started_at', $today->year)->sum('total_price_yen'),
         ];
 
         // Annual totals for past 5 years
@@ -73,8 +73,8 @@ class AdminDashboardController extends Controller
         }
 
         // Weekly totals by day — DAYOFWEEK: 1=Sun, 2=Mon, ..., 7=Sat
-        $dowMap    = [1 => 'Sun', 2 => 'Mon', 3 => 'Tue', 4 => 'Wed', 5 => 'Thu', 6 => 'Fri', 7 => 'Sat'];
-        $weekDays  = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        $dowMap = [1 => 'Sun', 2 => 'Mon', 3 => 'Tue', 4 => 'Wed', 5 => 'Thu', 6 => 'Fri', 7 => 'Sat'];
+        $weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         $salesWeek = array_fill_keys($weekDays, 0);
         $salesByPrefectureWeek = [];
 
@@ -92,7 +92,7 @@ class AdminDashboardController extends Controller
         }
 
         $weekLabels = array_map(
-            fn($i) => [$startOfWeek->copy()->addDays($i)->format('D'), $startOfWeek->copy()->addDays($i)->format('n/j')],
+            fn ($i) => [$startOfWeek->copy()->addDays($i)->format('D'), $startOfWeek->copy()->addDays($i)->format('n/j')],
             range(0, 6)
         );
 

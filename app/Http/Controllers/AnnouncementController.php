@@ -11,6 +11,7 @@ use Inertia\Inertia;
 class AnnouncementController extends Controller
 {
     use AppliesChronologicalSort;
+
     /**
      * Display a listing of the resource.
      */
@@ -18,43 +19,43 @@ class AnnouncementController extends Controller
     {
 
         $request->validate([
-            'keyword'       => ['nullable', 'string', 'max:50'],
-            'sort'          => ['nullable', 'in:datePresentToPast,datePastToPresent'],
-            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100']
+            'keyword' => ['nullable', 'string', 'max:50'],
+            'sort' => ['nullable', 'in:datePresentToPast,datePastToPresent'],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Announcement::query()
-                                    ->where('is_public', true)
-                                    ->where('published_at', '<=', now())
-                                    ->where(function ($q) {
-                                        $q->where('expired_at', '>', now())
-                                          ->orWhereNull('expired_at');
-                                    });
+            ->where('is_public', true)
+            ->where('published_at', '<=', now())
+            ->where(function ($q) {
+                $q->where('expired_at', '>', now())
+                    ->orWhereNull('expired_at');
+            });
 
         // Filter by keyword
-        if($request->input('keyword')) {
+        if ($request->input('keyword')) {
             $query->where(function ($q) use ($request) {
-                $q->where('title', 'like', '%' . $request->input('keyword') . '%')
-                  ->orWhere('message', 'like', '%' . $request->input('keyword') . '%');
+                $q->where('title', 'like', '%'.$request->input('keyword').'%')
+                    ->orWhere('message', 'like', '%'.$request->input('keyword').'%');
             });
         }
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         // Default: date present → past
         $this->applySort($query, $request->input('sort', 'datePresentToPast'));
 
         $announcements = $query
-                        ->paginate($rowsPerPage)
-                        ->withQueryString();
+            ->paginate($rowsPerPage)
+            ->withQueryString();
 
         return Inertia::render('Announcements/Index', [
             'announcements' => $announcements,
             'filters' => [
-                'keyword'     => $request->input('keyword', ''),
-                'sort'        => $request->input('sort', 'datePresentToPast'),
+                'keyword' => $request->input('keyword', ''),
+                'sort' => $request->input('sort', 'datePresentToPast'),
                 'rows_per_page' => $rowsPerPage,
-            ]
+            ],
         ]);
     }
 

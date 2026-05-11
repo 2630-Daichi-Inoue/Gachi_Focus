@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Review;
-use App\Models\Reservation;
 use App\Http\Requests\StoreReviewRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Reservation;
+use App\Models\Review;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ReviewController extends Controller
@@ -22,9 +22,9 @@ class ReviewController extends Controller
         }
 
         $review = Review::where('user_id', Auth::id())
-                        ->where('reservation_id', $reservation->id)
-                        ->withTrashed()
-                        ->first();
+            ->where('reservation_id', $reservation->id)
+            ->withTrashed()
+            ->first();
 
         if ($review && $review->trashed()) {
             return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
@@ -56,31 +56,31 @@ class ReviewController extends Controller
 
         if (Auth::user()->isRestricted()) {
             return redirect()->route('reservations.index')
-                            ->with('error', 'Your account is currently restricted. New reviews cannot be submitted.');
+                ->with('error', 'Your account is currently restricted. New reviews cannot be submitted.');
         }
 
         $existingReview = Review::where('user_id', Auth::id())
-                                ->where('reservation_id', $reservation->id)
-                                ->withTrashed()
-                                ->first();
+            ->where('reservation_id', $reservation->id)
+            ->withTrashed()
+            ->first();
 
         if ($existingReview) {
             return redirect()->route('reservations.index')
-                            ->with('error', 'You have already reviewed this reservation.');
+                ->with('error', 'You have already reviewed this reservation.');
         }
 
         $data = $request->validated();
 
         Review::create([
-            'user_id'        => Auth::id(),
+            'user_id' => Auth::id(),
             'reservation_id' => $reservation->id,
-            'rating'         => $data['rating'],
-            'comment'        => $data['comment'],
-            'is_public'      => true,
+            'rating' => $data['rating'],
+            'comment' => $data['comment'],
+            'is_public' => true,
         ]);
 
         return redirect()->route('spaces.reviewIndex', $reservation->space_id)
-                        ->with('ok', 'Thank you for your review!');
+            ->with('ok', 'Thank you for your review!');
     }
 
     public function update(StoreReviewRequest $request, Reservation $reservation)
@@ -94,23 +94,23 @@ class ReviewController extends Controller
         }
 
         $review = Review::where('user_id', Auth::id())
-                        ->where('reservation_id', $reservation->id)
-                        ->withTrashed()
-                        ->first();
+            ->where('reservation_id', $reservation->id)
+            ->withTrashed()
+            ->first();
 
-        if (!$review || $review->trashed()) {
+        if (! $review || $review->trashed()) {
             return back()->with('error', 'You have already deleted your review for this reservation. You cannot write a new one.');
         }
 
         $data = $request->validated();
 
         $review->update([
-            'rating'  => $data['rating'],
+            'rating' => $data['rating'],
             'comment' => $data['comment'],
         ]);
 
         return redirect()->route('spaces.reviewIndex', $reservation->space_id)
-                        ->with('ok', 'Your review has been updated!');
+            ->with('ok', 'Your review has been updated!');
     }
 
     public function destroy(Reservation $reservation)
@@ -120,24 +120,24 @@ class ReviewController extends Controller
         }
 
         $review = Review::where('user_id', Auth::id())
-                        ->where('reservation_id', $reservation->id)
-                        ->withTrashed()
-                        ->first();
+            ->where('reservation_id', $reservation->id)
+            ->withTrashed()
+            ->first();
 
-        if (!$review) {
+        if (! $review) {
             return redirect()->route('reservations.index')
-                            ->with('error', 'You have not reviewed this reservation yet.');
+                ->with('error', 'You have not reviewed this reservation yet.');
         }
 
         if ($review->trashed()) {
             return redirect()->route('reservations.index')
-                            ->with('error', 'You have already deleted your review for this reservation.');
+                ->with('error', 'You have already deleted your review for this reservation.');
         }
 
         $review->update(['is_public' => false]);
         $review->delete();
 
         return redirect()->route('spaces.reviewIndex', $reservation->space_id)
-                        ->with('ok', 'Your review has been deleted.');
+            ->with('ok', 'Your review has been deleted.');
     }
 }

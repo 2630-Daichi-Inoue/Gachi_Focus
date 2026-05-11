@@ -22,10 +22,10 @@ class ProfileController extends Controller
         $hasPendingReservations = Reservation::where('user_id', $request->user()->id)
             ->where(function ($q) {
                 $q->where('reservation_status', 'pending')
-                  ->orWhere(function ($q2) {
-                      $q2->where('reservation_status', 'booked')
-                         ->where('ended_at', '>', now());
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->where('reservation_status', 'booked')
+                            ->where('ended_at', '>', now());
+                    });
             })
             ->exists();
 
@@ -66,10 +66,10 @@ class ProfileController extends Controller
         $hasPendingReservations = Reservation::where('user_id', $user->id)
             ->where(function ($q) {
                 $q->where('reservation_status', 'pending')
-                  ->orWhere(function ($q2) {
-                      $q2->where('reservation_status', 'booked')
-                         ->where('ended_at', '>', now());
-                  });
+                    ->orWhere(function ($q2) {
+                        $q2->where('reservation_status', 'booked')
+                            ->where('ended_at', '>', now());
+                    });
             })
             ->exists();
 

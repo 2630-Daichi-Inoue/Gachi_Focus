@@ -1,19 +1,19 @@
 <?php
 
-
 namespace App\Models;
 
-
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
+
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes, HasUlids;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, HasUlids, Notifiable, SoftDeletes;
 
     /**
      * Mass assignable attributes
@@ -39,9 +39,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'is_admin'          => 'boolean',
+            'is_admin' => 'boolean',
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'password' => 'hashed',
         ];
     }
 
@@ -92,12 +92,12 @@ class User extends Authenticatable
 
     public function isRestricted(): bool
     {
-        return $this->user_status === 'restricted' && !$this->trashed();
+        return $this->user_status === 'restricted' && ! $this->trashed();
     }
 
     public function isBanned(): bool
     {
-        return $this->user_status === 'banned' && !$this->trashed();
+        return $this->user_status === 'banned' && ! $this->trashed();
     }
 
     public function isDeleted(): bool

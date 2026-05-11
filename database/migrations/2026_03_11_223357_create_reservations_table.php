@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     /**
@@ -16,13 +17,13 @@ return new class extends Migration
     {
         Schema::create('reservations', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->foreignUlId('user_id')
-                    ->constrained();
+                ->constrained();
             $table->foreignUlId('space_id')
-                    ->constrained();
+                ->constrained();
             $table->string('reservation_status')
-                    ->default('booked'); // booked, canceled, pending
+                ->default('booked'); // booked, canceled, pending
             $table->datetime('started_at');
             $table->datetime('ended_at'); // ended_at = started_at + 30 minutes * slot_count, ended_at <= spaces.close_time
             $table->unsignedTinyInteger('quantity'); // quantity >= 1
@@ -30,7 +31,7 @@ return new class extends Migration
             $table->unsignedInteger('unit_price_yen');
             $table->unsignedInteger('total_price_yen');
             $table->datetime('canceled_at')
-                    ->nullable();
+                ->nullable();
             $table->timestamps();
 
             $table->index(['space_id', 'started_at']);

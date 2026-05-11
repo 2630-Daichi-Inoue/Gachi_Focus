@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\HalfHourTime;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +20,7 @@ class UpdateSpaceRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -34,25 +35,25 @@ class UpdateSpaceRequest extends FormRequest
             'prefecture' => [
                 'required',
                 'string',
-                'max:20'
+                'max:20',
             ],
 
             'city' => [
                 'required',
                 'string',
-                'max:50'
+                'max:50',
             ],
 
             'address_line' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
             'capacity' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             'open_time' => [
@@ -71,18 +72,18 @@ class UpdateSpaceRequest extends FormRequest
             'weekday_price_yen' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             'weekend_price_yen' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             'description' => [
                 'required',
-                'string'
+                'string',
             ],
 
             'amenities' => [
@@ -92,14 +93,14 @@ class UpdateSpaceRequest extends FormRequest
 
             'amenities.*' => [
                 'string',
-                'exists:amenities,id'
+                'exists:amenities,id',
             ],
 
             'image' => [
                 'nullable',
                 'image',
                 'mimes:jpeg,jpg,png,webp',
-                'max:1024'
+                'max:1024',
             ],
         ];
     }

@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreReservationRequest;
 use App\Models\Reservation;
 use App\Models\Space;
-use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
-use App\Http\Requests\StoreReservationRequest;
 use App\Services\RefundService;
 use App\Traits\AppliesChronologicalSort;
-use Inertia\Inertia;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class ReservationController extends Controller
 {
     use AppliesChronologicalSort;
-        /**
+
+    /**
      * Display a listing of the reservations.
      */
     public function index(Request $request)
@@ -27,42 +28,42 @@ class ReservationController extends Controller
         $sortList = ['date_future_to_past', 'date_past_to_future'];
 
         $request->validate([
-            'name'               => ['nullable','string','max:50'],
+            'name' => ['nullable', 'string', 'max:50'],
             'reservation_status' => ['nullable', Rule::in(array_merge(['all'], $reservationStatusList))],
-            'sort'               => ['nullable', Rule::in($sortList)],
-            'rows_per_page'      => ['nullable', 'integer', 'in:20,50,100']
+            'sort' => ['nullable', Rule::in($sortList)],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Reservation::query()
-                                ->where('user_id', Auth::id())
-                                ->with('space');
+            ->where('user_id', Auth::id())
+            ->with('space');
 
         // Filter by name
         if ($request->filled('name')) {
             $query->whereHas('space', function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->name . '%');
+                $q->where('name', 'LIKE', '%'.$request->name.'%');
             });
         }
         // Filter by reservation_status
         $reservationStatus = $request->input('reservation_status', 'all');
-        if($reservationStatus !== 'all') {
+        if ($reservationStatus !== 'all') {
             $query->where('reservation_status', $reservationStatus);
         }
 
         // upcoming / past / canceled can be implemented later if needed by checking started_at, ended_at and reservation_status
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         // Default: date present → past
         $this->applyChronologicalSort($query, $request->input('sort', 'date_future_to_past'), 'started_at', 'date_past_to_future');
 
         $reservations = $query
-                        ->paginate($rowsPerPage)
-                        ->withQueryString();
+            ->paginate($rowsPerPage)
+            ->withQueryString();
 
         $reservations->load([
-            'review' => function($q) {
+            'review' => function ($q) {
                 $q->withTrashed();
-            }
+            },
         ]);
 
         return Inertia::render('Reservations/Index', [
@@ -72,7 +73,7 @@ class ReservationController extends Controller
                 'reservation_status' => $request->input('reservation_status', 'all'),
                 'sort' => $request->input('sort', 'date_future_to_past'),
                 'rows_per_page' => $rowsPerPage,
-            ]
+            ],
         ]);
     }
 
@@ -99,38 +100,38 @@ class ReservationController extends Controller
     {
         if (Auth::user()->isRestricted()) {
             return redirect()->route('spaces.show', $space)
-                            ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
+                ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
         }
 
-        if (!$space->isPublic()) {
+        if (! $space->isPublic()) {
             return redirect()->route('spaces.index')
-                            ->with('error', 'Sorry, but this space is not currently available.');
+                ->with('error', 'Sorry, but this space is not currently available.');
         }
 
         // Default to today, can be overridden by users' input
         $date = $request->input('date', Carbon::today()->toDateString());
 
         // Space's open-close times (not depending on date)
-        $openTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->open_time}");
-        $closeTime = Carbon::createFromFormat("Y-m-d H:i:s", "$date {$space->close_time}");
+        $openTime = Carbon::createFromFormat('Y-m-d H:i:s', "$date {$space->open_time}");
+        $closeTime = Carbon::createFromFormat('Y-m-d H:i:s', "$date {$space->close_time}");
 
         $cursorOpenTime = $openTime->copy();
         $lastStartedAt = $closeTime->copy()->subMinutes(30); // Last possible start time is 30 min before close
 
         // If the reservation date is today, we need to adjust the cursorOpenTime to the next possible 30 min slot
-        if(Carbon::parse($date)->isToday()) {
+        if (Carbon::parse($date)->isToday()) {
             $now = Carbon::now();
             $minute = $now->minute;
 
-            if($minute === 0 || $minute === 30) {
+            if ($minute === 0 || $minute === 30) {
                 $roundedNow = $now->copy()->second(0)->microsecond(0);
-            } else if ($minute < 30) {
+            } elseif ($minute < 30) {
                 $roundedNow = $now->copy()->minute(30)->second(0)->microsecond(0);
             } else {
                 $roundedNow = $now->copy()->addHour()->minute(0)->second(0)->microsecond(0);
             }
 
-            if($roundedNow->gt($openTime)) {
+            if ($roundedNow->gt($openTime)) {
                 $cursorOpenTime = $roundedNow->copy();
             }
         }
@@ -156,16 +157,16 @@ class ReservationController extends Controller
      */
     public function payment(StoreReservationRequest $request, Space $space)
     {
-        if (!$space->isPublic()) {
+        if (! $space->isPublic()) {
             return redirect()->route('spaces.index')
-                            ->with('error', 'Sorry, but this space is not currently available.');
+                ->with('error', 'Sorry, but this space is not currently available.');
         }
 
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newStartedAt  = Carbon::parse($data['date'] . ' ' . $data['started_at']);
-        $newEndedAt    = Carbon::parse($data['date'] . ' ' . $data['ended_at']);
+        $newStartedAt = Carbon::parse($data['date'].' '.$data['started_at']);
+        $newEndedAt = Carbon::parse($data['date'].' '.$data['ended_at']);
 
         $checkedSpace = Space::whereKey($space->id)->firstOrFail();
 
@@ -204,16 +205,16 @@ class ReservationController extends Controller
     {
         if (Auth::user()->isRestricted()) {
             return redirect()->route('spaces.show', $space)
-                            ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
+                ->with('error', 'Your account is currently restricted. New reservations cannot be made.');
         }
 
         $data = $request->validated();
 
         // normalize time to HH:mm
-        $newStartedAt  = Carbon::parse($data['date'] . ' ' . $data['started_at']);
-        $newEndedAt    = Carbon::parse($data['date'] . ' ' . $data['ended_at']);
+        $newStartedAt = Carbon::parse($data['date'].' '.$data['started_at']);
+        $newEndedAt = Carbon::parse($data['date'].' '.$data['ended_at']);
 
-        $reservation = DB::transaction(function() use ($space, $data, $newStartedAt, $newEndedAt) {
+        $reservation = DB::transaction(function () use ($space, $data, $newStartedAt, $newEndedAt) {
             $checkedSpace = Space::whereKey($space->id)->lockForUpdate()->firstOrFail();
 
             $this->checkCapacity($checkedSpace, $newStartedAt, $newEndedAt, $data['quantity']);
@@ -223,15 +224,15 @@ class ReservationController extends Controller
             $slotCount = $newStartedAt->diffInMinutes($newEndedAt) / 30;
 
             return Reservation::create([
-                'user_id'            => Auth::id(),
-                'space_id'           => $checkedSpace->id,
+                'user_id' => Auth::id(),
+                'space_id' => $checkedSpace->id,
                 'reservation_status' => 'pending',
-                'started_at'         => $newStartedAt,
-                'ended_at'           => $newEndedAt,
-                'quantity'           => $data['quantity'],
-                'slot_count'         => $slotCount,
-                'unit_price_yen'     => $unitPriceYen,
-                'total_price_yen'    => $unitPriceYen * $data['quantity'] * $slotCount,
+                'started_at' => $newStartedAt,
+                'ended_at' => $newEndedAt,
+                'quantity' => $data['quantity'],
+                'slot_count' => $slotCount,
+                'unit_price_yen' => $unitPriceYen,
+                'total_price_yen' => $unitPriceYen * $data['quantity'] * $slotCount,
             ]);
         });
 
@@ -264,7 +265,7 @@ class ReservationController extends Controller
         DB::transaction(function () use ($reservation) {
             $reservation->update([
                 'reservation_status' => 'canceled',
-                'canceled_at'        => now(),
+                'canceled_at' => now(),
             ]);
 
             $reservation->payments()

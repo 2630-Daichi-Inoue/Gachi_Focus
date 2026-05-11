@@ -5,15 +5,15 @@ namespace App\Models;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Support\Facades\Auth;
 
 class Space extends Model
 {
-    use SoftDeletes, HasFactory, HasUlids;
+    use HasFactory, HasUlids, SoftDeletes;
 
     /**
      * Mass assignable attributes
@@ -46,7 +46,6 @@ class Space extends Model
         'weekend_price_yen' => 'integer',
         'is_public' => 'boolean',
     ];
-
 
     /*
     |--------------------------------------------------------------------------
@@ -112,14 +111,14 @@ class Space extends Model
     */
     public function isPublic(): bool
     {
-        return $this->is_public && !$this->trashed();
+        return $this->is_public && ! $this->trashed();
     }
 
     public function isFavorite(): bool
     {
         return Favorite::where('space_id', $this->id)
-                        ->where('user_id', Auth::id())
-                        ->exists();
+            ->where('user_id', Auth::id())
+            ->exists();
     }
 
     public function getUnitPriceForDate(CarbonInterface $date): int
@@ -137,12 +136,14 @@ class Space extends Model
     public function getOpenTimeForFormAttribute()
     {
         $openTime = $this->attributes['open_time'] ?? null;
+
         return Carbon::createFromFormat('H:i:s', $openTime)->format('H:i');
     }
 
     public function getCloseTimeForFormAttribute()
     {
         $closeTime = $this->attributes['close_time'] ?? null;
+
         return Carbon::createFromFormat('H:i:s', $closeTime)->format('H:i');
     }
 

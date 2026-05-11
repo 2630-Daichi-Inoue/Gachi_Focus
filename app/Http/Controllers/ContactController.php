@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\StoreGuestContactRequest;
 use App\Models\Contact;
 use App\Models\Reservation;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +16,6 @@ use Inertia\Inertia;
 
 class ContactController extends Controller
 {
-
     public function index(Request $request)
     {
         $contactStatusList = ['open', 'closed', 'canceled'];
@@ -24,34 +23,34 @@ class ContactController extends Controller
 
         $request->validate([
             'contact_status' => ['nullable', Rule::in(array_merge(['all'], $contactStatusList))],
-            'sort'           => ['nullable', Rule::in($sortList)],
-            'rows_per_page'  => ['nullable', 'integer', 'in:20,50,100']
+            'sort' => ['nullable', Rule::in($sortList)],
+            'rows_per_page' => ['nullable', 'integer', 'in:20,50,100'],
         ]);
 
         $query = Contact::query()
-                            ->where('user_id', Auth::id());
+            ->where('user_id', Auth::id());
 
         // Filter by contact_status
-        if($request->input('contact_status', 'all')!== 'all') {
+        if ($request->input('contact_status', 'all') !== 'all') {
             $query->where('contact_status', $request->input('contact_status'));
         }
 
-        $rowsPerPage = (int)$request->input('rows_per_page', 20);
+        $rowsPerPage = (int) $request->input('rows_per_page', 20);
 
         // Default: date present → past
         $this->applySort($query, $request->input('sort', 'datePresentToPast'));
 
         $contacts = $query
-                        ->paginate($rowsPerPage)
-                        ->withQueryString();
+            ->paginate($rowsPerPage)
+            ->withQueryString();
 
         return Inertia::render('Contacts/Index', [
             'contacts' => $contacts,
             'filters' => [
                 'contact_status' => $request->input('contact_status', 'all'),
-                'sort'           => $request->input('sort', 'datePresentToPast'),
-                'rows_per_page'  => $rowsPerPage,
-            ]
+                'sort' => $request->input('sort', 'datePresentToPast'),
+                'rows_per_page' => $rowsPerPage,
+            ],
         ]);
     }
 
@@ -106,19 +105,19 @@ class ContactController extends Controller
         $data = $request->validated();
 
         Contact::create([
-            'user_id'        => Auth::id(),
+            'user_id' => Auth::id(),
             'reservation_id' => $data['reservation_id'] ?? null,
-            'title'          => $data['title'],
-            'message'        => $data['message'],
+            'title' => $data['title'],
+            'message' => $data['message'],
             'contact_status' => 'open',
         ]);
 
         if ($data['reservation_id'] !== null) {
             return redirect()->route('reservations.index')
-                            ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
+                ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
         } else {
             return redirect()->route('contacts.index')
-                            ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
+                ->with('ok', 'Your contact has been submitted. We will get back to you as soon as possible!');
         }
     }
 
@@ -133,17 +132,17 @@ class ContactController extends Controller
 
         $user = User::where('email', $data['email'])->first();
 
-        if (!$user) {
+        if (! $user) {
             throw ValidationException::withMessages([
                 'email' => 'No account found with this email address.',
             ]);
         }
 
         Contact::create([
-            'user_id'        => $user->id,
+            'user_id' => $user->id,
             'reservation_id' => null,
-            'title'          => $data['title'],
-            'message'        => $data['message'],
+            'title' => $data['title'],
+            'message' => $data['message'],
             'contact_status' => 'open',
         ]);
 

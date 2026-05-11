@@ -1,28 +1,26 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-
-// Admin Controllers
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\UsersController;
-use App\Http\Controllers\Admin\SpacesController;
-use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\AmenitiesController;
+// Admin Controllers
+use App\Http\Controllers\Admin\AnnouncementsController;
+use App\Http\Controllers\Admin\ContactsController;
+use App\Http\Controllers\Admin\NotificationsController;
+use App\Http\Controllers\Admin\ReservationsController;
 use App\Http\Controllers\Admin\ReviewsController;
-use \App\Http\Controllers\Admin\ContactsController;
-use \App\Http\Controllers\Admin\AnnouncementsController;
-use \App\Http\Controllers\Admin\NotificationsController;
-
+use App\Http\Controllers\Admin\SpacesController;
+use App\Http\Controllers\Admin\UsersController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\ContactController;
 // User Controllers
-use App\Http\Controllers\SpaceController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SpaceController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -116,7 +114,7 @@ Route::middleware(['auth', 'admin'])
             ->name('contact-notifications.store');
 
     }
-);
+    );
 
 Route::middleware('auth')->group(function () {
 
@@ -186,8 +184,8 @@ Route::middleware('auth')->group(function () {
     // Payments
     Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
         Route::get('/{reservation}/checkout', 'checkout')->name('checkout');
-        Route::get('/{reservation}/success',  'success')->name('success');
-        Route::get('/{reservation}/cancel',   'cancel')->name('cancel');
+        Route::get('/{reservation}/success', 'success')->name('success');
+        Route::get('/{reservation}/cancel', 'cancel')->name('cancel');
     });
 });
 

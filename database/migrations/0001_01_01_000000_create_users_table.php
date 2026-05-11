@@ -13,21 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->ulid('id')
-                    ->primary();
+                ->primary();
             $table->string('name', 50);
             $table->boolean('is_admin')
-                    ->default(false);
+                ->default(false);
             $table->string('email', 255)
-                    ->unique();
+                ->unique();
             $table->timestamp('email_verified_at')
-                    ->nullable();
+                ->nullable();
             $table->string('password', 255);
             $table->string('phone', 20)
-                    ->nullable();
+                ->nullable();
             $table->longText('avatar_path', 255)
-                    ->nullable();
+                ->nullable();
             $table->string('user_status', 20)
-                    ->default('active'); // e.g. active, restricted, banned
+                ->default('active'); // e.g. active, restricted, banned
             $table->timestamps();
             $table->softDeletes();
             // $table->rememberToken();

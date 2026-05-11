@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
@@ -30,21 +30,21 @@ class Reservation extends Model
      * Attribute casting.
      */
     protected $casts = [
-        'quantity'          => 'integer',
-        'slot_count'        => 'integer',
-        'unit_price_yen'    => 'integer',
-        'total_price_yen'   => 'integer',
-        'started_at'        => 'datetime',
-        'ended_at'          => 'datetime',
-        'canceled_at'       => 'datetime',
+        'quantity' => 'integer',
+        'slot_count' => 'integer',
+        'unit_price_yen' => 'integer',
+        'total_price_yen' => 'integer',
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
+        'canceled_at' => 'datetime',
     ];
 
     /**
      * Reservation status labels
      */
     public const RESERVATION_STATUS_MAP = [
-        'pending'  => 'Pending',
-        'booked'   => 'Booked',
+        'pending' => 'Pending',
+        'booked' => 'Booked',
         'canceled' => 'Canceled',
     ];
 
@@ -63,25 +63,25 @@ class Reservation extends Model
         return $this->belongsTo(Space::class)->withTrashed();
     }
 
-     public function notifications()
+    public function notifications()
     {
         return $this->morphMany(Notification::class, 'related');
     }
 
-     public function payments()
-     {
-         return $this->hasMany(Payment::class);
-     }
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 
-     public function review()
-     {
-         return $this->hasOne(Review::class);
-     }
+    public function review()
+    {
+        return $this->hasOne(Review::class);
+    }
 
-     public function contacts()
-     {
-         return $this->hasMany(Contact::class);
-     }
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class);
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -106,13 +106,13 @@ class Reservation extends Model
     public function scopeActive($query)
     {
         return $query->where('reservation_status', 'booked')
-                    ->where('ended_at', '>', now());
+            ->where('ended_at', '>', now());
     }
 
     public function scopePast($query)
     {
         return $query->where('reservation_status', 'booked')
-                    ->where('ended_at', '<=', now());
+            ->where('ended_at', '<=', now());
     }
 
     /*
@@ -128,10 +128,10 @@ class Reservation extends Model
     public function displayStatusLabel(): string
     {
         return match ($this->reservation_status) {
-            'pending'   => 'Pending',
-            'booked'    => 'Booked',
-            'canceled'  => 'Canceled',
-            default     => 'Unknown',
+            'pending' => 'Pending',
+            'booked' => 'Booked',
+            'canceled' => 'Canceled',
+            default => 'Unknown',
         };
     }
 
@@ -151,6 +151,6 @@ class Reservation extends Model
     {
         return $this->reservation_status === 'booked'
             && $this->ended_at->isPast()
-            && !$this->review;
+            && ! $this->review;
     }
 }
