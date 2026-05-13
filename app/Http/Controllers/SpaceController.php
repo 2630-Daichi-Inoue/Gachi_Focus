@@ -61,7 +61,7 @@ class SpaceController extends Controller
         $this->applySort($query, $request->input('sort', 'favorite_first'));
 
         $spaces = $query
-            ->paginate($request->input('rows_per_page', 3))
+            ->paginate($request->input('rows_per_page', 6))
             ->withQueryString();
 
         $prefectures = Space::public()
@@ -83,7 +83,7 @@ class SpaceController extends Controller
                 'city' => $request->city,
                 'max_price' => $request->max_price,
                 'sort' => $request->input('sort', 'favorite_first'),
-                'rows_per_page' => (int) $request->input('rows_per_page', 3),
+                'rows_per_page' => (int) $request->input('rows_per_page', 6),
             ],
         ]);
     }

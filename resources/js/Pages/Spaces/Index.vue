@@ -20,7 +20,7 @@ const form = reactive({
     address_line: props.filters.address_line ?? "",
     max_price: props.filters.max_price ?? "",
     sort: props.filters.sort ?? "favorite_first",
-    rows_per_page: props.filters.rows_per_page ?? 3,
+    rows_per_page: props.filters.rows_per_page ?? 6,
 });
 
 const search = () => {
@@ -37,7 +37,7 @@ const clearFilters = () => {
     form.address_line = "";
     form.max_price = "";
     form.sort = "favorite_first";
-    form.rows_per_page = 3;
+    form.rows_per_page = 6;
     search();
 };
 
