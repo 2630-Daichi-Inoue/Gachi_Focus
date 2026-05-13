@@ -1,2 +1,5 @@
 *
 !.gitignore
+!spaces/
+spaces/*
+!spaces/*.png
