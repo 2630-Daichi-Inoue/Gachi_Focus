@@ -14,7 +14,7 @@ const isRestricted = usePage().props.auth.user.user_status === "restricted";
         <div>
             <!-- Google Map -->
             <div
-                class="aspect-[16/9] overflow-hidden border border-gray-300 md:aspect-[4/3] xl:aspect-square"
+                class="aspect-[16/9] overflow-hidden border border-gray-300 md:aspect-[4/3]"
             >
                 <iframe
                     :src="`https://www.google.com/maps?q=${encodeURIComponent(space.full_address)}&output=embed`"
