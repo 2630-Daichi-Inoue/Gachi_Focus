@@ -8,6 +8,38 @@ This project is designed as an MVP, focusing on core functionality with room for
 
 ---
 
+## Screenshots
+
+![Space Index](docs/screenshots/space-index.png)
+
+![Space Detail](docs/screenshots/space-detail.png)
+
+### Reservation Flow
+
+| | |
+|---|---|
+| ![](docs/screenshots/reservation-flow-1.png) | ![](docs/screenshots/reservation-flow-2.png) |
+| ![](docs/screenshots/reservation-flow-3.png) | ![](docs/screenshots/reservation-flow-4.png) |
+
+### Admin Dashboard
+
+![Admin Dashboard 1](docs/screenshots/admin-dashboard-1.png)
+
+![Admin Dashboard 2](docs/screenshots/admin-dashboard-2.png)
+
+---
+
+## Live Demo
+
+**[https://gachi-focus.up.railway.app/login](https://gachi-focus.up.railway.app/login)**
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Admin | admin@mail.com | admin12345 |
+| User | user@mail.com | user12345 |
+
+---
+
 ## Setup
 
 ```bash
@@ -45,11 +77,7 @@ To test Stripe webhooks locally (requires [Stripe CLI](https://stripe.com/docs/s
 stripe listen --forward-to localhost:8000/stripe/webhook
 ```
 
-To also test automatic reservation expiration (optional — Stripe CLI covers the normal expiry path via webhook):
-
-```bash
-php artisan schedule:work
-```
+To also test automatic expiration locally (optional): `php artisan schedule:work`
 
 ---
 
@@ -61,7 +89,10 @@ php artisan schedule:work
 | Frontend | Vue 3 / Inertia.js / Tailwind CSS |
 | Payment | Stripe Checkout (server-side, hosted page) |
 | Database | MySQL (ULID primary keys) |
-| Code Quality | Prettier + prettier-plugin-tailwindcss |
+| PHP Formatting | Laravel Pint (PSR-12) ✅ |
+| JS/Vue Formatting | Prettier + prettier-plugin-tailwindcss ✅ |
+| Testing | PHPUnit 🔲 Planned |
+| Static Analysis | Larastan 🔲 Planned |
 
 ---
 
@@ -87,6 +118,26 @@ php artisan schedule:work
 
 ---
 
+## ER Diagram
+
+```mermaid
+erDiagram
+    users ||--o{ reservations : ""
+    users ||--o{ reviews : ""
+    users ||--o{ favorites : ""
+    users ||--o{ contacts : ""
+    users ||--o{ notifications : ""
+    spaces ||--o{ reservations : ""
+    spaces ||--o{ favorites : ""
+    spaces ||--o{ amenity_space : ""
+    amenities ||--o{ amenity_space : ""
+    reservations ||--o{ payments : ""
+    reservations ||--o| reviews : ""
+    reservations ||--o{ contacts : ""
+```
+
+---
+
 ## Reservation Status Lifecycle
 
 ```mermaid
@@ -109,32 +160,22 @@ Both `pending` and `booked` reservations occupy the slot in overlap checks to pr
 ## Payment Flow
 
 ```
-User clicks "Pay with Stripe"
-    ↓ POST → reservations.store
-      - Availability check (booked + pending)
-      - Create Reservation (status: pending)
-      - Redirect to payments.checkout
-    ↓ GET → payments.checkout
-      - If active pending Payment exists → redirect to existing Stripe session
-      - Re-check availability with DB lock (lockForUpdate)
-      - Create Stripe Checkout Session (expires in 30 min)
-      - Create Payment record (status: pending)
-      - Redirect to Stripe
+POST reservations.store
+  → Availability check → Create Reservation (pending) → Redirect to payments.checkout
+
+GET payments.checkout
+  → Re-check with lockForUpdate → Create Stripe Session (30 min) → Redirect to Stripe
 
 Stripe Checkout (Stripe-hosted)
-    ↓ success                    ↓ cancel
-payments.success             payments.cancel
-    ↓                            ↓
-reservations.index           Payment: canceled
-(ok flash)                   Reservation stays pending temporarily (retry possible until expiration)
-                             reservations.index (warning flash)
+  ↓ success → reservations.index (ok flash)
+  ↓ cancel  → Payment: canceled, Reservation stays pending (retry possible)
 
-Stripe Webhook → payments.webhook
-  checkout.session.completed   → Reservation: booked, Payment: paid
-  checkout.session.expired     → Reservation: canceled, Payment: expired
+Webhook → payments.webhook
+  checkout.session.completed    → Reservation: booked,   Payment: paid
+  checkout.session.expired      → Reservation: canceled, Payment: expired
   payment_intent.payment_failed → Payment: failed (reservation stays pending)
 
-Artisan: payments:expire-pending (runs every minute, fallback for missed webhooks)
+Artisan: payments:expire-pending (every minute — fallback for missed webhooks)
   → Payments pending > 30 min → Payment: expired, Reservation: canceled
 ```
 
@@ -147,34 +188,16 @@ Artisan: payments:expire-pending (runs every minute, fallback for missed webhook
 
 ### Backend
 - **Race condition prevention**: concurrent reservation requests can pass the availability check simultaneously before either is committed — mitigated by wrapping creation in a DB transaction with `lockForUpdate()` on the Space row, forcing sequential capacity checks
-- **FormRequest**: validation and authorization separated into dedicated FormRequest classes; `authorize()` handles both authentication and user status checks
-- **Soft deletes**: applied to User, Space, and Review; related records remain accessible via `withTrashed()`
-- **Model helpers and scopes**: `isRestricted()`, `isBanned()`, `isPublic()`, `Space::public()` etc. centralize status checks and keep controllers clean
-- **Shared sort logic**: `AppliesChronologicalSort` trait eliminates duplicated sort boilerplate across controllers
 - **Rate limiting**: the contact form is vulnerable to spam and excessive submissions — `throttle` middleware limits request frequency per user
-- **Refund flow**: `Refund::create()` is intentionally executed outside the DB transaction to avoid holding row locks during slow external API calls. The reservation is first marked `canceled` and the payment `refund_pending`; if the Stripe call fails, a notification and auto-generated admin contact are created for manual processing. The `charge.refunded` webhook acts as a fallback if the process crashes between the Stripe API call and the local DB update.
+- **Refund flow**: `Refund::create()` runs outside the DB transaction to avoid holding row locks during the Stripe API call; on failure, a notification and auto-generated admin contact are created for manual processing, with `charge.refunded` webhook as a fallback for process crashes between the API call and the local DB update
 - **Pending reservation as retry slot**: on payment cancel or failure, the reservation stays `pending` rather than being immediately canceled, allowing the user to retry payment without recreating the reservation; the slot is released automatically after 30 minutes via a scheduled command
 
 ### Frontend
-- **Inertia.js `useForm`**: double submission on slow networks or repeated clicks can cause duplicate records — all forms use `useForm` with `form.processing` to disable the submit button while a request is in flight
-- **Inline error display**: action errors (cancel, delete, etc.) shown as inline messages instead of browser `alert()`
-- **Conflict warning**: users are warned and asked to confirm if a new reservation overlaps with an existing one
+- **Double submission prevention**: slow networks or repeated clicks can cause duplicate records — all forms use `useForm` with `form.processing` to disable the submit button while a request is in flight
 
 ### Access Control
-- Backend guards on all sensitive endpoints regardless of frontend state (URL-direct-access proof)
-- Admin routes protected by `auth` + `admin` middleware; `authorize()` in FormRequests as an additional layer
-- User status enforced in both middleware and FormRequest `authorize()` to prevent bypass
-
----
-
-## Code Quality
-
-| Tool | Purpose | Status |
-| --- | --- | --- |
-| Laravel Pint | PHP code style (PSR-12) | ✅ Applied |
-| Prettier + prettier-plugin-tailwindcss | Vue / JS formatting + Tailwind class sorting | ✅ Applied |
-| PHPUnit | Feature and unit tests | 🔲 Planned |
-| Larastan | Static analysis (PHPStan for Laravel) | 🔲 Planned |
+- Sensitive endpoints protected by middleware + FormRequest authorization
+- User status restrictions enforced server-side regardless of frontend state
 
 ---
 
