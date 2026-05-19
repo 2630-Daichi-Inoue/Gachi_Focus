@@ -241,9 +241,7 @@ class ReservationController extends Controller
 
     public function cancel(Reservation $reservation, RefundService $refundService)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to cancel this reservation.');
-        }
+        $this->authorize('cancel', $reservation);
 
         if ($reservation->reservation_status === 'canceled') {
             return back()->with('error', 'This reservation has already been canceled.');

@@ -13,9 +13,7 @@ class ReviewController extends Controller
 {
     public function createOrEdit(Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to review this reservation.');
-        }
+        $this->authorize('review', $reservation);
 
         if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
             return back()->with('error', 'You can review only completed reservations.');
@@ -46,9 +44,7 @@ class ReviewController extends Controller
 
     public function store(StoreReviewRequest $request, Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to review this reservation.');
-        }
+        $this->authorize('review', $reservation);
 
         if ($reservation->reservation_status !== 'booked' || Carbon::parse($reservation->ended_at)->isFuture()) {
             return back()->with('error', 'You can review only completed reservations.');
@@ -85,9 +81,7 @@ class ReviewController extends Controller
 
     public function update(StoreReviewRequest $request, Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to update this review.');
-        }
+        $this->authorize('review', $reservation);
 
         if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
             return back()->with('error', 'You can review only completed reservations.');
@@ -115,9 +109,7 @@ class ReviewController extends Controller
 
     public function destroy(Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403, 'You are not authorized to delete this review.');
-        }
+        $this->authorize('review', $reservation);
 
         $review = Review::where('user_id', Auth::id())
             ->where('reservation_id', $reservation->id)

@@ -24,9 +24,7 @@ class PaymentController extends Controller
      */
     public function checkout(Request $request, Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        $this->authorize('pay', $reservation);
 
         // Reservation must be pending to proceed
         if ($reservation->reservation_status !== 'pending') {
@@ -161,9 +159,7 @@ class PaymentController extends Controller
      */
     public function success(Request $request, Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        $this->authorize('pay', $reservation);
 
         $sessionId = $request->query('session_id');
 
@@ -208,9 +204,7 @@ class PaymentController extends Controller
      */
     public function cancel(Request $request, Reservation $reservation)
     {
-        if ($reservation->user_id !== Auth::id()) {
-            abort(403);
-        }
+        $this->authorize('pay', $reservation);
 
         $reservation->payments()
             ->where('status', 'pending')
