@@ -2,31 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Payment;
 use App\Models\Reservation;
-use Carbon\Carbon;
+use App\Services\StripePaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Stripe\Checkout\Session;
-use Stripe\Stripe;
 use Stripe\Webhook;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    /**
-     * Start a Stripe Checkout session for the given pending reservation.
-     * If an active pending payment already exists, redirect to its existing session URL.
-     */
-    public function checkout(Request $request, Reservation $reservation)
+    public function __construct(private StripePaymentService $stripePaymentService) {}
+
+    public function checkout(Reservation $reservation)
     {
         $this->authorize('pay', $reservation);
 
-        // Reservation must be pending to proceed
         if ($reservation->reservation_status !== 'pending') {
             $message = $reservation->reservation_status === 'booked'
                 ? 'This reservation has already been paid.'
@@ -35,7 +28,6 @@ class PaymentController extends Controller
             return redirect()->route('reservations.index')->with('error', $message);
         }
 
-        // If an active pending payment exists, redirect to its existing Stripe session
         $existingPayment = $reservation->payments()
             ->where('status', 'pending')
             ->latest()
@@ -45,88 +37,19 @@ class PaymentController extends Controller
             return Inertia::location($existingPayment->stripe_session_url);
         }
 
-        // Re-check availability inside a transaction (count booked + pending, excluding self)
         try {
-            DB::transaction(function () use ($reservation) {
-                $space = $reservation->space()->lockForUpdate()->firstOrFail();
-
-                $overlappingQuantity = Reservation::query()
-                    ->where('space_id', $space->id)
-                    ->whereIn('reservation_status', ['booked', 'pending'])
-                    ->where('id', '!=', $reservation->id)
-                    ->where('started_at', '<', $reservation->ended_at)
-                    ->where('ended_at', '>', $reservation->started_at)
-                    ->sum('quantity');
-
-                if ($overlappingQuantity + $reservation->quantity > $space->capacity) {
-                    throw ValidationException::withMessages([
-                        'quantity' => 'Sorry, the time slot is no longer available.',
-                    ]);
-                }
-            });
+            $this->stripePaymentService->revalidateAvailability($reservation);
         } catch (ValidationException $e) {
             return redirect()->route('reservations.index')
                 ->with('error', 'Sorry, the time slot is no longer available. Your reservation has been canceled.')
                 ->withErrors($e->errors());
         }
 
-        // Initialize Stripe
-        $secret = trim((string) config('services.stripe.secret'));
-        if (! $secret || ! str_starts_with($secret, 'sk_')) {
-            abort(500, 'Stripe secret key is missing or invalid.');
-        }
-        Stripe::setApiKey($secret);
+        $sessionUrl = $this->stripePaymentService->createCheckoutSession($reservation, Auth::user()->email);
 
-        $space = $reservation->space;
-        $spaceName = $space->name ?? "Space #{$reservation->space_id}";
-        $productName = sprintf(
-            '%s / %s %s-%s',
-            $spaceName,
-            $reservation->started_at->format('Y-m-d'),
-            $reservation->started_at->format('H:i'),
-            $reservation->ended_at->format('H:i')
-        );
-
-        $successUrl = route('payments.success', $reservation).'?session_id={CHECKOUT_SESSION_ID}';
-        $cancelUrl = route('payments.cancel', $reservation);
-
-        $session = Session::create([
-            'mode' => 'payment',
-            'payment_method_types' => ['card'],
-            'customer_email' => Auth::user()->email,
-            'expires_at' => now()->addMinutes(31)->timestamp,
-            'line_items' => [[
-                'price_data' => [
-                    'currency' => 'jpy',
-                    'unit_amount' => $reservation->total_price_yen,
-                    'product_data' => ['name' => $productName],
-                ],
-                'quantity' => 1,
-            ]],
-            'success_url' => $successUrl,
-            'cancel_url' => $cancelUrl,
-            'metadata' => [
-                'reservation_id' => (string) $reservation->id,
-                'user_id' => (string) Auth::id(),
-            ],
-        ]);
-
-        Payment::create([
-            'reservation_id' => $reservation->id,
-            'payment_method' => 'stripe_checkout',
-            'status' => 'pending',
-            'stripe_session_id' => $session->id,
-            'stripe_session_url' => $session->url,
-            'amount' => $reservation->total_price_yen,
-        ]);
-
-        return Inertia::location($session->url);
+        return Inertia::location($sessionUrl);
     }
 
-    /**
-     * Handle Stripe webhook events.
-     * Stripe signature is verified before processing any event.
-     */
     public function webhook(Request $request)
     {
         $payload = $request->getContent();
@@ -141,22 +64,22 @@ class PaymentController extends Controller
             return response('Invalid signature', 400);
         }
 
+        $obj = (array) $event->data->object;
+
         match ($event->type) {
-            'checkout.session.completed' => $this->handleSessionCompleted((array) $event->data->object),
-            'checkout.session.expired' => $this->handleSessionExpired((array) $event->data->object),
-            'payment_intent.payment_failed' => $this->handlePaymentFailed((array) $event->data->object),
-            'charge.refunded' => $this->handleChargeRefunded((array) $event->data->object),
+            'checkout.session.completed' => $this->stripePaymentService->markSessionPaid(
+                $obj['id'],
+                $obj['payment_intent'] ?? null
+            ),
+            'checkout.session.expired' => $this->stripePaymentService->markSessionExpired($obj['id']),
+            'payment_intent.payment_failed' => $this->stripePaymentService->markPaymentFailed($obj['id']),
+            'charge.refunded' => $this->stripePaymentService->markChargeRefunded($obj['payment_intent'] ?? ''),
             default => null,
         };
 
         return response()->noContent();
     }
 
-    /**
-     * Stripe redirects here after successful payment.
-     * Verifies the session with Stripe and updates the DB immediately.
-     * The webhook handler is kept as a fallback (e.g. browser closed before redirect).
-     */
     public function success(Request $request, Reservation $reservation)
     {
         $this->authorize('pay', $reservation);
@@ -164,30 +87,11 @@ class PaymentController extends Controller
         $sessionId = $request->query('session_id');
 
         if ($sessionId) {
-            $secret = trim((string) config('services.stripe.secret'));
-            Stripe::setApiKey($secret);
-
             try {
-                $session = Session::retrieve($sessionId);
+                $session = \Stripe\Checkout\Session::retrieve($sessionId);
 
                 if ($session->payment_status === 'paid') {
-                    DB::transaction(function () use ($sessionId, $session) {
-                        $payment = Payment::where('stripe_session_id', $sessionId)
-                            ->lockForUpdate()
-                            ->first();
-
-                        if (! $payment || $payment->status === 'paid') {
-                            return;
-                        }
-
-                        $payment->update([
-                            'status' => 'paid',
-                            'payment_intent_id' => $session->payment_intent ?? null,
-                            'paid_at' => Carbon::now(),
-                        ]);
-
-                        $payment->reservation()->update(['reservation_status' => 'booked']);
-                    });
+                    $this->stripePaymentService->markSessionPaid($sessionId, $session->payment_intent ?? null);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Stripe session retrieval failed on success redirect', ['error' => $e->getMessage()]);
@@ -198,121 +102,13 @@ class PaymentController extends Controller
             ->with('ok', 'Payment completed! Your reservation is confirmed.');
     }
 
-    /**
-     * Stripe redirects here when the user cancels on the checkout page.
-     * Marks the pending payment as canceled; reservation stays pending so the user can retry.
-     */
-    public function cancel(Request $request, Reservation $reservation)
+    public function cancel(Reservation $reservation)
     {
         $this->authorize('pay', $reservation);
 
-        $reservation->payments()
-            ->where('status', 'pending')
-            ->latest()
-            ->first()
-            ?->update(['status' => 'canceled']);
+        $this->stripePaymentService->cancelPendingPayment($reservation);
 
         return redirect()->route('reservations.index')
             ->with('warning', 'Payment was canceled. Your reservation slot is held for 30 minutes — you can retry payment from your reservations list.');
-    }
-
-    // -------------------------------------------------------------------------
-    // Private webhook handlers
-    // -------------------------------------------------------------------------
-
-    private function handleSessionCompleted(array $obj): void
-    {
-        $sessionId = $obj['id'] ?? null;
-        if (! $sessionId) {
-            return;
-        }
-
-        DB::transaction(function () use ($obj, $sessionId) {
-            $payment = Payment::where('stripe_session_id', $sessionId)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $payment || $payment->status === 'paid') {
-                return;
-            }
-
-            $payment->update([
-                'status' => 'paid',
-                'payment_intent_id' => $obj['payment_intent'] ?? null,
-                'paid_at' => Carbon::now(),
-            ]);
-
-            $payment->reservation()->update(['reservation_status' => 'booked']);
-        });
-    }
-
-    private function handleSessionExpired(array $obj): void
-    {
-        $sessionId = $obj['id'] ?? null;
-        if (! $sessionId) {
-            return;
-        }
-
-        DB::transaction(function () use ($sessionId) {
-            $payment = Payment::where('stripe_session_id', $sessionId)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $payment || $payment->status !== 'pending') {
-                return;
-            }
-
-            $payment->update(['status' => 'expired']);
-            $payment->reservation()->update([
-                'reservation_status' => 'canceled',
-                'canceled_at' => Carbon::now(),
-            ]);
-        });
-    }
-
-    private function handlePaymentFailed(array $obj): void
-    {
-        $intentId = $obj['id'] ?? null;
-        if (! $intentId) {
-            return;
-        }
-
-        DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', $intentId)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $payment || $payment->status !== 'pending') {
-                return;
-            }
-
-            // Reservation stays pending — user can retry with a new session
-            $payment->update(['status' => 'failed']);
-        });
-    }
-
-    /**
-     * Fallback: Stripe confirms refund completed via webhook.
-     * Handles the case where the RefundService call succeeded but the local
-     * DB update to 'refunded' failed (e.g. process crash after Stripe call).
-     */
-    private function handleChargeRefunded(array $obj): void
-    {
-        $intentId = $obj['payment_intent'] ?? null;
-        if (! $intentId) {
-            return;
-        }
-
-        DB::transaction(function () use ($intentId) {
-            $payment = Payment::where('payment_intent_id', $intentId)
-                ->lockForUpdate()
-                ->first();
-
-            if (! $payment || $payment->status === 'refunded') {
-                return;
-            }
-
-            $payment->update(['status' => 'refunded']);
-        });
     }
 }
