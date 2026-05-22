@@ -17,11 +17,18 @@ class StripePaymentService
     {
         $secret = trim((string) config('services.stripe.secret'));
 
+        if ($secret && str_starts_with($secret, 'sk_')) {
+            Stripe::setApiKey($secret);
+        }
+    }
+
+    private function ensureConfigured(): void
+    {
+        $secret = trim((string) config('services.stripe.secret'));
+
         if (! $secret || ! str_starts_with($secret, 'sk_')) {
             abort(500, 'Stripe secret key is missing or invalid.');
         }
-
-        Stripe::setApiKey($secret);
     }
 
     public function revalidateAvailability(Reservation $reservation): void
@@ -47,6 +54,7 @@ class StripePaymentService
 
     public function createCheckoutSession(Reservation $reservation, string $userEmail): string
     {
+        $this->ensureConfigured();
         $space = $reservation->space;
         $spaceName = $space->name ?? "Space #{$reservation->space_id}";
         $productName = sprintf(
@@ -166,6 +174,7 @@ class StripePaymentService
 
     public function cancelPendingPayment(Reservation $reservation): void
     {
+        $this->ensureConfigured();
         $payment = $reservation->payments()
             ->where('status', 'pending')
             ->latest()
@@ -194,6 +203,7 @@ class StripePaymentService
     // becomes unusable immediately after the reservation is canceled.
     public function expirePendingSessions(Reservation $reservation): void
     {
+        $this->ensureConfigured();
         $payments = $reservation->payments()
             ->where('status', 'pending')
             ->whereNotNull('stripe_session_id')
