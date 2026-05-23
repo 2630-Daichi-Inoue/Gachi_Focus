@@ -22,20 +22,20 @@ class DatabaseSeeder extends Seeder
         $spaces = Space::factory(10)->create();
         // User::factory()->suspended()->create();
 
-        foreach (range(1, 100) as $i) {
-            $user = $users->random();
-            $space = $spaces->random();
-            Reservation::factory()
-                ->for($user, 'user')
-                ->forSpace($space)
-                ->create();
-        }
+        // foreach (range(1, 100) as $i) {
+        //     $user = $users->random();
+        //     $space = $spaces->random();
+        //     Reservation::factory()
+        //         ->for($user, 'user')
+        //         ->forSpace($space)
+        //         ->create();
+        // }
 
-        $reservations = Reservation::inRandomOrder()->limit(50)->get();
-        foreach ($reservations as $reservation) {
-            Review::factory()
-                ->forReservation($reservation)
-                ->create();
-        }
+        // $reservations = Reservation::inRandomOrder()->limit(50)->get();
+        // foreach ($reservations as $reservation) {
+        //     Review::factory()
+        //         ->forReservation($reservation)
+        //         ->create();
+        // }
     }
 }

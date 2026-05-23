@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Payment;
+use App\Models\Reservation;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ExpirePendingPayments extends Command
 {
@@ -16,31 +15,29 @@ class ExpirePendingPayments extends Command
 
     public function handle(): void
     {
-        Log::info('payments:expire-pending started', ['now' => now()->toDateTimeString()]);
-
-        $expiredPayments = Payment::where('status', 'pending')
+        $expiredReservations = Reservation::where('reservation_status', 'pending')
             ->where('created_at', '<', now()->subMinutes(30))
             ->get();
 
-        Log::info('payments:expire-pending found', ['count' => $expiredPayments->count()]);
-
-        foreach ($expiredPayments as $payment) {
-            DB::transaction(function () use ($payment) {
+        foreach ($expiredReservations as $reservation) {
+            DB::transaction(function () use ($reservation) {
                 // Re-fetch with lock to avoid race condition with webhook
-                $locked = Payment::lockForUpdate()->find($payment->id);
-                if (! $locked || $locked->status !== 'pending') {
+                $locked = Reservation::lockForUpdate()->find($reservation->id);
+                if (! $locked || $locked->reservation_status !== 'pending') {
                     return;
                 }
 
-                $locked->update(['status' => 'expired']);
-
-                $locked->reservation()->update([
+                $locked->update([
                     'reservation_status' => 'canceled',
                     'canceled_at' => Carbon::now(),
                 ]);
+
+                $locked->payments()
+                    ->where('status', 'pending')
+                    ->update(['status' => 'expired']);
             });
         }
 
-        $this->info("Expired {$expiredPayments->count()} pending payment(s).");
+        $this->info("Expired {$expiredReservations->count()} pending reservation(s).");
     }
 }
