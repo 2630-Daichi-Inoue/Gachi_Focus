@@ -6,6 +6,7 @@ use App\Models\Payment;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ExpirePendingPayments extends Command
 {
@@ -15,9 +16,13 @@ class ExpirePendingPayments extends Command
 
     public function handle(): void
     {
+        Log::info('payments:expire-pending started', ['now' => now()->toDateTimeString()]);
+
         $expiredPayments = Payment::where('status', 'pending')
             ->where('created_at', '<', now()->subMinutes(30))
             ->get();
+
+        Log::info('payments:expire-pending found', ['count' => $expiredPayments->count()]);
 
         foreach ($expiredPayments as $payment) {
             DB::transaction(function () use ($payment) {
