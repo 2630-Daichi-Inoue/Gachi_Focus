@@ -13,9 +13,6 @@ class NotificationController extends Controller
 {
     use AppliesChronologicalSort;
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $data = $request->merge([
@@ -71,7 +68,6 @@ class NotificationController extends Controller
 
     public function read(Notification $notification)
     {
-        // Ensure the notification belongs to the authenticated user
         if ($notification->user_id !== Auth::id()) {
             abort(403, 'You are not authorized to read this notification.');
         }
@@ -81,53 +77,5 @@ class NotificationController extends Controller
         ]);
 
         return back()->with('ok', 'The notification has been marked as read.');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // Nothing goes here since only admin can create notifications, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store()
-    {
-        // Nothing goes here since only admin can create notifications, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show()
-    {
-        // Nothing goes here since users view notification details in a modal on the index page, and there is no separate page for notification details.
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit()
-    {
-        // Nothing goes here since only admin can edit notifications, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update()
-    {
-        // Nothing goes here since only admin can update notifications, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy()
-    {
-        // Nothing goes here since only admin can delete notifications, and the form is handled in the admin panel.
     }
 }

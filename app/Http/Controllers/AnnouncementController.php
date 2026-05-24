@@ -12,9 +12,6 @@ class AnnouncementController extends Controller
 {
     use AppliesChronologicalSort;
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
 
@@ -62,53 +59,5 @@ class AnnouncementController extends Controller
     private function applySort(Builder $q, ?string $sort): void
     {
         $this->applyChronologicalSort($q, $sort, 'published_at', 'datePastToPresent');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // Nothing goes here since only admin can create announcements, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store()
-    {
-        // Nothing goes here since only admin can create announcements, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show()
-    {
-        // Nothing goes here since users view announcement details in a modal on the index page, and there is no separate page for announcement details.
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit()
-    {
-        // Nothing goes here since only admin can edit announcements, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update()
-    {
-        // Nothing goes here since only admin can update announcements, and the form is handled in the admin panel.
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy()
-    {
-        // Nothing goes here since only admin can delete announcements, and the form is handled in the admin panel.
     }
 }
