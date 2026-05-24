@@ -71,6 +71,7 @@ class SpaceController extends Controller
             ->pluck('prefecture');
 
         $favoriteSpaceIds = Favorite::where('user_id', Auth::id())
+            ->whereIn('space_id', $spaces->pluck('id'))
             ->pluck('space_id');
 
         return Inertia::render('Spaces/Index', [
@@ -154,16 +155,14 @@ class SpaceController extends Controller
 
         $isFavorite = $space->isFavorite();
 
-        $reviews = $space->reviews()
-            ->where('is_public', true)
+        $publicReviews = $space->reviews()->where('is_public', true);
+        $reviewCount = (clone $publicReviews)->count();
+        $avg = (clone $publicReviews)->avg('rating');
+        $averageRating = is_null($avg) ? null : round((float) $avg, 1);
+        $reviews = $publicReviews
             ->with(['user' => fn ($q) => $q->withTrashed()])
             ->latest()
             ->get();
-
-        $reviewCount = $reviews->count();
-
-        $avg = $reviews->avg('rating');
-        $averageRating = is_null($avg) ? null : round($avg, 1);
 
         return Inertia::render('Spaces/Show', [
             'space' => $space,
@@ -200,7 +199,9 @@ class SpaceController extends Controller
             ->where('is_public', true)
             ->with(['user' => fn ($q) => $q->withTrashed()]);
 
-        $allReviews = (clone $baseQuery)->get();
+        $reviewCount = (clone $baseQuery)->count();
+        $avg = (clone $baseQuery)->avg('rating');
+        $averageRating = is_null($avg) ? null : round((float) $avg, 1);
 
         $filteredQuery = clone $baseQuery;
 
@@ -215,10 +216,6 @@ class SpaceController extends Controller
         $filteredReviews = $filteredQuery
             ->paginate($rowsPerPage)
             ->withQueryString();
-
-        $reviewCount = $allReviews->count();
-        $avg = $allReviews->avg('rating');
-        $averageRating = is_null($avg) ? null : round($avg, 1);
 
         return Inertia::render('Spaces/ReviewIndex', [
             'space' => $space,
@@ -235,7 +232,7 @@ class SpaceController extends Controller
         ]);
     }
 
-    public function applyReviewSort($q, ?string $sort): void
+    public function applyReviewSort(Builder $q, ?string $sort): void
     {
         switch ($sort ?? 'rating_high_to_low') {
             case 'rating_high_to_low':

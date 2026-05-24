@@ -97,7 +97,7 @@ class UsersController extends Controller
         Reservation::where('user_id', $user->id)
             ->where('reservation_status', 'booked')
             ->where('started_at', '>', now())
-            ->get()
+            ->cursor()
             ->each(fn ($reservation) => $refundService->refundAndCancel($reservation));
 
         return redirect()->route('admin.users.index')
