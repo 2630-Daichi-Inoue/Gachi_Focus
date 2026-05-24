@@ -107,14 +107,8 @@ Route::middleware(['auth', 'admin'])
         Route::post('/user-notifications/{user}', [NotificationsController::class, 'store'])
             ->name('user-notifications.store');
 
-        Route::get('/contact-notifications/{contact}/create', [NotificationsController::class, 'create'])
-            ->name('contact-notifications.create');
-
-        Route::post('/contact-notifications/{contact}', [NotificationsController::class, 'store'])
-            ->name('contact-notifications.store');
-
     }
-    );
+);
 
 Route::middleware('auth')->group(function () {
 
