@@ -27,7 +27,7 @@
                 <p>{{ $contact->message }}</p>
             </div>
             <div class="modal-footer border-0">
-                @if($contact->read_at === null && $contact->contact_status !== 'canceled')
+                @if($contact->isUnread())
                     <button type="button"
                             class="btn btn-secondary"
                             data-bs-dismiss="modal">Keep it unread.
@@ -38,7 +38,7 @@
                             Mark as read.
                     </button>
                 @endif
-                @if($contact->contact_status === 'canceled')
+                @if($contact->isCanceled())
                     <p>This contact has been canceled by the user.</p>
                 @endif
                 @if($contact->read_at !== null && $contact->contact_status === 'open')

@@ -189,7 +189,7 @@
                         <td>{{ $reservation->quantity }}</td>
 
                         {{-- Total Price (keep as-is to avoid logic impact) --}}
-                        <td>¥ {{ number_format($reservation->total_price_yen) }}</td>
+                        <td>¥ {{ number_format($reservation->amount()) }}</td>
 
                         {{-- Status --}}
                         <td>

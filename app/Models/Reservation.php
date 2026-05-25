@@ -88,32 +88,12 @@ class Reservation extends Model
     | Scopes
     |--------------------------------------------------------------------------
     */
-    public function scopePending($query)
-    {
-        return $query->where('reservation_status', 'pending');
-    }
-
-    public function scopeBooked($query)
-    {
-        return $query->where('reservation_status', 'booked');
-    }
-
-    public function scopeCanceled($query)
-    {
-        return $query->where('reservation_status', 'canceled');
-    }
-
     public function scopeActive($query)
     {
         return $query->where('reservation_status', 'booked')
             ->where('ended_at', '>', now());
     }
 
-    public function scopePast($query)
-    {
-        return $query->where('reservation_status', 'booked')
-            ->where('ended_at', '<=', now());
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -123,16 +103,6 @@ class Reservation extends Model
     public function amount(): int
     {
         return $this->total_price_yen ?? 0;
-    }
-
-    public function displayStatusLabel(): string
-    {
-        return match ($this->reservation_status) {
-            'pending' => 'Pending',
-            'booked' => 'Booked',
-            'canceled' => 'Canceled',
-            default => 'Unknown',
-        };
     }
 
     public function isActive(): bool
@@ -150,7 +120,6 @@ class Reservation extends Model
     public function isReviewable(): bool
     {
         return $this->reservation_status === 'booked'
-            && $this->ended_at->isPast()
-            && ! $this->review;
+            && $this->ended_at->isPast();
     }
 }

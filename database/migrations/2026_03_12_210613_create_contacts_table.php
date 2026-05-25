@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('title', 50);
             $table->text('message');
             $table->string('contact_status', 20)
-                ->default('open'); // 'open', 'closed'
+                ->default('open'); // 'open', 'closed', 'canceled'
             $table->timestamp('read_at')
                 ->nullable();
             $table->timestamp('canceled_at')
