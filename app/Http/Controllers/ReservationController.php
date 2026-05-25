@@ -141,7 +141,7 @@ class ReservationController extends Controller
         }
 
         if ($reservation->reservation_status === 'booked') {
-            if (Carbon::parse($reservation->started_at)->subHour()->lte(now())) {
+            if (! $reservation->isCancelable()) {
                 return back()->with('error', 'You cannot cancel within 1 hour of the reservation start time.');
             }
 

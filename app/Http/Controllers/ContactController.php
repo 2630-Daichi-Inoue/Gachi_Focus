@@ -156,11 +156,11 @@ class ContactController extends Controller
             abort(403, 'You are not authorized to cancel this contact.');
         }
 
-        if ($contact->contact_status === 'closed') {
+        if ($contact->isClosed()) {
             return back()->with('error', 'This contact has already been closed.');
         }
 
-        if ($contact->contact_status === 'canceled') {
+        if ($contact->isCanceled()) {
             return back()->with('error', 'This contact has already been canceled.');
         }
 

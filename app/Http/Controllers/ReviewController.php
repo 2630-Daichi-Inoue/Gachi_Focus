@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreReviewRequest;
 use App\Models\Reservation;
 use App\Models\Review;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -15,7 +14,7 @@ class ReviewController extends Controller
     {
         $this->authorize('review', $reservation);
 
-        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
+        if (! $reservation->isReviewable()) {
             return back()->with('error', 'You can review only completed reservations.');
         }
 
@@ -46,7 +45,7 @@ class ReviewController extends Controller
     {
         $this->authorize('review', $reservation);
 
-        if ($reservation->reservation_status !== 'booked' || Carbon::parse($reservation->ended_at)->isFuture()) {
+        if (! $reservation->isReviewable()) {
             return back()->with('error', 'You can review only completed reservations.');
         }
 
@@ -83,7 +82,7 @@ class ReviewController extends Controller
     {
         $this->authorize('review', $reservation);
 
-        if ($reservation->reservation_status === 'canceled' || Carbon::parse($reservation->ended_at)->isFuture()) {
+        if (! $reservation->isReviewable()) {
             return back()->with('error', 'You can review only completed reservations.');
         }
 

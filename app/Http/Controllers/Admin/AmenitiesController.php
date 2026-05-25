@@ -16,11 +16,6 @@ class AmenitiesController extends Controller
         return view('admin.amenities.index', compact('amenities'));
     }
 
-    public function create()
-    {
-        // Nothing goes here since we will use a modal for creating amenities
-    }
-
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -33,16 +28,6 @@ class AmenitiesController extends Controller
         Amenity::create($data);
 
         return back()->with('ok', 'Successfully added.');
-    }
-
-    public function show()
-    {
-        // Nothing goes here since we will not have a separate page for showing an amenity
-    }
-
-    public function edit()
-    {
-        // Nothing goes here since we will use a modal for editing amenities
     }
 
     public function update(Request $request, Amenity $amenity)

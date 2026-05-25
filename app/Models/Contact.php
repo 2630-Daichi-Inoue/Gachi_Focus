@@ -62,7 +62,7 @@ class Contact extends Model
 
     public function isCanceled(): bool
     {
-        return ! is_null($this->canceled_at);
+        return $this->contact_status === 'canceled';
     }
 
     public function isClosed(): bool

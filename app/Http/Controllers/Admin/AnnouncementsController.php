@@ -112,35 +112,5 @@ class AnnouncementsController extends Controller
             ->with('ok', 'Successfully hidden.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show()
-    {
-        // Nothing goes here since we have a modal to show announcement details in the list page.
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit()
-    {
-        // Nothing goes here since we create a new announcement and hide an old one if needed.
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update()
-    {
-        // Nothing goes here since we create a new announcement and hide an old one if needed.
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy()
-    {
-        // Nothing goes here since we only hide old announcements instead of deleting them.
-    }
 }
+

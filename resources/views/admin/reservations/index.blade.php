@@ -189,13 +189,13 @@
                         <td>{{ $reservation->quantity }}</td>
 
                         {{-- Total Price (keep as-is to avoid logic impact) --}}
-                        <td>¥ {{ number_format($reservation->total_price_yen) }}</td>
+                        <td>¥ {{ number_format($reservation->amount()) }}</td>
 
                         {{-- Status --}}
                         <td>
-                            @if($reservation->reservation_status === 'booked' && $reservation->ended_at >= now())
+                            @if($reservation->isActive())
                                 <span class="text-dark">Booked</span>
-                            @elseif($reservation->reservation_status === 'booked' && $reservation->ended_at < now())
+                            @elseif($reservation->reservation_status === 'booked')
                                 <span class="text-success">Done</span>
                             @elseif($reservation->reservation_status === 'canceled')
                                 <span class="text-danger">Canceled</span>
@@ -215,7 +215,7 @@
                                     </button> --}}
 
                                     {{-- Booked -> Cancel --}}
-                                    @if ($reservation->reservation_status === 'booked' && $reservation->ended_at >= now())
+                                    @if ($reservation->isActive())
                                         <button type="button"
                                                 class="dropdown-item text-danger"
                                                 data-bs-toggle="modal"

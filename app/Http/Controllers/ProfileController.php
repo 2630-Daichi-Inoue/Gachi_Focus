@@ -20,13 +20,7 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         $hasPendingReservations = Reservation::where('user_id', $request->user()->id)
-            ->where(function ($q) {
-                $q->where('reservation_status', 'pending')
-                    ->orWhere(function ($q2) {
-                        $q2->where('reservation_status', 'booked')
-                            ->where('ended_at', '>', now());
-                    });
-            })
+            ->where(fn ($q) => $q->where('reservation_status', 'pending')->orWhere(fn ($q2) => $q2->active()))
             ->exists();
 
         return Inertia::render('Profile/Edit', [
@@ -64,13 +58,7 @@ class ProfileController extends Controller
         $user = $request->user();
 
         $hasPendingReservations = Reservation::where('user_id', $user->id)
-            ->where(function ($q) {
-                $q->where('reservation_status', 'pending')
-                    ->orWhere(function ($q2) {
-                        $q2->where('reservation_status', 'booked')
-                            ->where('ended_at', '>', now());
-                    });
-            })
+            ->where(fn ($q) => $q->where('reservation_status', 'pending')->orWhere(fn ($q2) => $q2->active()))
             ->exists();
 
         if ($hasPendingReservations) {
