@@ -43,8 +43,8 @@ This project is designed as an MVP, focusing on core functionality with room for
 ## Setup
 
 ```bash
-git clone <repository-url>
-cd gachi-focus
+git clone https://github.com/2630-Daichi-Inoue/Gachi_Focus
+cd Gachi_Focus
 
 composer install
 npm install
