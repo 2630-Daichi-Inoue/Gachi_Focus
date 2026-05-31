@@ -31,7 +31,7 @@ This project is designed as an MVP, focusing on core functionality with room for
 
 ## Live Demo
 
-**[https://gachi-focus.up.railway.app/login](https://gachi-focus.up.railway.app/login)**
+https://gachi-focus.up.railway.app/login
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -86,7 +86,7 @@ To also test automatic expiration locally (optional): `php artisan schedule:work
 | Layer | Technology |
 | --- | --- |
 | Backend | Laravel 11 |
-| Frontend | Vue 3 / Inertia.js / Tailwind CSS |
+| Frontend | Vue 3 / Inertia.js / Tailwind CSS (user) / Bootstrap 5 + JavaScript (admin) |
 | Payment | Stripe Checkout (server-side, hosted page) |
 | Database | MySQL (ULID primary keys) |
 | PHP Formatting | Laravel Pint (PSR-12) ✅ |
